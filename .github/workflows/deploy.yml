@@ -1,0 +1,38 @@
+name: Deploy CMDNT Website
+
+on:
+  push:
+    branches: [ main ]
+    
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          clean: true                            # удаляет ненужные файлы (например, артефакты предыдущих запусков)
+          
+      - name: Copy files to server via SCP
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          source: "."
+          target: "/var/www/cmdnt.hhallva.ru" 
+          rm: true 
+          strip_components: 1                   # убирает лишний уровень вложенности (если был)
+          debug: false                          # отключает подробный лог (меньше шума)
+            
+      - name: Reload Caddy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: sudo systemctl reload caddy
+          
+      - name: Verify website is up
+        run: sleep 5 && curl --fail https://cmdnt.hhallva.ru
