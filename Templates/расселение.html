@@ -1,0 +1,931 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расселение - Учет номерного фонда общежития</title>
+    <link rel="icon" href="/cmdnt.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #ffa726;
+            color: white;
+            padding: 1rem;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo {
+            padding: 0.5rem 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.5rem;
+        }
+
+        .sidebar-toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+        }
+
+        .logo p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logo-text {
+            display: block;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .allocation-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #f57c00;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .students-table th,
+        .students-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .students-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .students-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 0.75rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .action-btn.edit {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .action-btn.edit:hover {
+            background: #0b5ed7;
+        }
+
+        .action-btn.delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn.delete:hover {
+            background: #c82333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .unallocated-students {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+        }
+
+        .unallocated-students h4 {
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+
+        .unallocated-students ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .unallocated-students li {
+            color: #856404;
+        }
+
+        .room-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .room-card:hover {
+            border-color: #ffa726;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .room-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .room-capacity {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .student-details h5 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
+        }
+
+        .student-details p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .free-place {
+            padding: 0.75rem;
+            border: 1px dashed #28a745;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            color: #28a745;
+            font-style: italic;
+        }
+
+        .validation-error {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .form-section {
+                padding: 1rem;
+            }
+            .search-filters {
+                flex-direction: column;
+            }
+            .filter-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="sidebar-toggle-btn" id="sidebarCollapse">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+        </div>
+        
+        <div class="logo">
+            <h2 class="logo-text">Общежитие</h2>
+            <p class="logo-text">Система учета</p>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-building"></i>
+                    <span class="nav-text">Структура общежития</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-people"></i>
+                    <span class="nav-text">Управление контингентом</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="bi bi-house-door"></i>
+                    <span class="nav-text">Расселение</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-search"></i>
+                    <span class="nav-text">Поиск</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span class="nav-text">Отчеты</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-gear"></i>
+                    <span class="nav-text">Настройки</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="nav-text">Выйти</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <h1>Расселение студентов</h1>
+            <div class="user-info">
+                <div class="user-avatar">АД</div>
+                <span>Администратор</span>
+            </div>
+        </div>
+
+        <div class="allocation-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Всего студентов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">16</div>
+                    <div class="stat-label">Заселено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Свободно</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">48</div>
+                    <div class="stat-label">Всего мест</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">32</div>
+                    <div class="stat-label">Свободных мест</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Форма расселения</h3>
+                <form id="allocationForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Выберите студента (Тут отображаются только студенты без расселения)</label>
+                                <select class="form-select" id="studentSelect" required>
+                                    <option value="">Выберите студента</option>
+                                    <option value="1">Иванов Иван Иванович (ИВТ-101)</option>
+                                    <option value="2">Петрова Мария Сергеевна (ПИ-102)</option>
+                                    <option value="3">Сидоров Алексей Петрович (ИВТ-101)</option>
+                                    <option value="4">Волкова Анна Игоревна (ПИ-102)</option>
+                                    <option value="5">Зайцев Дмитрий Алексеевич (ИВТ-101)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Выберите этаж (тут отображаются все этажи)</label>
+                                <select class="form-select" id="blockSelect" required>
+                                    <option value="">Выберите этаж</option>
+                                    <option value="101">6 этаж</option>
+                                    <option value="102">7 этаж</option>
+                                    <option value="103">8 этаж</option>
+                                    <option value="104">9 этаж</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Выберите комнату (тут отображаются только свободные блоки выбранного этажа)</label>
+                        <select class="form-select" id="roomSelect" required>
+                            <option value="">Сначала выберите блок</option>
+                        </select>
+                        <div class="validation-error" id="validationError">
+                            Невозможно заселить: комната занята или не соответствует полу студента
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Заселить студента</button>
+                    </div>
+                </form>
+            </div>
+            (Тут можно выселять из любого блока,и заселять, не только из незаполненных)
+            <div class="search-filters">
+               
+                <div class="filter-group">
+                    <label class="form-label">Поиск по ФИО</label>
+                    <input type="text" class="form-control" placeholder="Введите ФИО студента...">
+                </div>
+                <div class="filter-group">
+                    <label class="form-label">Этаж</label>
+                    <select class="form-select">
+                        <option>Все этажи</option>
+                        <option>1 этаж</option>
+                        <option>2 этаж</option>
+                        <option>3 этаж</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="form-label">Блок</label>
+                    <select class="form-select">
+                        <option>Все блоки</option>
+                        <option>Блок 101</option>
+                        <option>Блок 102</option>
+                        <option>Блок 103</option>
+                        <option>Блок 104</option>
+                        <option>Блок 201</option>
+                        <option>Блок 202</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Блок 101 -->
+            <div class="room-card">
+                <div class="room-header">
+                    <div class="room-number">Блок 101</div>
+                    <div class="room-capacity">Мужской, 5 мест (занято 4/5)</div>
+                </div>
+                
+                <div class="room-section">
+                    <h5>Комната 2 человека</h5>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">ИИ</div>
+                            <div class="student-details">
+                                <h5>Иванов Иван Иванович</h5>
+                                <p>Группа: ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn delete">Выселить</button>
+                        </div>
+                    </div>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">ПП</div>
+                            <div class="student-details">
+                                <h5>Петров Петр Петрович</h5>
+                                <p>Группа: ПИ-102, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn delete">Выселить</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="room-section">
+                    <h5>Комната 3 человека</h5>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">СС</div>
+                            <div class="student-details">
+                                <h5>Сидоров Сидор Сидорович</h5>
+                                <p>Группа: ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn delete">Выселить</button>
+                        </div>
+                    </div>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">ВВ</div>
+                            <div class="student-details">
+                                <h5>Волков Владимир Владимирович</h5>
+                                <p>Группа: ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn delete">Выселить</button>
+                        </div>
+                    </div>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок 102 -->
+            <div class="room-card">
+                <div class="room-header">
+                    <div class="room-number">Блок 102</div>
+                    <div class="room-capacity">Женский, 5 мест (занято 2/5)</div>
+                </div>
+                
+                <div class="room-section">
+                    <h5>Комната 2 человека</h5>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">ИА</div>
+                            <div class="student-details">
+                                <h5>Иванова Анна Ивановна</h5>
+                                <p>Группа: ПИ-102, 1 курс</p>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn delete">Выселить</button>
+                        </div>
+                    </div>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                </div>
+                
+                <div class="room-section">
+                    <h5>Комната 3 человека</h5>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок 103 -->
+            <div class="room-card">
+                <div class="room-header">
+                    <div class="room-number">Блок 103</div>
+                    <div class="room-capacity">Мужской, 5 мест (занято 2/5)</div>
+                </div>
+                
+                <div class="room-section">
+                    <h5>Комната 2 человека</h5>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">НН</div>
+                            <div class="student-details">
+                                <h5>Новиков Никита Николаевич</h5>
+                                <p>Группа: ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn delete">Выселить</button>
+                        </div>
+                    </div>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                </div>
+                
+                <div class="room-section">
+                    <h5>Комната 3 человека</h5>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                    <div class="free-place">
+                        Свободное место
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Функциональность для бокового меню
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+
+        sidebarCollapse.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // Меняем иконку при сворачивании/разворачивании
+            const icon = this.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.remove('bi-chevron-double-left');
+                icon.classList.add('bi-chevron-double-right');
+            } else {
+                icon.classList.remove('bi-chevron-double-right');
+                icon.classList.add('bi-chevron-double-left');
+            }
+        });
+
+        // Обработка выбора блока для динамического обновления комнат
+        document.getElementById('blockSelect').addEventListener('change', function() {
+            const roomSelect = document.getElementById('roomSelect');
+            const selectedBlock = this.value;
+            
+            // Очищаем список комнат
+            roomSelect.innerHTML = '<option value="">Выберите комнату</option>';
+            
+            if (selectedBlock) {
+                // Добавляем комнаты в зависимости от выбранного блока
+                if (selectedBlock === '101' || selectedBlock === '103' || selectedBlock === '201') {
+                    roomSelect.innerHTML += `
+                        <option value="101(2)">Комната 101(2) - 2 места (занято 1/2)</option>
+                        <option value="101(3)">Комната 101(3) - 3 места (занято 1/3)</option>
+                    `;
+                } else if (selectedBlock === '102' || selectedBlock === '202') {
+                    roomSelect.innerHTML += `
+                        <option value="102(2)">Комната 102(2) - 2 места (занято 1/2)</option>
+                        <option value="102(3)">Комната 102(3) - 3 места (свободно 0/3)</option>
+                    `;
+                } else {
+                    roomSelect.innerHTML += `
+                        <option value="104(2)">Комната 104(2) - 2 места (свободно 0/2)</option>
+                        <option value="104(3)">Комната 104(3) - 3 места (свободно 0/3)</option>
+                    `;
+                }
+            }
+        });
+
+        // Валидация формы расселения
+        document.getElementById('allocationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const studentSelect = document.getElementById('studentSelect');
+            const blockSelect = document.getElementById('blockSelect');
+            const roomSelect = document.getElementById('roomSelect');
+            const validationError = document.getElementById('validationError');
+            
+            // Простая валидация
+            if (!studentSelect.value || !blockSelect.value || !roomSelect.value) {
+                validationError.style.display = 'block';
+                validationError.textContent = 'Пожалуйста, заполните все поля';
+                return;
+            }
+            
+            // Проверка совместимости пола студента и блока
+            const studentGender = studentSelect.options[studentSelect.selectedIndex].text.includes('(ПИ-') ? 'женский' : 'мужской';
+            const blockGender = blockSelect.options[blockSelect.selectedIndex].text.includes('Женский') ? 'женский' : 'мужской';
+            
+            if (studentGender !== blockGender) {
+                validationError.style.display = 'block';
+                validationError.textContent = 'Невозможно заселить: студент и блок имеют разный пол';
+                return;
+            }
+            
+            // Проверка наличия свободных мест
+            const selectedRoom = roomSelect.value;
+            const roomCapacity = selectedRoom.includes('(2)') ? 2 : 3;
+            const roomOccupied = selectedRoom.includes('занято 1/') ? 1 : (selectedRoom.includes('свободно 0/') ? 0 : 0);
+            
+            if (roomOccupied >= roomCapacity) {
+                validationError.style.display = 'block';
+                validationError.textContent = 'Невозможно заселить: комната полностью занята';
+                return;
+            }
+            
+            // Если все проверки пройдены
+            validationError.style.display = 'none';
+            alert('Студент успешно заселен!');
+            this.reset();
+        });
+
+        // Добавим функциональность для активных ссылок
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Убираем активный класс со всех ссылок
+                document.querySelectorAll('.nav-link').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Добавляем активный класс к текущей ссылке
+                this.classList.add('active');
+                
+                // Здесь будет логика переключения контента
+                console.log('Переход к разделу:', this.textContent.trim());
+            });
+        });
+    </script>
+</body>
+</html>
+```

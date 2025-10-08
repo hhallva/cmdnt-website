@@ -1,0 +1,995 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск - Учет номерного фонда общежития</title>
+    <link rel="icon" href="/cmdnt.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #ffa726;
+            color: white;
+            padding: 1rem;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo {
+            padding: 0.5rem 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.5rem;
+        }
+
+        .sidebar-toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+        }
+
+        .logo p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logo-text {
+            display: block;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #f57c00;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+
+        .results-section {
+            margin-top: 2rem;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .results-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .results-count {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .student-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .student-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-color: #ffa726;
+        }
+
+        .student-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .student-info h3 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+
+        .student-info p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .student-details {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .detail-value {
+            color: #6c757d;
+            text-align: right;
+        }
+
+        .student-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .action-btn.view {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .action-btn.view:hover {
+            background: #0b5ed7;
+        }
+
+        .action-btn.edit {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .action-btn.edit:hover {
+            background: #e0a800;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ced4da;
+        }
+
+        .no-results h3 {
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+
+        .advanced-search-toggle {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #ffa726;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn:hover {
+            color: #f57c00;
+            text-decoration: underline;
+        }
+
+        .quick-search {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-search-btn {
+            background: #e9ecef;
+            border: none;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .quick-search-btn:hover {
+            background: #dee2e6;
+        }
+
+        .quick-search-btn.active {
+            background: #ffa726;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .search-filters {
+                grid-template-columns: 1fr;
+            }
+            .students-grid {
+                grid-template-columns: 1fr;
+            }
+            .quick-search {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="sidebar-toggle-btn" id="sidebarCollapse">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+        </div>
+        
+        <div class="logo">
+            <h2 class="logo-text">Общежитие</h2>
+            <p class="logo-text">Система учета</p>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-building"></i>
+                    <span class="nav-text">Структура общежития</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-people"></i>
+                    <span class="nav-text">Управление контингентом</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-house-door"></i>
+                    <span class="nav-text">Расселение</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="bi bi-search"></i>
+                    <span class="nav-text">Поиск</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span class="nav-text">Отчеты</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-gear"></i>
+                    <span class="nav-text">Настройки</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="nav-text">Выйти</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <h1>Поиск студентов</h1>
+            <div class="user-info">
+                <div class="user-avatar">АД</div>
+                <span>Администратор</span>
+            </div>
+        </div>
+
+        <div class="search-section">
+(По факту это вкладка Студенты в Управлении контингентом, целиком можно перенести)
+
+            <div class="search-form">
+                <h3>Быстрый поиск</h3>
+                <div class="form-group">
+                    <label class="form-label">Поиск по ФИО, группе или номеру телефона</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Введите запрос для поиска...">
+                        <button class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>
+                            Найти
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="advanced-search-toggle">
+                    <button class="toggle-btn" id="toggleAdvancedSearch">
+                        <i class="bi bi-chevron-down"></i>
+                        Расширенный поиск
+                    </button>
+                </div>
+                
+                <div id="advancedSearch" style="display: none;">
+                    <div class="search-filters">
+                        <div class="filter-group">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" class="form-control" placeholder="Введите фамилию">
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Имя</label>
+                            <input type="text" class="form-control" placeholder="Введите имя">
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Отчество</label>
+                            <input type="text" class="form-control" placeholder="Введите отчество">
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Группа</label>
+                            <select class="form-select">
+                                <option value="">Все группы</option>
+                                <option value="ИВТ-101">ИВТ-101</option>
+                                <option value="ПИ-102">ПИ-102</option>
+                                <option value="ИВТ-102">ИВТ-102</option>
+                                <option value="ПИ-101">ПИ-101</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Курс</label>
+                            <select class="form-select">
+                                <option value="">Все курсы</option>
+                                <option value="1">1 курс</option>
+                                <option value="2">2 курс</option>
+                                <option value="3">3 курс</option>
+                                <option value="4">4 курс</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Пол</label>
+                            <select class="form-select">
+                                <option value="">Любой пол</option>
+                                <option value="мужской">Мужской</option>
+                                <option value="женский">Женский</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Блок</label>
+                            <select class="form-select">
+                                <option value="">Все блоки</option>
+                                <option value="101">Блок 101</option>
+                                <option value="102">Блок 102</option>
+                                <option value="103">Блок 103</option>
+                                <option value="104">Блок 104</option>
+                                <option value="201">Блок 201</option>
+                                <option value="202">Блок 202</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Этаж</label>
+                            <select class="form-select">
+                                <option value="">Все этажи</option>
+                                <option value="1">1 этаж</option>
+                                <option value="2">2 этаж</option>
+                                <option value="3">3 этаж</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-secondary me-2">Сбросить</button>
+                        <button class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>
+                            Поиск
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-search">
+                <button class="quick-search-btn active">Все студенты (24)</button>
+                <button class="quick-search-btn">Заселенные (16)</button>
+                <button class="quick-search-btn">Свободные (8)</button>
+                <button class="quick-search-btn">Мужчины (12)</button>
+                <button class="quick-search-btn">Женщины (12)</button>
+            </div>
+
+            <div class="results-section">
+                <div class="results-header">
+                    <h2 class="results-title">Результаты поиска</h2>
+                    <div class="results-count">Найдено: 24 студента</div>
+                </div>
+                
+                <div class="students-grid">
+                    <!-- Карточка студента 1 -->
+                    <div class="student-card">
+                        <div class="student-header">
+                            <div class="student-avatar">ИИ</div>
+                            <div class="student-info">
+                                <h3>Иванов Иван Иванович</h3>
+                                <p>ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        
+                        <div class="student-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Пол:</span>
+                                <span class="detail-value">Мужской</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Блок:</span>
+                                <span class="detail-value">101 (комната 2)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Телефон:</span>
+                                <span class="detail-value">+7 (999) 123-45-67</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">ivanov@example.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="student-actions">
+                            <button class="action-btn view">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр
+                            </button>
+                            <button class="action-btn edit">
+                                <i class="bi bi-pencil me-1"></i>
+                                Редактировать
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Карточка студента 2 -->
+                    <div class="student-card">
+                        <div class="student-header">
+                            <div class="student-avatar">ПП</div>
+                            <div class="student-info">
+                                <h3>Петрова Мария Сергеевна</h3>
+                                <p>ПИ-102, 1 курс</p>
+                            </div>
+                        </div>
+                        
+                        <div class="student-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Пол:</span>
+                                <span class="detail-value">Женский</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Блок:</span>
+                                <span class="detail-value">102 (комната 2)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Телефон:</span>
+                                <span class="detail-value">+7 (999) 987-65-43</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">petrova@example.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="student-actions">
+                            <button class="action-btn view">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр
+                            </button>
+                            <button class="action-btn edit">
+                                <i class="bi bi-pencil me-1"></i>
+                                Редактировать
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Карточка студента 3 -->
+                    <div class="student-card">
+                        <div class="student-header">
+                            <div class="student-avatar">СС</div>
+                            <div class="student-info">
+                                <h3>Сидоров Алексей Петрович</h3>
+                                <p>ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        
+                        <div class="student-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Пол:</span>
+                                <span class="detail-value">Мужской</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Блок:</span>
+                                <span class="detail-value">101 (комната 3)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Телефон:</span>
+                                <span class="detail-value">+7 (999) 111-22-33</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">sidorov@example.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="student-actions">
+                            <button class="action-btn view">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр
+                            </button>
+                            <button class="action-btn edit">
+                                <i class="bi bi-pencil me-1"></i>
+                                Редактировать
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Карточка студента 4 -->
+                    <div class="student-card">
+                        <div class="student-header">
+                            <div class="student-avatar">ВВ</div>
+                            <div class="student-info">
+                                <h3>Волкова Анна Игоревна</h3>
+                                <p>ПИ-102, 1 курс</p>
+                            </div>
+                        </div>
+                        
+                        <div class="student-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Пол:</span>
+                                <span class="detail-value">Женский</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Блок:</span>
+                                <span class="detail-value">102 (комната 2)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Телефон:</span>
+                                <span class="detail-value">+7 (999) 444-55-66</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">volkova@example.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="student-actions">
+                            <button class="action-btn view">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр
+                            </button>
+                            <button class="action-btn edit">
+                                <i class="bi bi-pencil me-1"></i>
+                                Редактировать
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Карточка студента 5 -->
+                    <div class="student-card">
+                        <div class="student-header">
+                            <div class="student-avatar">ЗД</div>
+                            <div class="student-info">
+                                <h3>Зайцев Дмитрий Алексеевич</h3>
+                                <p>ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        
+                        <div class="student-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Пол:</span>
+                                <span class="detail-value">Мужской</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Блок:</span>
+                                <span class="detail-value">101 (комната 2)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Телефон:</span>
+                                <span class="detail-value">+7 (999) 777-88-99</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">zaitsev@example.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="student-actions">
+                            <button class="action-btn view">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр
+                            </button>
+                            <button class="action-btn edit">
+                                <i class="bi bi-pencil me-1"></i>
+                                Редактировать
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Карточка студента 6 -->
+                    <div class="student-card">
+                        <div class="student-header">
+                            <div class="student-avatar">КК</div>
+                            <div class="student-info">
+                                <h3>Козлова Ксения Андреевна</h3>
+                                <p>ИВТ-102, 1 курс</p>
+                            </div>
+                        </div>
+                        
+                        <div class="student-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Пол:</span>
+                                <span class="detail-value">Женский</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Блок:</span>
+                                <span class="detail-value">102 (комната 3)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Телефон:</span>
+                                <span class="detail-value">+7 (999) 222-33-44</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">kozlova@example.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="student-actions">
+                            <button class="action-btn view">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр
+                            </button>
+                            <button class="action-btn edit">
+                                <i class="bi bi-pencil me-1"></i>
+                                Редактировать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Функциональность для бокового меню
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+
+        sidebarCollapse.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // Меняем иконку при сворачивании/разворачивании
+            const icon = this.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.remove('bi-chevron-double-left');
+                icon.classList.add('bi-chevron-double-right');
+            } else {
+                icon.classList.remove('bi-chevron-double-right');
+                icon.classList.add('bi-chevron-double-left');
+            }
+        });
+
+        // Переключение расширенного поиска
+        document.getElementById('toggleAdvancedSearch').addEventListener('click', function() {
+            const advancedSearch = document.getElementById('advancedSearch');
+            const icon = this.querySelector('i');
+            
+            if (advancedSearch.style.display === 'none') {
+                advancedSearch.style.display = 'block';
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-up');
+            } else {
+                advancedSearch.style.display = 'none';
+                icon.classList.remove('bi-chevron-up');
+                icon.classList.add('bi-chevron-down');
+            }
+        });
+
+        // Функциональность быстрых кнопок поиска
+        document.querySelectorAll('.quick-search-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                // Убираем активный класс со всех кнопок
+                document.querySelectorAll('.quick-search-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Добавляем активный класс к текущей кнопке
+                this.classList.add('active');
+                
+                // Здесь будет логика фильтрации результатов
+                console.log('Выбран фильтр:', this.textContent);
+            });
+        });
+
+        // Добавим функциональность для активных ссылок
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Убираем активный класс со всех ссылок
+                document.querySelectorAll('.nav-link').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Добавляем активный класс к текущей ссылке
+                this.classList.add('active');
+                
+                // Здесь будет логика переключения контента
+                console.log('Переход к разделу:', this.textContent.trim());
+            });
+        });
+    </script>
+</body>
+</html>
+```

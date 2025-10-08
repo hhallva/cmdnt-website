@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Структура общежития - Учет номерного фонда общежития</title>
+    <link rel="icon" href="/cmdnt.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #ffa726;
+            color: white;
+            padding: 1rem;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo {
+            padding: 0.5rem 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.5rem;
+        }
+
+        .sidebar-toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+        }
+
+        .logo p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logo-text {
+            display: block;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .dormitory-structure {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tabs {
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #ffa726;
+            color: white;
+            border-bottom: 3px solid #f57c00;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #f57c00;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .floor-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .floor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .floor-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .blocks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .block-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .block-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-color: #ffa726;
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .block-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .block-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-occupied {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-available {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-available-occupied {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .block-type {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+
+        .block-capacity {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .block-occupants {
+            font-size: 0.85rem;
+            color: #495057;
+            line-height: 1.4;
+        }
+
+        .block-occupants strong {
+            color: #2c3e50;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            background: #e9ecef;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .action-btn:hover {
+            background: #dee2e6;
+        }
+
+        .action-btn.primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #f57c00;
+        }
+
+        .management-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .rooms-list {
+            margin-top: 2rem;
+        }
+
+        .room-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            background: white;
+        }
+
+        .room-info h5 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
+        }
+
+        .room-info p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .delete-room-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delete-room-btn:hover {
+            background: #c82333;
+        }
+
+        .add-room-form {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .room-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .room-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .room-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .room-card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .room-card-btn {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .edit-btn {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .blocks-container {
+                grid-template-columns: 1fr;
+            }
+            .search-filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="sidebar-toggle-btn" id="sidebarCollapse">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+        </div>
+        
+        <div class="logo">
+            <h2 class="logo-text">Общежитие</h2>
+            <p class="logo-text">Система учета</p>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="bi bi-building"></i>
+                    <span class="nav-text">Структура общежития</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-people"></i>
+                    <span class="nav-text">Управление контингентом</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-house-door"></i>
+                    <span class="nav-text">Расселение</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-search"></i>
+                    <span class="nav-text">Поиск</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span class="nav-text">Отчеты</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-gear"></i>
+                    <span class="nav-text">Настройки</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="nav-text">Выйти</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <h1>Структура общежития</h1>
+            <div class="user-info">
+                <div class="user-avatar">АД</div>
+                <span>Администратор</span>
+            </div>
+        </div>
+
+        <div class="dormitory-structure">
+            <div class="tabs">
+                <div class="tab active" data-tab="view">Просмотр структуры</div>
+                <div class="tab" data-tab="manage">Управление комнатами</div>
+            </div>
+
+            <!-- Вкладка просмотра структуры -->
+            <div class="tab-content active" id="view-tab">
+                <div class="search-section">
+                    <h3>Поиск по общежитию</h3>
+                    <div class="search-filters">
+                        <div class="filter-group">
+                            <label class="form-label">Поиск по ФИО студента</label>
+                            <input type="text" class="form-control" placeholder="Введите ФИО студента...">
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Этаж</label>
+                            <select class="form-select">
+                                <option>Все этажи</option>
+                                <option>1 этаж</option>
+                                <option>2 этаж</option>
+                                <option>3 этаж</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Блок</label>
+                            <select class="form-select">
+                                <option>Все блоки</option>
+                                <option>Блок 101</option>
+                                <option>Блок 102</option>
+                                <option>Блок 103</option>
+                                <option>Блок 104</option>
+                                <option>Блок 201</option>
+                                <option>Блок 202</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Статус заселения</label>
+                            <select class="form-select">
+                                <option>Все статусы</option>
+                                <option>Занят</option>
+                                <option>Свободен</option>
+                                <option>Частично занят</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-secondary me-2">Сбросить</button>
+                        <button class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>
+                            Найти
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">48</div>
+                        <div class="stat-label">Всего мест</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">32</div>
+                        <div class="stat-label">Занято</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">16</div>
+                        <div class="stat-label">Свободно</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">24</div>
+                        <div class="stat-label">Студентов</div>
+                    </div>
+                </div>
+
+                <!-- Этаж 1 -->
+                <div class="floor-section">
+                    <div class="floor-header">
+                        <h3 class="floor-title">1 этаж</h3>
+                        <div class="floor-stats">
+                            <span class="badge bg-primary">12 мест</span>
+                            <span class="badge bg-success">8 свободно</span>
+                        </div>
+                    </div>
+                    
+                    <div class="blocks-container">
+                        <!-- Блок 101 -->
+                        <div class="block-card" onclick="showBlockDetails('101')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 101</div>
+                                <div class="block-status status-occupied">Занят</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>4/5</strong></div>
+                            <div class="block-occupants">
+                                Иванов И.И., Петров П.П.,<br>
+                                Сидоров С.С., Волков В.В.
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('101')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 102 -->
+                        <div class="block-card" onclick="showBlockDetails('102')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 102</div>
+                                <div class="block-status status-occupied">Занят</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>2/5</strong></div>
+                            <div class="block-occupants">
+                                Иванова А.А., Петрова Б.Б.
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('102')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 103 -->
+                        <div class="block-card" onclick="showBlockDetails('103')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 103</div>
+                                <div class="block-status status-available-occupied">Доступно 3 места</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>2/5</strong></div>
+                            <div class="block-occupants">
+                                Иванов И.И., Петров П.П.
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('103')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 104 -->
+                        <div class="block-card" onclick="showBlockDetails('104')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 104</div>
+                                <div class="block-status status-occupied">Занят</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>5/5</strong></div>
+                            <div class="block-occupants">
+                                Зайцев З.З., Медведев М.М.,<br>
+                                Белов Б.Б., Орлов О.О., Павлов П.П.
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('104')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 105 -->
+                        <div class="block-card" onclick="showBlockDetails('105')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 105</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('105')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 106 -->
+                        <div class="block-card" onclick="showBlockDetails('106')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 106</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('106')">Подробнее</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Этаж 2 -->
+                <div class="floor-section">
+                    <div class="floor-header">
+                        <h3 class="floor-title">2 этаж</h3>
+                        <div class="floor-stats">
+                            <span class="badge bg-primary">16 мест</span>
+                            <span class="badge bg-success">10 свободно</span>
+                        </div>
+                    </div>
+                    
+                    <div class="blocks-container">
+                        <!-- Блок 201 -->
+                        <div class="block-card" onclick="showBlockDetails('201')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 201</div>
+                                <div class="block-status status-occupied">Занят</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>3/5</strong></div>
+                            <div class="block-occupants">
+                                Новиков Н.Н., Соколов С.С.,<br>
+                                Волков В.В.
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('201')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 202 -->
+                        <div class="block-card" onclick="showBlockDetails('202')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 202</div>
+                                <div class="block-status status-occupied">Занят</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>4/5</strong></div>
+                            <div class="block-occupants">
+                                Козлова К.К., Морозова М.М.,<br>
+                                Волкова В.В., Зайцева З.З.
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('202')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 203 -->
+                        <div class="block-card" onclick="showBlockDetails('203')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 203</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('203')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 204 -->
+                        <div class="block-card" onclick="showBlockDetails('204')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 204</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('204')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 205 -->
+                        <div class="block-card" onclick="showBlockDetails('205')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 205</div>
+                                <div class="block-status status-available-occupied">Доступно 2 места</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>3/5</strong></div>
+                            <div class="block-occupants">
+                                Сидоров С.С., Волков В.В., Белов Б.Б.
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('205')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 206 -->
+                        <div class="block-card" onclick="showBlockDetails('206')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 206</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('206')">Подробнее</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Этаж 3 -->
+                <div class="floor-section">
+                    <div class="floor-header">
+                        <h3 class="floor-title">3 этаж</h3>
+                        <div class="floor-stats">
+                            <span class="badge bg-primary">20 мест</span>
+                            <span class="badge bg-success">14 свободно</span>
+                        </div>
+                    </div>
+                    
+                    <div class="blocks-container">
+                        <!-- Блок 301 -->
+                        <div class="block-card" onclick="showBlockDetails('301')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 301</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('301')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 302 -->
+                        <div class="block-card" onclick="showBlockDetails('302')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 302</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('302')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 303 -->
+                        <div class="block-card" onclick="showBlockDetails('303')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 303</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('303')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 304 -->
+                        <div class="block-card" onclick="showBlockDetails('304')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 304</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('304')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 305 -->
+                        <div class="block-card" onclick="showBlockDetails('305')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 305</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Женский, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('305')">Подробнее</button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 306 -->
+                        <div class="block-card" onclick="showBlockDetails('306')">
+                            <div class="block-header">
+                                <div class="block-number">Блок 306</div>
+                                <div class="block-status status-available">Свободен</div>
+                            </div>
+                            <div class="block-type">Мужской, 5 мест</div>
+                            <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                            <div class="block-occupants">
+                                Свободен для заселения
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('306')">Подробнее</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка управления комнатами -->
+            <div class="tab-content" id="manage-tab">
+                <div class="management-section">
+                    <h3>Управление комнатами</h3>
+                    <p>Создание и удаление комнат в общежитии</p>
+                    
+                    <div class="form-section">
+                        <h4>Создать новую комнату</h4>
+                        <form id="createRoomForm">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Этаж</label>
+                                        <select class="form-select" id="floorSelect" required>
+                                            <option value="">Выберите этаж</option>
+                                            <option value="1">1 этаж</option>
+                                            <option value="2">2 этаж</option>
+                                            <option value="3">3 этаж</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Блок</label>
+                                        <select class="form-select" id="blockSelect" required>
+                                            <option value="">Выберите блок</option>
+                                            <option value="101">Блок 101</option>
+                                            <option value="102">Блок 102</option>
+                                            <option value="103">Блок 103</option>
+                                            <option value="104">Блок 104</option>
+                                            <option value="201">Блок 201</option>
+                                            <option value="202">Блок 202</option>
+                                            <option value="301">Блок 301</option>
+                                            <option value="302">Блок 302</option>
+                                            <option value="303">Блок 303</option>
+                                            <option value="304">Блок 304</option>
+                                            <option value="305">Блок 305</option>
+                                            <option value="306">Блок 306</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Тип комнаты</label>
+                                        <select class="form-select" id="roomType" required>
+                                            <option value="">Выберите тип</option>
+                                            <option value="2">Комната на 2 человека</option>
+                                            <option value="3">Комната на 3 человека</option>
+                                            <option value="4">Комната на 4 человека</option>
+                                            <option value="bathroom">Уборная</option>
+                                            <option value="corridor">Коридор</option>
+                                            <option value="entrance">Вход</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Номер комнаты</label>
+                                        <input type="text" class="form-control" id="roomNumber" placeholder="Введите номер комнаты" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Пол (для жилых комнат)</label>
+                                        <select class="form-select" id="roomGender">
+                                            <option value="">Любой пол</option>
+                                            <option value="male">Мужской</option>
+                                            <option value="female">Женский</option>
+                                            <option value="mixed">Смешанный</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-secondary me-2">Отмена</button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Создать комнату
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Существующие комнаты</h4>
+                        <div class="form-group">
+                            <label class="form-label">Фильтр по блоку</label>
+                            <select class="form-select" id="filterBlock">
+                                <option value="">Все блоки</option>
+                                <option value="101">Блок 101</option>
+                                <option value="102">Блок 102</option>
+                                <option value="103">Блок 103</option>
+                                <option value="104">Блок 104</option>
+                                <option value="201">Блок 201</option>
+                                <option value="202">Блок 202</option>
+                                <option value="301">Блок 301</option>
+                                <option value="302">Блок 302</option>
+                                <option value="303">Блок 303</option>
+                                <option value="304">Блок 304</option>
+                                <option value="305">Блок 305</option>
+                                <option value="306">Блок 306</option>
+                            </select>
+                        </div>
+                        
+                        <div class="room-grid">
+                            <!-- Комнаты блока 101 -->
+                            <div class="room-card">
+                                <div class="room-card-header">
+                                    <div class="room-card-title">101(2)</div>
+                                    <div class="room-card-actions">
+                                        <button class="room-card-btn edit-btn" title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="room-card-btn delete-btn" title="Удалить" onclick="deleteRoom('101(2)')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="room-info">
+                                    <h5>Комната на 2 человека</h5>
+                                    <p>Мужская, Блок 101</p>
+                                    <p>Занято: 2/2</p>
+                                </div>
+                            </div>
+                            
+                            <div class="room-card">
+                                <div class="room-card-header">
+                                    <div class="room-card-title">101(3)</div>
+                                    <div class="room-card-actions">
+                                        <button class="room-card-btn edit-btn" title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="room-card-btn delete-btn" title="Удалить" onclick="deleteRoom('101(3)')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="room-info">
+                                    <h5>Комната на 3 человека</h5>
+                                    <p>Мужская, Блок 101</p>
+                                    <p>Занято: 2/3</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Комнаты блока 102 -->
+                            <div class="room-card">
+                                <div class="room-card-header">
+                                    <div class="room-card-title">102(2)</div>
+                                    <div class="room-card-actions">
+                                        <button class="room-card-btn edit-btn" title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="room-card-btn delete-btn" title="Удалить" onclick="deleteRoom('102(2)')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="room-info">
+                                    <h5>Комната на 2 человека</h5>
+                                    <p>Женская, Блок 102</p>
+                                    <p>Занято: 2/2</p>
+                                </div>
+                            </div>
+                            
+                            <div class="room-card">
+                                <div class="room-card-header">
+                                    <div class="room-card-title">102(3)</div>
+                                    <div class="room-card-actions">
+                                        <button class="room-card-btn edit-btn" title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="room-card-btn delete-btn" title="Удалить" onclick="deleteRoom('102(3)')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="room-info">
+                                    <h5>Комната на 3 человека</h5>
+                                    <p>Женская, Блок 102</p>
+                                    <p>Занято: 0/3</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Комнаты блока 103 -->
+                            <div class="room-card">
+                                <div class="room-card-header">
+                                    <div class="room-card-title">103(2)</div>
+                                    <div class="room-card-actions">
+                                        <button class="room-card-btn edit-btn" title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="room-card-btn delete-btn" title="Удалить" onclick="deleteRoom('103(2)')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="room-info">
+                                    <h5>Комната на 2 человека</h5>
+                                    <p>Мужская, Блок 103</p>
+                                    <p>Занято: 0/2</p>
+                                </div>
+                            </div>
+                            
+                            <div class="room-card">
+                                <div class="room-card-header">
+                                    <div class="room-card-title">103(3)</div>
+                                    <div class="room-card-actions">
+                                        <button class="room-card-btn edit-btn" title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="room-card-btn delete-btn" title="Удалить" onclick="deleteRoom('103(3)')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="room-info">
+                                    <h5>Комната на 3 человека</h5>
+                                    <p>Мужская, Блок 103</p>
+                                    <p>Занято: 0/3</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Функциональность для бокового меню
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+
+        sidebarCollapse.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // Меняем иконку при сворачивании/разворачивании
+            const icon = this.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.remove('bi-chevron-double-left');
+                icon.classList.add('bi-chevron-double-right');
+            } else {
+                icon.classList.remove('bi-chevron-double-right');
+                icon.classList.add('bi-chevron-double-left');
+            }
+        });
+
+        // Переключение вкладок
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Убираем активный класс со всех вкладок
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Добавляем активный класс к текущей вкладке
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab') + '-tab';
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Функция для показа деталей блока
+        function showBlockDetails(blockNumber) {
+            alert(`Открытие деталей блока ${blockNumber}`);
+        }
+
+        // Функция для показа действий с блоком
+        function showBlockActions(blockNumber) {
+            event.stopPropagation();
+            alert(`Действия для блока ${blockNumber}\n\nДоступные опции:\n- Просмотр студентов\n- Информация о блоке\n- Замечания/ремонт`);
+        }
+
+        // Функция для удаления комнаты
+        function deleteRoom(roomNumber) {
+            if (confirm(`Вы уверены, что хотите удалить комнату ${roomNumber}? Это действие необратимо.`)) {
+                alert(`Комната ${roomNumber} успешно удалена!`);
+                // Здесь будет логика удаления комнаты
+            }
+        }
+
+        // Обработка формы создания комнаты
+        document.getElementById('createRoomForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const floor = document.getElementById('floorSelect').value;
+            const block = document.getElementById('blockSelect').value;
+            const roomType = document.getElementById('roomType').value;
+            const roomNumber = document.getElementById('roomNumber').value;
+            const roomGender = document.getElementById('roomGender').value;
+            
+            if (!floor || !block || !roomType || !roomNumber) {
+                alert('Пожалуйста, заполните все обязательные поля');
+                return;
+            }
+            
+            alert(`Комната ${roomNumber} успешно создана!\n\nЭтаж: ${floor}\nБлок: ${block}\nТип: ${roomType}\nПол: ${roomGender || 'Не указан'}`);
+            
+            // Сброс формы
+            this.reset();
+        });
+
+        // Фильтрация комнат по блоку
+        document.getElementById('filterBlock').addEventListener('change', function() {
+            const selectedBlock = this.value;
+            alert(`Фильтрация по блоку: ${selectedBlock || 'Все блоки'}`);
+            // Здесь будет логика фильтрации
+        });
+
+        // Добавим функциональность для активных ссылок
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Убираем активный класс со всех ссылок
+                document.querySelectorAll('.nav-link').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Добавляем активный класс к текущей ссылке
+                this.classList.add('active');
+                
+                // Здесь будет логика переключения контента
+                console.log('Переход к разделу:', this.textContent.trim());
+            });
+        });
+    </script>
+</body>
+</html>
