@@ -1,6 +1,5 @@
-using CmdntApi.Data;
+using DataLayer.Data;
 using Microsoft.EntityFrameworkCore;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +12,7 @@ var dbPassword = builder.Configuration["DB_PASSWORD"]
 connectionString = connectionString.Replace("Password=;", $"Password={dbPassword};");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySQL(
-        connectionString
-    )
-);
+    options.UseMySQL(connectionString));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

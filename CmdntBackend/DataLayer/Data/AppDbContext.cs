@@ -1,12 +1,10 @@
-﻿using CmdntApi.Models;
+﻿using DataLayer.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CmdntApi.Data
+namespace DataLayer.Data
 {
     public partial class AppDbContext : DbContext
     {
-        public AppDbContext() { }
-
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public virtual DbSet<Contact> Contacts { get; set; } = null!;

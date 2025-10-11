@@ -1,4 +1,4 @@
-﻿namespace CmdntApi.Models
+﻿namespace DataLayer.Models
 {
     public partial class Contact
     {
