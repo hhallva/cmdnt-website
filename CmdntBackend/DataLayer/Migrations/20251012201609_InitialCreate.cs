@@ -155,10 +155,47 @@ namespace DataLayer.Migrations
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "Note",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    StudentId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Text = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false),
+                    CreateDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Note", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Note_Student",
+                        column: x => x.StudentId,
+                        principalTable: "Student",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Note_User",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Contact_StudentId",
                 table: "Contact",
                 column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Note_StudentId",
+                table: "Note",
+                column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Note_UserId",
+                table: "Note",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Resettlement_RoomId",
@@ -181,6 +218,9 @@ namespace DataLayer.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Contact");
+
+            migrationBuilder.DropTable(
+                name: "Note");
 
             migrationBuilder.DropTable(
                 name: "Resettlement");

@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DataLayer.Data
 {
-    public partial class AppDbContext : DbContext
+    public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
         public virtual DbSet<Contact> Contacts { get; set; } = null!;
 
         public virtual DbSet<Group> Groups { get; set; } = null!;
+
+        public virtual DbSet<Note> Notes { get; set; } = null!;
 
         public virtual DbSet<Role> Roles { get; set; } = null!;
 
@@ -41,6 +41,24 @@ namespace DataLayer.Data
                 entity.ToTable("Group");
 
                 entity.Property(e => e.Name).HasMaxLength(20);
+            });
+
+            modelBuilder.Entity<Note>(entity =>
+            {
+                entity.ToTable("Note");
+
+                entity.Property(e => e.CreateDate);
+                entity.Property(e => e.Text).HasMaxLength(500);
+
+                entity.HasOne(d => d.Student).WithMany(p => p.Notes)
+                    .HasForeignKey(d => d.StudentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Note_Student");
+
+                entity.HasOne(d => d.User).WithMany(p => p.Notes)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Note_User");
             });
 
             modelBuilder.Entity<Role>(entity =>

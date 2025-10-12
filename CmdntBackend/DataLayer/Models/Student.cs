@@ -22,12 +22,12 @@
 
         public string? Origin { get; set; }
 
-
         public virtual Group Group { get; set; } = null!;
 
-        public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
+        public virtual ICollection<Contact> Contacts { get; set; } = [];
 
-        public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
+        public virtual ICollection<Note> Notes { get; set; } = [];
 
+        public virtual ICollection<Room> Rooms { get; set; } = [];
     }
 }

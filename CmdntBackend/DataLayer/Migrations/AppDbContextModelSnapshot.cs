@@ -65,6 +65,35 @@ namespace DataLayer.Migrations
                     b.ToTable("Group", (string)null);
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Note", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Note", (string)null);
+                });
+
             modelBuilder.Entity("DataLayer.Models.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -219,6 +248,25 @@ namespace DataLayer.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("DataLayer.Models.Note", b =>
+                {
+                    b.HasOne("DataLayer.Models.Student", "Student")
+                        .WithMany("Notes")
+                        .HasForeignKey("StudentId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Note_Student");
+
+                    b.HasOne("DataLayer.Models.User", "User")
+                        .WithMany("Notes")
+                        .HasForeignKey("UserId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Note_User");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DataLayer.Models.Student", b =>
                 {
                     b.HasOne("DataLayer.Models.Group", "Group")
@@ -269,6 +317,13 @@ namespace DataLayer.Migrations
             modelBuilder.Entity("DataLayer.Models.Student", b =>
                 {
                     b.Navigation("Contacts");
+
+                    b.Navigation("Notes");
+                });
+
+            modelBuilder.Entity("DataLayer.Models.User", b =>
+                {
+                    b.Navigation("Notes");
                 });
 #pragma warning restore 612, 618
         }
