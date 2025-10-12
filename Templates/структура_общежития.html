@@ -189,6 +189,100 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .search-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #f57c00;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
         .floor-section {
             margin-bottom: 2rem;
             padding: 1.5rem;
@@ -268,7 +362,6 @@
             color: white;
         }
 
-
         .block-type {
             font-size: 0.9rem;
             color: #6c757d;
@@ -322,37 +415,67 @@
             background: #f57c00;
         }
 
-        .stats-header {
+        .room-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .room-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .student-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .stat-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
         }
 
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #ffa726;
-            margin-bottom: 0.25rem;
+        .student-details h5 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
         }
 
-        .stat-label {
+        .student-details p {
+            margin: 0;
+            font-size: 0.8rem;
             color: #6c757d;
-            font-size: 0.9rem;
+        }
+
+        .free-place {
+            padding: 0.75rem;
+            border: 1px dashed #28a745;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            color: #28a745;
+            font-style: italic;
         }
 
         .block-detail-modal {
@@ -425,59 +548,6 @@
             margin-top: 1.5rem;
         }
 
-        .room-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .room-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .student-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            border: 1px solid #e9ecef;
-            border-radius: 5px;
-            margin-bottom: 0.5rem;
-        }
-
-        .student-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .student-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #ffa726;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .student-details h5 {
-            margin: 0 0 0.25rem 0;
-            color: #2c3e50;
-        }
-
-        .student-details p {
-            margin: 0;
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-
         .action-options {
             margin-top: 1.5rem;
             display: grid;
@@ -517,107 +587,6 @@
             color: #6c757d;
         }
 
-        .free-place {
-            padding: 0.75rem;
-            border: 1px dashed #28a745;
-            border-radius: 5px;
-            margin-bottom: 0.5rem;
-            text-align: center;
-            color: #28a745;
-            font-style: italic;
-        }
-
-        .repair-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 3000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .repair-content {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-        }
-
-        .repair-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .repair-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .repair-form .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .repair-form .form-label {
-            font-weight: 500;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .repair-form .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .repair-form .form-select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .repair-form .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .repair-form .btn-primary {
-            background: #ffa726;
-            color: white;
-        }
-
-        .repair-form .btn-primary:hover {
-            background: #f57c00;
-        }
-
-        .repair-form .btn-secondary {
-            background: #6c757d;
-            color: white;
-            margin-left: 0.5rem;
-        }
-
-        .repair-form .btn-secondary:hover {
-            background: #5a6268;
-        }
-
         @media (max-width: 768px) {
             .sidebar {
                 width: 280px;
@@ -632,9 +601,12 @@
             .blocks-container {
                 grid-template-columns: 1fr;
             }
-            .block-detail-content, .repair-content {
+            .block-detail-content {
                 width: 95%;
                 padding: 1rem;
+            }
+            .search-filters {
+                flex-direction: column;
             }
         }
     </style>
@@ -674,12 +646,6 @@
             </li>
             <li class="nav-item">
                 <a href="#" class="nav-link">
-                    <i class="bi bi-search"></i>
-                    <span class="nav-text">Поиск</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
                     <i class="bi bi-file-earmark-text"></i>
                     <span class="nav-text">Отчеты</span>
                 </a>
@@ -710,7 +676,8 @@
         </div>
 
         <div class="dormitory-structure">
-            <div class="stats-grid">
+
+        <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number">48</div>
                     <div class="stat-label">Всего мест</div>
@@ -728,7 +695,58 @@
                     <div class="stat-label">Студентов</div>
                 </div>
             </div>
+        </div>
 
+        <div class="dormitory-structure">
+            <!-- Поисковая секция -->
+            <div class="search-section">
+                <h3>Поиск по общежитию</h3>
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label class="form-label">Поиск по ФИО студента</label>
+                        <input type="text" class="form-control" placeholder="Введите ФИО студента...">
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Этаж</label>
+                        <select class="form-select">
+                            <option>Все этажи</option>
+                            <option>1 этаж</option>
+                            <option>2 этаж</option>
+                            <option>3 этаж</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Блок</label>
+                        <select class="form-select">
+                            <option>Все блоки</option>
+                            <option>Блок 101</option>
+                            <option>Блок 102</option>
+                            <option>Блок 103</option>
+                            <option>Блок 104</option>
+                            <option>Блок 201</option>
+                            <option>Блок 202</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Статус заселения</label>
+                        <select class="form-select">
+                            <option>Все статусы</option>
+                            <option>Занят</option>
+                            <option>Свободен</option>
+                            <option>Частично занят</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-secondary me-2">Сбросить</button>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i>
+                        Найти
+                    </button>
+                </div>
+            </div>
+
+           
             <!-- Этаж 1 -->
             <div class="floor-section">
                 <div class="floor-header">
@@ -782,7 +800,7 @@
                         <div class="block-type">Мужской, 5 мест</div>
                         <div class="block-capacity">Заселено: <strong>2/5</strong></div>
                         <div class="block-occupants">
-                            Свободен для заселения
+                            Иванов И.И., Петров П.П.
                         </div>
                         <div class="action-buttons">
                             <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('103')">Подробнее</button>
@@ -921,12 +939,12 @@
                     <div class="block-card" onclick="showBlockDetails('205')">
                         <div class="block-header">
                             <div class="block-number">Блок 205</div>
-                            <div class="block-status status-available">Свободен</div>
+                            <div class="block-status status-available-occupied">Доступно 2 места</div>
                         </div>
                         <div class="block-type">Мужской, 5 мест</div>
-                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-capacity">Заселено: <strong>3/5</strong></div>
                         <div class="block-occupants">
-                            Свободен для заселения
+                            Сидоров С.С., Волков В.В., Белов Б.Б.
                         </div>
                         <div class="action-buttons">
                             <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('205')">Подробнее</button>
@@ -1105,7 +1123,7 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Иванов Иван Иванович', 'ИВТ-101', '2', 'Иванов И.И.', '8-999-123-45-67', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                     <div class="student-item">
@@ -1117,7 +1135,7 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Петров Петр Петрович', 'ПИ-102', '2', 'Петров П.П.', '8-999-987-65-43', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                 </div>
@@ -1133,7 +1151,7 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Сидоров Сидор Сидорович', 'ИВТ-101', '2', 'Сидоров С.С.', '8-999-111-22-33', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                     <div class="student-item">
@@ -1145,92 +1163,15 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Волков Владимир Владимирович', 'ИВТ-101', '2', 'Волков В.В.', '8-999-444-55-66', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                     <div class="free-place">
-                        Свободное место
+                        Свободное место<br>
+                        (Для команданта доступно нажатие и переход на Расселение с автозаполнением полей)
                     </div>
                 </div>
             </div>
-            
-            <div class="action-options">
-                <div class="action-option" onclick="showRepairForm()">
-                    <i class="bi bi-tools"></i>
-                    <h5>Заявки</h5>
-                    <p>Создать заявку на ремонт</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно формы заявки -->
-    <div class="repair-modal" id="repairModal">
-        <div class="repair-content">
-            <div class="repair-header">
-                <h3 class="repair-title">Заявка на ремонт</h3>
-                <button class="close-btn" onclick="closeRepairModal()">&times;</button>
-            </div>
-            
-            <form class="repair-form" id="repairForm">
-                <div class="form-group">
-                    <label for="blockNumber" class="form-label">Блок</label>
-                    <input type="text" class="form-control" id="blockNumber" value="Блок 101" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="repairType" class="form-label">Тип неисправности</label>
-                    <select class="form-select" id="repairType" required>
-                        <option value="">Выберите тип неисправности</option>
-                        <option value="электрика">Электрика</option>
-                        <option value="сантехника">Сантехника</option>
-                        <option value="отопление">Отопление</option>
-                        <option value="окна-двери">Окна/Двери</option>
-                        <option value="мебель">Мебель</option>
-                        <option value="другое">Другое</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="roomNumber" class="form-label">Номер комнаты</label>
-                    <select class="form-select" id="roomNumber" required>
-                        <option value="">Выберите комнату</option>
-                        <option value="101(2)">101(2) - Комната 2 человека</option>
-                        <option value="101(3)">101(3) - Комната 3 человека</option>
-                        <option value="101(3)">Уборная</option>
-                        <option value="101(3)">Коридор</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="description" class="form-label">Описание проблемы</label>
-                    <textarea class="form-control" id="description" rows="4" placeholder="Опишите подробно проблему..." required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="priority" class="form-label">Приоритет</label>
-                    <select class="form-select" id="priority" required>
-                        <option value="обычный">Обычный</option>
-                        <option value="срочный">Срочный</option>
-                        <option value="аварийный">Аварийный</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="contact" class="form-label">Контактное лицо</label>
-                    <select class="form-select" id="contact" required>
-                        <option value="Иванов И.И.">Иванов И.И. (ИВТ-101)</option>
-                        <option value="Петров П.П.">Петров П.П. (ПИ-102)</option>
-                        <option value="Сидоров С.С.">Сидоров С.С. (ИВТ-101)</option>
-                        <option value="Волков В.В.">Волков В.В. (ИВТ-101)</option>
-                    </select>
-                </div>
-                
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-secondary" onclick="closeRepairModal()">Отмена</button>
-                    <button type="submit" class="btn btn-primary ms-2">Отправить заявку</button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -1267,45 +1208,29 @@
             document.getElementById('blockDetailModal').style.display = 'none';
         }
 
+        // Функция для показа действий с блоком
+        function showBlockActions(blockNumber) {
+            event.stopPropagation();
+            showBlockDetails(blockNumber);
+        }
+
         // Функция для показа формы замечаний/ремонта
         function showRepairForm() {
-            document.getElementById('blockDetailModal').style.display = 'none';
-            document.getElementById('repairModal').style.display = 'flex';
+            alert('Открытие формы для создания заявки на ремонт');
+            closeBlockDetailModal();
         }
 
-        // Функция для закрытия формы ремонта
-        function closeRepairModal() {
-            document.getElementById('repairModal').style.display = 'none';
+        // Функция для показа карточки студента
+        function showStudentCard(name, group, course, head, contact, block) {
+            alert(`Открытие карточки студента: ${name}\nГруппа: ${group}\nКурс: ${course}`);
+            closeBlockDetailModal();
         }
 
-        // Обработка формы заявки
-        document.getElementById('repairForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const repairType = document.getElementById('repairType').value;
-            const roomNumber = document.getElementById('roomNumber').value;
-            const description = document.getElementById('description').value;
-            const priority = document.getElementById('priority').value;
-            const contact = document.getElementById('contact').value;
-            
-            // Здесь будет логика отправки заявки
-            alert(`Заявка на ремонт успешно отправлена!\n\nТип: ${repairType}\nКомната: ${roomNumber}\nОписание: ${description}\nПриоритет: ${priority}\nКонтакт: ${contact}`);
-            
-            // Сброс формы и закрытие модального окна
-            document.getElementById('repairForm').reset();
-            closeRepairModal();
-        });
-
-        // Закрытие модальных окон при клике вне их области
+        // Закрытие модального окна при клике вне его области
         window.onclick = function(event) {
-            const blockModal = document.getElementById('blockDetailModal');
-            const repairModal = document.getElementById('repairModal');
-            
-            if (event.target === blockModal) {
-                blockModal.style.display = 'none';
-            }
-            if (event.target === repairModal) {
-                repairModal.style.display = 'none';
+            const modal = document.getElementById('blockDetailModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
             }
         }
 
