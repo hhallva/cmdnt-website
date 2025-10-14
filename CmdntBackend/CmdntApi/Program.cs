@@ -1,4 +1,6 @@
-using DataLayer.Data;
+﻿using DataLayer.Data;
+using DataLayer.DTOs;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +33,26 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+
+        var exceptionHandler = context.Features.Get<IExceptionHandlerFeature>();
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+        logger.LogError(
+            exceptionHandler?.Error,
+            "Произошло необработанное исключение по пути: {Path}.",
+            exceptionHandler?.Path
+        );
+
+        await context.Response.WriteAsJsonAsync(new ApiErrorDto("Что-то пошло не так...", 500));
+    });
+});
 
 app.Run();
 
