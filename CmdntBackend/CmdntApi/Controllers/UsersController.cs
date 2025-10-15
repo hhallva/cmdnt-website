@@ -2,10 +2,9 @@
 using DataLayer.DTOs;
 using DataLayer.DTOs.User;
 using DataLayer.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace CmdntApi.Controllers
@@ -13,12 +12,17 @@ namespace CmdntApi.Controllers
     [SwaggerTag("Управление пользователями системы")]
     [Route("api/v1/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController(AppDbContext context) : ControllerBase
     {
         private readonly AppDbContext _context = context;
 
         [HttpGet("statistic")]
-        public async Task<ActionResult<IEnumerable<UserStatisticDto>>> GetStatistic()
+        [SwaggerOperation(
+            Summary = "Получение статистики по пользователям",
+            Description = "Возвращает сводную статистику: общее количество пользователей, а также количество администраторов, комендантов и воспитателей.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Статистика успешно получена.", Type = typeof(UserStatisticDto))]
+        public async Task<ActionResult<UserStatisticDto>> GetStatistic()
         {
             var totalUsers = await _context.Users.CountAsync();
 
@@ -46,6 +50,11 @@ namespace CmdntApi.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+            Summary = "Получение списка всех пользователей",
+            Description = "Возвращает полный список пользователей системы.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Список пользователей успешно получен.", Type = typeof(IEnumerable<UserDto>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Пользователи не найдены.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
             var users = await _context.Users
@@ -66,7 +75,13 @@ namespace CmdntApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserDto>> GetUser(int id)
+        [SwaggerOperation(
+            Summary = "Получение пользователя по ID",
+            Description = "Возвращает данные пользователя по его уникальному идентификатору.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Пользователь успешно найден.", Type = typeof(UserDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Пользователь с указанным ID не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<UserDto>> GetUser(
+            [SwaggerParameter(Description = "Уникальный идентификатор пользователя")] int id)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -88,7 +103,16 @@ namespace CmdntApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, PutUserDto dto)
+        [SwaggerOperation(
+            Summary = "Обновление данных пользователя",
+            Description = "Полное обновление данных пользователя (кроме пароля) по его ID.")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Данные пользователя успешно обновлены.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные в запросе.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Пользователь не найден.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Конфликт параллельного редактирования.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> PutUser(
+            [SwaggerParameter(Description = "Уникальный идентификатор пользователя", Required = true)] int id,
+            [SwaggerRequestBody("Данные для обновления пользователя", Required = true)] PutUserDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
@@ -117,7 +141,16 @@ namespace CmdntApi.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> PatchPassword(int id, UpdatePasswordDto dto)
+        [SwaggerOperation(
+            Summary = "Изменение пароля пользователя",
+            Description = "Обновляет хэш пароля пользователя по его ID.")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Пароль успешно изменён.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Пользователь не найден.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Конфликт параллельного редактирования.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> PatchPassword(
+            [SwaggerParameter(Description = "Уникальный идентификатор пользователя", Required = true)] int id,
+            [SwaggerRequestBody("Новый пароль пользователя", Required = true)] UpdatePasswordDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
@@ -142,7 +175,13 @@ namespace CmdntApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserDto>> PostUser(PostUserDto dto)
+        [SwaggerOperation(
+            Summary = "Создание нового пользователя",
+            Description = "Регистрирует нового пользователя в системе с указанием логина, пароля и роли.")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Пользователь успешно создан.", Type = typeof(UserDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации или логин уже занят.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<UserDto>> PostUser(
+            [SwaggerRequestBody("Данные нового пользователя", Required = true)] PostUserDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
@@ -174,14 +213,20 @@ namespace CmdntApi.Controllers
                 Name = user.Name,
                 Patronymic = user.Patronymic,
                 Login = user.Login,
-                HashPassword = user.HashPassword 
+                HashPassword = user.HashPassword
             };
 
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, userDto);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        [SwaggerOperation(
+            Summary = "Удаление пользователя",
+            Description = "Удаляет пользователя из системы. При этом обнуляется ссылка UserId во всех связанных заметках (Note), чтобы сохранить целостность базы данных.")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Пользователь успешно удалён.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Пользователь не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> DeleteUser(
+            [SwaggerParameter("id", Description = "Уникальный идентификатор пользователя")] int id)
         {
             var user = await _context.Users
                  .Include(u => u.Notes)
