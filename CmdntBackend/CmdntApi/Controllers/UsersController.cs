@@ -229,7 +229,6 @@ namespace CmdntApi.Controllers
             [SwaggerParameter("id", Description = "Уникальный идентификатор пользователя")] int id)
         {
             var user = await _context.Users
-                 .Include(u => u.Notes)
                  .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
