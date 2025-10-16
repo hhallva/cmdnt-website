@@ -57,7 +57,7 @@ namespace DataLayer.Data
 
                 entity.HasOne(d => d.User).WithMany(p => p.Notes)
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_Note_User");
             });
 
