@@ -3,6 +3,7 @@ using DataLayer.DTOs;
 using DataLayer.DTOs.Room;
 using DataLayer.DTOs.User;
 using DataLayer.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
@@ -11,6 +12,7 @@ namespace CmdntApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RoomsController(AppDbContext context) : ControllerBase
     {
         private readonly AppDbContext _context = context;
