@@ -86,7 +86,7 @@ namespace CmdntApi.Controllers
             var user = await _context.Users.FindAsync(id);
 
             if (user == null)
-                return NotFound(new ApiErrorDto("Пользователь не найдены", StatusCodes.Status404NotFound));
+                return NotFound(new ApiErrorDto("Пользователь не найден", StatusCodes.Status404NotFound));
 
             var response = new UserDto
             {
