@@ -1,6 +1,7 @@
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box; /* ⚠️ очень важно для адаптивности! */
 }
 
 body {
@@ -11,27 +12,29 @@ body {
     align-items: center;
     background: white;
     color: #333;
-    overflow: hidden;
     position: relative;
 }
 
 .container {
     text-align: center;
-    min-width: 600px;
+    width: 100%;
+    max-width: 800px; /* ограничим на больших экранах */
+    padding: 0 1rem; /* отступы слева/справа на мобильных */
 }
 
 .content {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* для Safari */
     border-radius: 20px;
-    padding: 3rem 2rem;
+    padding: 3rem 6rem;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
     animation: fadeInUp 1s ease-out;
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
     margin-bottom: 1rem;
     color: #2c3e50;
@@ -39,10 +42,10 @@ h1 {
 }
 
 .subtitle {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 400;
-    line-height: 1.6;
-    margin-bottom: 2rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
     color: #5a6c7d;
 }
 
@@ -50,10 +53,11 @@ h1 {
     max-width: 400px;
     margin: 0 auto;
     text-align: left;
+    width: 100%;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .form-label {
@@ -66,6 +70,7 @@ h1 {
 .form-control {
     width: 100%;
     padding: 0.75rem 1rem;
+    padding-left: 2.8rem; /* компенсируем иконку */
     border: 2px solid #e1e8ed;
     border-radius: 10px;
     font-size: 1rem;
@@ -79,9 +84,22 @@ h1 {
     box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
 }
 
+.input-icon {
+    position: relative;
+}
+
+.input-icon i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none; /* чтобы не мешать кликам в поле */
+}
+
 .btn {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.85rem;
     border: none;
     border-radius: 10px;
     font-size: 1.1rem;
@@ -109,43 +127,34 @@ h1 {
     height: 150px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 167, 38, 0.1) 0%, transparent 70%);
-    animation: float 6s ease-in-out infinite;
-}
-
-.decoration:nth-child(1) {
-    top: 10%;
-    left: 5%;
-    animation-delay: 0s;
+    z-index: 0;
 }
 
 .decoration:nth-child(2) {
+     background: radial-gradient(circle, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
+}
+
+/* Позиции декораций — только на больших экранах */
+@media (min-width: 769px) {
+  .decoration:nth-child(1) {
+    top: 10%;
+    left: 5%;
+  }
+  .decoration:nth-child(2) {
     bottom: 15%;
     right: 5%;
-    background: radial-gradient(circle, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
-    animation-delay: 2s;
-}
-
-.decoration:nth-child(3) {
+  }
+  .decoration:nth-child(3) {
     top: 40%;
     left: 10%;
-    background: radial-gradient(circle, rgba(255, 167, 38, 0.1) 0%, transparent 70%);
-    animation-delay: 4s;
+  }
 }
 
-.input-icon {
-    position: relative;
-}
-
-.input-icon i {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #6c757d;
-}
-
-.input-icon .form-control {
-    padding-left: 45px;
+/* Скрыть декорации на мобильных */
+@media (max-width: 768px) {
+  .decoration {
+    display: none;
+  }
 }
 
 .error-message {
@@ -195,17 +204,73 @@ h1 {
     }
 }
 
+/* Адаптация для планшетов и мобильных */
 @media (max-width: 768px) {
-    h1 {
-        font-size: 2rem;
-    }
-    .subtitle {
-        font-size: 1rem;
-    }
-    .content {
-        padding: 2rem 1.5rem;
-    }
-    .login-form {
-        padding: 0 1rem;
-    }
+  body {
+    padding: 1rem;
+    overflow-x: hidden;
+  }
+
+  .container {
+    padding: 0;
+  }
+
+  .content {
+    padding: 2rem 1.25rem;
+    border-radius: 16px;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .login-form {
+    padding: 0;
+  }
+
+  .form-control {
+    padding: 0.7rem 1rem;
+    padding-left: 2.5rem;
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .logo {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Очень маленькие экраны (iPhone SE и т.п.) */
+@media (max-width: 375px) {
+  .content {
+    padding: 1.75rem 1rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .form-label {
+    font-size: 0.95rem;
+  }
+
+  .btn {
+    font-size: 0.95rem;
+  }
 }
