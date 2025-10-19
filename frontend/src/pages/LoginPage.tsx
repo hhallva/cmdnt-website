@@ -46,6 +46,12 @@ const LoginPage: React.FC = () => {
               <label htmlFor="username" className="form-label">
                 Логин
               </label>
+              <div className="form-label-with-error">
+                <label htmlFor="username" className="form-label">Логин</label>
+                {usernameError && (
+                  <div className="error-message-inline">Пожалуйста, введите логин</div>
+                )}
+              </div>
               <div className="input-icon">
                 <i className="bi bi-person"></i>
                 <input
@@ -68,6 +74,13 @@ const LoginPage: React.FC = () => {
               <label htmlFor="password" className="form-label">
                 Пароль (Добавить скрытие отображение пароля)
               </label>
+              <div className="form-label-with-error">
+                <label htmlFor="password" className="form-label">Пароль</label>             
+                {passwordError && (
+                  <div className="error-message-inline">Пожалуйста, введите пароль</div>
+                )}
+              </div>
+
               <div className="input-icon">
                 <i className="bi bi-lock"></i>
                 <input

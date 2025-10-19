@@ -60,12 +60,6 @@ h1 {
     margin-bottom: 1.25rem;
 }
 
-.form-label {
-    font-weight: 500;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-    display: block;
-}
 
 .form-control {
     width: 100%;
@@ -161,7 +155,25 @@ h1 {
     color: #e74c3c;
     font-size: 0.875rem;
     margin-top: 0.25rem;
-    display: none;
+}
+
+.form-label-with-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* расстояние между надписью и ошибкой */
+  margin-bottom: 0.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.error-message-inline {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  white-space: nowrap; /* чтобы текст не переносился */
+  margin-bottom: 0.5rem;
 }
 
 .logo {
