@@ -104,16 +104,14 @@ h1 {
 }
 
 .btn-primary {
-    background: #ffa726;
-    color: white;
     box-shadow: 0 4px 15px rgba(255, 167, 38, 0.3);
 }
 
 .btn-primary:hover {
-    background: #f57c00;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 167, 38, 0.4);
 }
+
 
 .decoration {
     position: absolute;
@@ -286,3 +284,5 @@ h1 {
     font-size: 0.95rem;
   }
 }
+
+
