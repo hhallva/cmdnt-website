@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -125,7 +126,8 @@
             transition: all 0.3s ease;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover,
+        .nav-link.active {
             background: rgba(255, 255, 255, 0.2);
             color: white;
         }
@@ -188,26 +190,155 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .form-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
+        .tabs {
             border-bottom: 2px solid #e9ecef;
+            margin-bottom: 2rem;
         }
 
-        .form-header h2 {
-            font-size: 2rem;
-            font-weight: 600;
+        .tab {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #ffa726;
+            color: white;
+            border-bottom: 3px solid #f57c00;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
             color: #2c3e50;
             margin-bottom: 0.5rem;
+            display: block;
         }
 
-        .form-header p {
-            color: #6c757d;
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #ffa726;
+            box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #ffa726;
+            box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+            min-height: 120px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #ffa726;
+            box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #f57c00;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
         }
 
         .users-table {
@@ -274,107 +405,55 @@
             background: #e0a800;
         }
 
-        .action-btn.view {
-            background: #198754;
-            color: white;
-        }
-
-        .action-btn.view:hover {
-            background: #157347;
-        }
-
-        .form-section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 2rem;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
             margin-bottom: 2rem;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
         }
 
-        .form-label {
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
             font-weight: 500;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            display: block;
         }
 
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #ffa726;
-            box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: #ffa726;
-            box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #ffa726;
+        .badge-admin {
+            background: #6f42c1;
             color: white;
         }
 
-        .btn-primary:hover {
-            background: #f57c00;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
+        .badge-commandant {
+            background: #0d6efd;
             color: white;
         }
 
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn-success {
+        .badge-educator {
             background: #28a745;
             color: white;
         }
 
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .modal {
+        .password-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -387,18 +466,16 @@
             justify-content: center;
         }
 
-        .modal-content {
+        .password-content {
             background: white;
             border-radius: 10px;
             padding: 2rem;
             width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 500px;
             position: relative;
         }
 
-        .modal-header {
+        .password-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -407,11 +484,10 @@
             border-bottom: 1px solid #e9ecef;
         }
 
-        .modal-title {
+        .password-title {
             font-size: 1.5rem;
             font-weight: 600;
             color: #2c3e50;
-            margin: 0;
         }
 
         .close-btn {
@@ -422,58 +498,80 @@
             color: #6c757d;
         }
 
-        .tabs {
-            border-bottom: 2px solid #e9ecef;
-            margin-bottom: 2rem;
-        }
-
-        .tab {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            margin-right: 0.5rem;
-            cursor: pointer;
-            border-radius: 5px 5px 0 0;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            background: #ffa726;
-            color: white;
-            border-bottom: 3px solid #f57c00;
-        }
-
-        .tab:hover:not(.active) {
+        .password-info {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
             background: #f8f9fa;
+            border-radius: 5px;
         }
 
-        .tab-content {
-            display: none;
+        .password-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
         }
 
-        .tab-content.active {
-            display: block;
+        .password-info-label {
+            font-weight: 500;
+            color: #495057;
         }
 
-        .user-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+        .password-info-value {
+            color: #6c757d;
+        }
+
+        .password-form .form-group {
             margin-bottom: 1.5rem;
         }
 
-        .info-item {
-            margin-bottom: 0.75rem;
-        }
-
-        .info-item-label {
+        .password-form .form-label {
             font-weight: 500;
-            color: #495057;
-            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
         }
 
-        .info-item-value {
-            color: #6c757d;
+        .password-form .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
             font-size: 1rem;
+        }
+
+        .password-form .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .password-form .btn-primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .password-form .btn-primary:hover {
+            background: #f57c00;
+        }
+
+        .password-form .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-right: 0.5rem;
+        }
+
+        .password-form .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .current-password {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 5px;
+            word-break: break-all;
         }
 
         .password-strength {
@@ -516,34 +614,51 @@
                 width: 280px;
                 transform: translateX(-100%);
             }
+
             .sidebar.active {
                 transform: translateX(0);
             }
+
+            .sidebar.collapsed {
+                width: 80px;
+            }
+
+            .sidebar.collapsed .nav-text {
+                display: none;
+            }
+
+            .sidebar.collapsed .logo-text {
+                display: none;
+            }
+
             .main-content {
                 margin-left: 0;
             }
+
+            .main-content.expanded {
+                margin-left: 0;
+            }
+
             .users-table {
                 font-size: 0.8rem;
             }
+
             .users-table th,
             .users-table td {
                 padding: 0.5rem;
             }
+
             .action-buttons {
                 flex-direction: column;
-                gap: 0.25rem;
             }
+
             .action-btn {
-                width: 100%;
-                font-size: 0.7rem;
-                padding: 0.25rem 0.5rem;
-            }
-            .user-info-grid {
-                grid-template-columns: 1fr;
+                margin-bottom: 0.25rem;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Боковое меню -->
     <div class="sidebar" id="sidebar">
@@ -552,16 +667,11 @@
                 <i class="bi bi-chevron-double-left"></i>
             </button>
         </div>
-        
-        <div class="logo">
-            <h2 class="logo-text">Общежитие</h2>
-            <p class="logo-text">Система учета</p>
-        </div>
-        
+
         <ul class="nav-menu">
             <li class="nav-item">
                 <a href="#" class="nav-link">
-                    <i class="bi bi-building"></i>
+                    <i class="bi bi-layout-wtf"></i>
                     <span class="nav-text">Структура общежития</span>
                 </a>
             </li>
@@ -579,12 +689,6 @@
             </li>
             <li class="nav-item">
                 <a href="#" class="nav-link">
-                    <i class="bi bi-search"></i>
-                    <span class="nav-text">Поиск</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
                     <i class="bi bi-file-earmark-text"></i>
                     <span class="nav-text">Отчеты</span>
                 </a>
@@ -593,12 +697,6 @@
                 <a href="#" class="nav-link active">
                     <i class="bi bi-people-fill"></i>
                     <span class="nav-text">Пользователи</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-gear"></i>
-                    <span class="nav-text">Настройки</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -613,6 +711,44 @@
     <!-- Основной контент -->
     <div class="main-content" id="mainContent">
         <div class="header">
+            <h1>(Выбранная вкладка)</h1>
+            <div class="user-info">
+                <div class="user-avatar">(Инифиалы пользователя в формате ИФ)</div>
+                <span>(роль пользователя)</span>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Функциональность для бокового меню
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+
+        sidebarCollapse.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+
+            // Меняем иконку при сворачивании/разворачивании
+            const icon = this.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.remove('bi-chevron-double-left');
+                icon.classList.add('bi-chevron-double-right');
+            } else {
+                icon.classList.remove('bi-chevron-double-right');
+                icon.classList.add('bi-chevron-double-left');
+            }
+        });
+    </script>
+</body>
+
+</html>
+
+<!-- Основной контент -->
+<!-- <div class="main-content" id="mainContent">
+        <div class="header">
             <h1>Управление пользователями</h1>
             <div class="user-info">
                 <div class="user-avatar">АД</div>
@@ -621,9 +757,23 @@
         </div>
 
         <div class="users-management">
-            <div class="form-header">
-                <h2>Управление пользователями системы</h2>
-                <p>Вы можете добавлять, редактировать, удалять пользователей и изменять их пароли</p>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Всего пользователей</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Администраторы</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Коменданты</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Воспитатели</div>
+                </div>
             </div>
 
             <div class="tabs">
@@ -631,8 +781,47 @@
                 <div class="tab" data-tab="add">Добавить пользователя</div>
             </div>
 
-            <!-- Список пользователей -->
             <div class="tab-content active" id="list-tab">
+                <div class="form-section">
+                    <h3>Поиск пользователей</h3>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Поиск по ФИО</label>
+                                <input type="text" class="form-control" placeholder="Введите ФИО пользователя...">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Роль</label>
+                                <select class="form-select">
+                                    <option>Все роли</option>
+                                    <option>Администратор</option>
+                                    <option>Комендант</option>
+                                    <option>Воспитатель</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Статус</label>
+                                <select class="form-select">
+                                    <option>Все статусы</option>
+                                    <option>Активен</option>
+                                    <option>Неактивен</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-secondary me-2">Сбросить</button>
+                        <button class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>
+                            Найти
+                        </button>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="users-table">
                         <thead>
@@ -650,22 +839,20 @@
                             <tr>
                                 <td>Иванов Александр Петрович</td>
                                 <td>admin_ivanov</td>
-                                <td>Администратор</td>
+                                <td><span class="role-badge badge-admin">Администратор</span></td>
                                 <td>ivanov.ap@admin.edu.ru</td>
                                 <td>+7 (999) 123-45-67</td>
                                 <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn view" onclick="viewUser('Иванов Александр Петрович')">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
                                         <button class="action-btn edit" onclick="editUser('Иванов Александр Петрович')">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button class="action-btn password" onclick="changePassword('admin_ivanov')">
                                             <i class="bi bi-key"></i>
                                         </button>
-                                        <button class="action-btn delete" onclick="deleteUser('Иванов Александр Петрович')">
+                                        <button class="action-btn delete"
+                                            onclick="deleteUser('Иванов Александр Петрович')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -674,22 +861,21 @@
                             <tr>
                                 <td>Петрова Мария Сергеевна</td>
                                 <td>commandant_petrova</td>
-                                <td>Комендант</td>
+                                <td><span class="role-badge badge-commandant">Комендант</span></td>
                                 <td>petrova.ms@commandant.edu.ru</td>
                                 <td>+7 (999) 987-65-43</td>
                                 <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn view" onclick="viewUser('Петрова Мария Сергеевна')">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
                                         <button class="action-btn edit" onclick="editUser('Петрова Мария Сергеевна')">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="action-btn password" onclick="changePassword('commandant_petrova')">
+                                        <button class="action-btn password"
+                                            onclick="changePassword('commandant_petrova')">
                                             <i class="bi bi-key"></i>
                                         </button>
-                                        <button class="action-btn delete" onclick="deleteUser('Петрова Мария Сергеевна')">
+                                        <button class="action-btn delete"
+                                            onclick="deleteUser('Петрова Мария Сергеевна')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -698,22 +884,22 @@
                             <tr>
                                 <td>Сидоров Дмитрий Александрович</td>
                                 <td>educator_sidorov</td>
-                                <td>Воспитатель</td>
+                                <td><span class="role-badge badge-educator">Воспитатель</span></td>
                                 <td>sidorov.da@educator.edu.ru</td>
                                 <td>+7 (999) 111-22-33</td>
                                 <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn view" onclick="viewUser('Сидоров Дмитрий Александрович')">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button class="action-btn edit" onclick="editUser('Сидоров Дмитрий Александрович')">
+                                        <button class="action-btn edit"
+                                            onclick="editUser('Сидоров Дмитрий Александрович')">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="action-btn password" onclick="changePassword('educator_sidorov')">
+                                        <button class="action-btn password"
+                                            onclick="changePassword('educator_sidorov')">
                                             <i class="bi bi-key"></i>
                                         </button>
-                                        <button class="action-btn delete" onclick="deleteUser('Сидоров Дмитрий Александрович')">
+                                        <button class="action-btn delete"
+                                            onclick="deleteUser('Сидоров Дмитрий Александрович')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -722,22 +908,20 @@
                             <tr>
                                 <td>Козлова Анна Владимировна</td>
                                 <td>admin_kozlova</td>
-                                <td>Администратор</td>
+                                <td><span class="role-badge badge-admin">Администратор</span></td>
                                 <td>kozlova.av@admin.edu.ru</td>
                                 <td>+7 (999) 444-55-66</td>
                                 <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn view" onclick="viewUser('Козлова Анна Владимировна')">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
                                         <button class="action-btn edit" onclick="editUser('Козлова Анна Владимировна')">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button class="action-btn password" onclick="changePassword('admin_kozlova')">
                                             <i class="bi bi-key"></i>
                                         </button>
-                                        <button class="action-btn delete" onclick="deleteUser('Козлова Анна Владимировна')">
+                                        <button class="action-btn delete"
+                                            onclick="deleteUser('Козлова Анна Владимировна')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -746,22 +930,21 @@
                             <tr>
                                 <td>Волков Сергей Иванович</td>
                                 <td>commandant_volkov</td>
-                                <td>Комендант</td>
+                                <td><span class="role-badge badge-commandant">Комендант</span></td>
                                 <td>volkov.si@commandant.edu.ru</td>
                                 <td>+7 (999) 777-88-99</td>
                                 <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn view" onclick="viewUser('Волков Сергей Иванович')">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
                                         <button class="action-btn edit" onclick="editUser('Волков Сергей Иванович')">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="action-btn password" onclick="changePassword('commandant_volkov')">
+                                        <button class="action-btn password"
+                                            onclick="changePassword('commandant_volkov')">
                                             <i class="bi bi-key"></i>
                                         </button>
-                                        <button class="action-btn delete" onclick="deleteUser('Волков Сергей Иванович')">
+                                        <button class="action-btn delete"
+                                            onclick="deleteUser('Волков Сергей Иванович')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -770,22 +953,21 @@
                             <tr>
                                 <td>Морозова Елена Васильевна</td>
                                 <td>educator_morozova</td>
-                                <td>Воспитатель</td>
+                                <td><span class="role-badge badge-educator">Воспитатель</span></td>
                                 <td>morozova.ev@educator.edu.ru</td>
                                 <td>+7 (999) 222-33-44</td>
                                 <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn view" onclick="viewUser('Морозова Елена Васильевна')">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
                                         <button class="action-btn edit" onclick="editUser('Морозова Елена Васильевна')">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="action-btn password" onclick="changePassword('educator_morozova')">
+                                        <button class="action-btn password"
+                                            onclick="changePassword('educator_morozova')">
                                             <i class="bi bi-key"></i>
                                         </button>
-                                        <button class="action-btn delete" onclick="deleteUser('Морозова Елена Васильевна')">
+                                        <button class="action-btn delete"
+                                            onclick="deleteUser('Морозова Елена Васильевна')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -796,7 +978,6 @@
                 </div>
             </div>
 
-            <!-- Добавление пользователя -->
             <div class="tab-content" id="add-tab">
                 <div class="form-section">
                     <h3>Добавить нового пользователя</h3>
@@ -840,13 +1021,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Пароль</label>
-                                    <input type="password" class="form-control" id="addPassword" required>
-                                    <div class="password-strength">
-                                        <div class="password-strength-bar" id="addPasswordStrength"></div>
-                                    </div>
-                                    <div class="password-requirements">
-                                        Минимум 8 символов, включая заглавные и строчные буквы, цифры
-                                    </div>
+                                    <input type="password" class="form-control" required>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Подтверждение пароля</label>
@@ -862,7 +1037,8 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-secondary me-2" onclick="cancelAddUser()">Отмена</button>
+                            <button type="button" class="btn btn-secondary me-2"
+                                onclick="cancelAddUser()">Отмена</button>
                             <button type="submit" class="btn btn-success">
                                 <i class="bi bi-plus-circle me-1"></i>
                                 Добавить пользователя
@@ -872,187 +1048,18 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
-    <!-- Модальное окно просмотра пользователя -->
-    <div class="modal" id="viewUserModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Просмотр данных пользователя</h3>
-                <button class="close-btn" onclick="closeViewUserModal()">&times;</button>
-            </div>
-            
-            <div class="user-info-grid">
-                <div class="info-item">
-                    <div class="info-item-label">ФИО</div>
-                    <div class="info-item-value" id="viewFullName">Иванов Александр Петрович</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Логин</div>
-                    <div class="info-item-value" id="viewLogin">admin_ivanov</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Роль</div>
-                    <div class="info-item-value" id="viewRole">Администратор</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Email</div>
-                    <div class="info-item-value" id="viewEmail">ivanov.ap@admin.edu.ru</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Телефон</div>
-                    <div class="info-item-value" id="viewPhone">+7 (999) 123-45-67</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Статус</div>
-                    <div class="info-item-value" id="viewStatus"><span class="badge bg-success">Активен</span></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Дата регистрации</div>
-                    <div class="info-item-value" id="viewRegDate">15.03.2024</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Последний вход</div>
-                    <div class="info-item-value" id="viewLastLogin">15.04.2024 14:30</div>
-                </div>
-            </div>
-            
-            <div class="d-flex justify-content-end">
-                <button class="btn btn-secondary" onclick="closeViewUserModal()">Закрыть</button>
-            </div>
-        </div>
-    </div>
+<!-- Модальное окно изменения пароля -->
+<!-- <div class="password-modal" id="passwordModal">-->
 
-    <!-- Модальное окно редактирования пользователя -->
-    <div class="modal" id="editUserModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Редактирование данных пользователя</h3>
-                <button class="close-btn" onclick="closeEditUserModal()">&times;</button>
-            </div>
-            
-            <form id="editUserForm">
-                <div class="user-info-grid">
-                    <div class="info-item">
-                        <label class="form-label">ФИО</label>
-                        <input type="text" class="form-control" id="editFullName" value="Иванов Александр Петрович">
-                    </div>
-                    <div class="info-item">
-                        <label class="form-label">Логин</label>
-                        <input type="text" class="form-control" id="editLogin" value="admin_ivanov">
-                    </div>
-                    <div class="info-item">
-                        <label class="form-label">Роль</label>
-                        <select class="form-select" id="editRole">
-                            <option value="admin" selected>Администратор</option>
-                            <option value="commandant">Комендант</option>
-                            <option value="educator">Воспитатель</option>
-                        </select>
-                    </div>
-                    <div class="info-item">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="editEmail" value="ivanov.ap@admin.edu.ru">
-                    </div>
-                    <div class="info-item">
-                        <label class="form-label">Телефон</label>
-                        <input type="text" class="form-control" id="editPhone" value="+7 (999) 123-45-67">
-                    </div>
-                    <div class="info-item">
-                        <label class="form-label">Статус</label>
-                        <select class="form-select" id="editStatus">
-                            <option value="active" selected>Активен</option>
-                            <option value="inactive">Неактивен</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-secondary me-2" onclick="closeEditUserModal()">Отмена</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save me-1"></i>
-                        Сохранить изменения
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Модальное окно изменения пароля -->
-    <div class="modal" id="changePasswordModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Изменение пароля пользователя</h3>
-                <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
-            </div>
-            
-            <div class="user-info-grid">
-                <div class="info-item">
-                    <div class="info-item-label">Логин пользователя</div>
-                    <div class="info-item-value" id="passwordUserLogin">admin_ivanov</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">ФИО пользователя</div>
-                    <div class="info-item-value" id="passwordUserFullName">Иванов Александр Петрович</div>
-                </div>
-            </div>
-            
-            <form id="changePasswordForm">
-                <div class="form-group">
-                    <label class="form-label">Новый пароль</label>
-                    <input type="password" class="form-control" id="newPassword" required>
-                    <div class="password-strength">
-                        <div class="password-strength-bar" id="passwordStrength"></div>
-                    </div>
-                    <div class="password-requirements">
-                        Минимум 8 символов, включая заглавные и строчные буквы, цифры
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Подтверждение пароля</label>
-                    <input type="password" class="form-control" id="confirmPassword" required>
-                </div>
-                
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-secondary me-2" onclick="closeChangePasswordModal()">Отмена</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-key me-1"></i>
-                        Изменить пароль
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Функциональность для бокового меню
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
-        const sidebarCollapse = document.getElementById('sidebarCollapse');
-
-        sidebarCollapse.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-            
-            // Меняем иконку при сворачивании/разворачивании
-            const icon = this.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.classList.remove('bi-chevron-double-left');
-                icon.classList.add('bi-chevron-double-right');
-            } else {
-                icon.classList.remove('bi-chevron-double-right');
-                icon.classList.add('bi-chevron-double-left');
-            }
-        });
-
-        // Переключение вкладок
+<!-- // Переключение вкладок
         document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
+            tab.addEventListener('click', function () {
                 // Убираем активный класс со всех вкладок
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
+
                 // Добавляем активный класс к текущей вкладке
                 this.classList.add('active');
                 const tabId = this.getAttribute('data-tab') + '-tab';
@@ -1064,8 +1071,6 @@
         function cancelAddUser() {
             if (confirm('Вы уверены, что хотите отменить добавление пользователя?')) {
                 document.getElementById('addUserForm').reset();
-                document.getElementById('addPasswordStrength').className = 'password-strength-bar';
-                
                 // Переключаемся на вкладку списка
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -1074,67 +1079,37 @@
             }
         }
 
-        // Функция для просмотра данных пользователя
-        function viewUser(userName) {
-            document.getElementById('viewUserModal').style.display = 'flex';
-            document.querySelector('.modal-title').textContent = `Просмотр данных: ${userName}`;
-            
-            // Здесь будет логика заполнения данных пользователя
-            document.getElementById('viewFullName').textContent = userName;
-            document.getElementById('viewLogin').textContent = userName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-zа-яё0-9_]/gi, '');
-            document.getElementById('viewRole').textContent = 'Администратор';
-            document.getElementById('viewEmail').textContent = `${userName.toLowerCase().replace(/\s+/g, '.')}@admin.edu.ru`;
-            document.getElementById('viewPhone').textContent = '+7 (999) 123-45-67';
-            document.getElementById('viewStatus').innerHTML = '<span class="badge bg-success">Активен</span>';
-            document.getElementById('viewRegDate').textContent = '15.03.2024';
-            document.getElementById('viewLastLogin').textContent = '15.04.2024 14:30';
-        }
-
-        // Функция для закрытия модального окна просмотра
-        function closeViewUserModal() {
-            document.getElementById('viewUserModal').style.display = 'none';
-        }
-
         // Функция для редактирования пользователя
         function editUser(userName) {
-            document.getElementById('editUserModal').style.display = 'flex';
-            document.querySelector('.modal-title').textContent = `Редактирование: ${userName}`;
-            
-            // Здесь будет логика заполнения формы данными пользователя
-            document.getElementById('editFullName').value = userName;
-            document.getElementById('editLogin').value = userName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-zа-яё0-9_]/gi, '');
-            document.getElementById('editEmail').value = `${userName.toLowerCase().replace(/\s+/g, '.')}@admin.edu.ru`;
-            document.getElementById('editPhone').value = '+7 (999) 123-45-67';
+            alert(`Открытие формы редактирования пользователя: ${userName}`);
         }
 
-        // Функция для закрытия модального окна редактирования
-        function closeEditUserModal() {
-            document.getElementById('editUserModal').style.display = 'none';
-        }
-
-        // Функция для изменения пароля пользователя
+        // Функция для изменения пароля
         function changePassword(login) {
-            document.getElementById('changePasswordModal').style.display = 'flex';
-            document.getElementById('passwordUserLogin').textContent = login;
-            
-            // Здесь будет логика получения ФИО по логину
-            let fullName = 'Пользователь';
-            if (login.includes('ivanov')) {
-                fullName = 'Иванов Александр Петрович';
-            } else if (login.includes('petrova')) {
-                fullName = 'Петрова Мария Сергеевна';
-            } else if (login.includes('sidorov')) {
-                fullName = 'Сидоров Дмитрий Александрович';
+            document.getElementById('passwordModal').style.display = 'flex';
+            document.getElementById('userNameDisplay').textContent = login;
+
+            // Здесь будет логика получения текущего пароля (в реальной системе)
+            document.getElementById('currentPasswordDisplay').textContent = '••••••••';
+
+            // Определяем роль по логину (для демонстрации)
+            let role = 'Пользователь';
+            if (login.includes('admin')) {
+                role = 'Администратор';
+            } else if (login.includes('commandant')) {
+                role = 'Комендант';
+            } else if (login.includes('educator')) {
+                role = 'Воспитатель';
             }
-            
-            document.getElementById('passwordUserFullName').textContent = fullName;
+
+            document.getElementById('userRoleDisplay').textContent = role;
         }
 
         // Функция для закрытия модального окна изменения пароля
-        function closeChangePasswordModal() {
-            document.getElementById('changePasswordModal').style.display = 'none';
-            document.getElementById('changePasswordForm').reset();
-            document.getElementById('passwordStrength').className = 'password-strength-bar';
+        function closePasswordModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('passwordForm').reset();
+            document.getElementById('passwordStrengthBar').className = 'password-strength-bar';
         }
 
         // Функция для удаления пользователя
@@ -1144,11 +1119,11 @@
             }
         }
 
-        // Проверка силы пароля при добавлении пользователя
-        document.getElementById('addPassword').addEventListener('input', function() {
+        // Проверка силы пароля
+        document.getElementById('newPassword').addEventListener('input', function () {
             const password = this.value;
-            const strengthBar = document.getElementById('addPasswordStrength');
-            
+            const strengthBar = document.getElementById('passwordStrengthBar');
+
             if (password.length === 0) {
                 strengthBar.className = 'password-strength-bar';
             } else if (password.length < 6) {
@@ -1160,44 +1135,49 @@
             }
         });
 
-        // Проверка силы пароля при изменении
-        document.getElementById('newPassword').addEventListener('input', function() {
-            const password = this.value;
-            const strengthBar = document.getElementById('passwordStrength');
-            
-            if (password.length === 0) {
-                strengthBar.className = 'password-strength-bar';
-            } else if (password.length < 6) {
-                strengthBar.className = 'password-strength-bar strength-weak';
-            } else if (password.length < 10) {
-                strengthBar.className = 'password-strength-bar strength-medium';
-            } else {
-                strengthBar.className = 'password-strength-bar strength-strong';
+        // Обработка формы изменения пароля
+        document.getElementById('passwordForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('Пароли не совпадают!');
+                return;
             }
+
+            if (newPassword.length < 8) {
+                alert('Пароль должен содержать минимум 8 символов!');
+                return;
+            }
+
+            // Здесь будет логика сохранения нового пароля
+            alert('Пароль успешно изменен!');
+            closePasswordModal();
         });
 
         // Обработка формы добавления пользователя
-        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+        document.getElementById('addUserForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
-            const password = document.getElementById('addPassword').value;
+
+            const password = this.querySelector('input[type="password"]').value;
             const confirmPassword = this.querySelectorAll('input[type="password"]')[1].value;
-            
+
             if (password !== confirmPassword) {
                 alert('Пароли не совпадают!');
                 return;
             }
-            
+
             if (password.length < 8) {
                 alert('Пароль должен содержать минимум 8 символов!');
                 return;
             }
-            
-            // Здесь будет логика добавления пользователя
+
+            // Здесь будет логика добавления нового пользователя
             alert('Новый пользователь успешно добавлен!');
             this.reset();
-            document.getElementById('addPasswordStrength').className = 'password-strength-bar';
-            
+
             // Переключаемся на вкладку списка
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -1205,73 +1185,30 @@
             document.getElementById('list-tab').classList.add('active');
         });
 
-        // Обработка формы редактирования пользователя
-        document.getElementById('editUserForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Здесь будет логика сохранения изменений
-            alert('Данные пользователя успешно сохранены!');
-            closeEditUserModal();
-        });
-
-        // Обработка формы изменения пароля
-        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (newPassword !== confirmPassword) {
-                alert('Пароли не совпадают!');
-                return;
-            }
-            
-            if (newPassword.length < 8) {
-                alert('Пароль должен содержать минимум 8 символов!');
-                return;
-            }
-            
-            // Здесь будет логика изменения пароля
-            alert('Пароль успешно изменен!');
-            closeChangePasswordModal();
-        });
-
-        // Закрытие модальных окон при клике вне их области
-        window.onclick = function(event) {
-            const viewModal = document.getElementById('viewUserModal');
-            const editModal = document.getElementById('editUserModal');
-            const passwordModal = document.getElementById('changePasswordModal');
-            
-            if (event.target === viewModal) {
-                viewModal.style.display = 'none';
-            }
-            if (event.target === editModal) {
-                editModal.style.display = 'none';
-            }
-            if (event.target === passwordModal) {
-                passwordModal.style.display = 'none';
-                document.getElementById('changePasswordForm').reset();
-                document.getElementById('passwordStrength').className = 'password-strength-bar';
+        // Закрытие модального окна при клике вне его области
+        window.onclick = function (event) {
+            const modal = document.getElementById('passwordModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                document.getElementById('passwordForm').reset();
+                document.getElementById('passwordStrengthBar').className = 'password-strength-bar';
             }
         }
 
         // Добавим функциональность для активных ссылок
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 // Убираем активный класс со всех ссылок
                 document.querySelectorAll('.nav-link').forEach(item => {
                     item.classList.remove('active');
                 });
-                
+
                 // Добавляем активный класс к текущей ссылке
                 this.classList.add('active');
-                
+
                 // Здесь будет логика переключения контента
                 console.log('Переход к разделу:', this.textContent.trim());
             });
-        });
-    </script>
-</body>
-</html>
+        }); -->
