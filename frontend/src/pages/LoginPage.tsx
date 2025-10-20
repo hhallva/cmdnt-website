@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import Cookies from 'js-cookie';
-
 import type { LoginDto } from '../types/auth';
 import { apiClient } from '../api/client';
+
+import './LoginPageStyle.css'
 
 
 const LoginPage: React.FC = () => {
@@ -42,30 +42,27 @@ const LoginPage: React.FC = () => {
       }
 
       Cookies.set('authToken', token, {
-        expires: 2, // дней
-        secure: import.meta.env.PROD, // только HTTPS в продакшене
+        expires: 2,
+        secure: import.meta.env.PROD,
         sameSite: 'strict',
       });
 
-      // Перенаправляем на защищённую страницу
       navigate('/dashboard');
-    } catch (err: any) {
+    } catch (err) {
       setErrorMessage('Не удалось войти. Проверьте логин и пароль.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
   return (
     <>
+      {/* Декорации */}
       <div className="decoration"></div>
       <div className="decoration"></div>
       <div className="decoration"></div>
-
 
       <div className="container">
         <div className="content">
@@ -79,14 +76,15 @@ const LoginPage: React.FC = () => {
           </p>
 
           <form className="login-form" onSubmit={handleSubmit}>
+            {/* Логин */}
             <div className="form-group">
               <div className="form-label-with-error">
                 <label htmlFor="username" className="form-label">Логин</label>
                 {usernameError && (
-                  <div className="error-message-inline">Пожалуйста, введите логин</div>
+                  <span className="error-message-inline">Пожалуйста, введите логин</span>
                 )}
               </div>
-              <div className="input-icon">
+              <div className="input-wrapper">
                 <i className="bi bi-person"></i>
                 <input
                   type="text"
@@ -100,20 +98,20 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Пароль */}
             <div className="form-group">
               <div className="form-label-with-error">
                 <label htmlFor="password" className="form-label">Пароль</label>
                 {passwordError && (
-                  <div className="error-message-inline">Пожалуйста, введите пароль</div>
+                  <span className="error-message-inline">Пожалуйста, введите пароль</span>
                 )}
               </div>
-
-              <div className="input-icon position-relative">
-                <i className="bi bi-lock position-absolute start-0 top-50 translate-middle-y text-muted ms-3"></i>
+              <div className="input-wrapper">
+                <i className="bi bi-lock"></i>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
-                  className="form-control ps-5" // ← добавляем отступ слева (ps-5 = padding-start: 1.25rem)
+                  className="form-control"
                   placeholder="Введите пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -121,20 +119,20 @@ const LoginPage: React.FC = () => {
                 />
                 <button
                   type="button"
-                  //className="btn btn-link position-absolute start-100 top-50 translate-middle-y border-0 bg-transparent text-muted"
-                  className='password-toggle-btn'
+                  className="password-toggle-btn"
                   onClick={toggleShowPassword}
-                  aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                  aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
                 >
                   <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                 </button>
               </div>
             </div>
 
+            {/* Кнопка */}
             <button type="submit" className="btn btn-primary" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2 " role="status"></span>
+                  <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                   Вход...
                 </>
               ) : (
@@ -145,12 +143,14 @@ const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
+
+          {/* Общая ошибка */}
+          {errorMessage && (
+            <div className="alert alert-danger mt-3" role="alert" style={{ color: '#e74c3c' }}>
+              {errorMessage}
+            </div>
+          )}
         </div>
-        {errorMessage && (
-          <div className="alert alert-danger mt-3" role="alert">
-            {errorMessage}
-          </div>
-        )}
       </div>
     </>
   );
