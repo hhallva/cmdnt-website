@@ -28,12 +28,9 @@ namespace CmdntApi.Controllers
         public async Task<IActionResult> Login(
             [SwaggerRequestBody("Учетные данные пользователя", Required = true)][FromBody] LoginDto user)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
-
             var dbUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Login == user.Login);
             if (dbUser == null)
-                return NotFound(new ApiErrorDto("Пользователь не найден", StatusCodes.Status404NotFound));
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiErrorDto("Доступ запрещён", StatusCodes.Status403Forbidden));
 
             bool idPasswordValid = BCrypt.Net.BCrypt.Verify(user.Password, dbUser.HashPassword);
 
