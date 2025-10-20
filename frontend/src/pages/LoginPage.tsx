@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import Cookies from 'js-cookie';
+
+import type { LoginDto, LoginResponseDto } from '../types/auth';
+import { apiClient } from '../api/client';
 
 
 const LoginPage: React.FC = () => {
@@ -6,8 +12,12 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const isUsernameValid = username.trim() !== '';
@@ -15,12 +25,33 @@ const LoginPage: React.FC = () => {
 
     setUsernameError(!isUsernameValid);
     setPasswordError(!isPasswordValid);
+    setErrorMessage('');
 
-    if (isUsernameValid && isPasswordValid) {
-      console.log('Попытка входа:', { username, password });
+    if (!isUsernameValid || !isPasswordValid) return;
 
-      // Здесь позже будет вызов API для аутентификации
-      // Например: await login({ username, password });
+    setIsLoading(true);
+
+    try {
+      const credentials: LoginDto = { login: username, password };
+      const response = await apiClient.singIn(credentials);
+      const token = response.token;
+
+      if (!token) {
+        throw new Error('Сервер не вернул токен');
+      }
+
+      Cookies.set('authToken', token, {
+        expires: 2, // дней
+        secure: import.meta.env.PROD, // только HTTPS в продакшене
+        sameSite: 'strict',
+      });
+
+      // Перенаправляем на защищённую страницу
+      navigate('/dashboard');
+    } catch (err: any) {
+      setErrorMessage('Не удалось войти. Проверьте логин и пароль.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -30,6 +61,7 @@ const LoginPage: React.FC = () => {
       <div className="decoration"></div>
       <div className="decoration"></div>
 
+
       <div className="container">
         <div className="content">
           <div className="logo">
@@ -37,15 +69,12 @@ const LoginPage: React.FC = () => {
           </div>
           <h1>Вход в систему</h1>
           <p className="subtitle">
-            Учет номерного фонда общежития<br />
+            Учет номерного фонда <span className="system-name">общежития</span><br />
             Войдите в систему для управления данными
           </p>
 
           <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="username" className="form-label">
-                Логин
-              </label>
               <div className="form-label-with-error">
                 <label htmlFor="username" className="form-label">Логин</label>
                 {usernameError && (
@@ -61,21 +90,14 @@ const LoginPage: React.FC = () => {
                   placeholder="Введите логин"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  required
                   autoComplete="username"
                 />
               </div>
-              {usernameError && (
-                <div className="error-message">Пожалуйста, введите логин</div>
-              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                Пароль (Добавить скрытие отображение пароля)
-              </label>
               <div className="form-label-with-error">
-                <label htmlFor="password" className="form-label">Пароль</label>             
+                <label htmlFor="password" className="form-label">Пароль</label>
                 {passwordError && (
                   <div className="error-message-inline">Пожалуйста, введите пароль</div>
                 )}
@@ -90,21 +112,31 @@ const LoginPage: React.FC = () => {
                   placeholder="Введите пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   autoComplete="current-password"
                 />
               </div>
-              {passwordError && (
-                <div className="error-message">Пожалуйста, введите пароль</div>
-              )}
             </div>
 
-            <button type="submit" className="btn btn-primary">
-              <i className="bi bi-box-arrow-in-right me-2"></i>
-              Войти
+            <button type="submit" className="btn btn-primary" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2 " role="status"></span>
+                  Вход...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-box-arrow-in-right me-2"></i>
+                  Войти
+                </>
+              )}
             </button>
           </form>
         </div>
+        {errorMessage && (
+          <div className="alert alert-danger mt-3" role="alert">
+            {errorMessage}
+          </div>
+        )}
       </div>
     </div>
   );
