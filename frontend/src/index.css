@@ -2,7 +2,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* ⚠️ очень важно для адаптивности! */
 }
 
 body {
@@ -16,20 +15,20 @@ body {
   position: relative;
 }
 
+.root {
+  width: 100%;
+}
+
 .container {
   text-align: center;
-  width: 100%;
-  max-width: 800px;
-  /* ограничим на больших экранах */
+  max-width: 40%;
   padding: 0 1rem;
-  /* отступы слева/справа на мобильных */
 }
 
 .content {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  /* для Safari */
   border-radius: 20px;
   padding: 3rem 6rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
@@ -85,9 +84,7 @@ h1 {
 
 .form-control {
   width: 100%;
-  padding: 0.75rem 1rem;
-  padding-left: 2.8rem;
-  /* компенсируем иконку */
+  padding: 0.75rem 2.8rem;
   border: 2px solid #e1e8ed;
   border-radius: 10px;
   font-size: 1rem;
@@ -103,16 +100,39 @@ h1 {
 
 .input-icon {
   position: relative;
+  width: 100%;
 }
 
-.input-icon i {
+.input-icon i.bi-person {
   position: absolute;
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
   color: #6c757d;
   pointer-events: none;
-  /* чтобы не мешать кликам в поле */
+}
+
+.input-icon .password-toggle-btn {
+  right: 1rem;
+  background: transparent;
+}
+
+.password-toggle-btn {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  background-color: white;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  border-radius: 4px;
 }
 
 .btn {
@@ -215,16 +235,6 @@ h1 {
   font-size: 2rem;
 }
 
-.password-reset-link {
-  color: #ffa726;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.password-reset-link:hover {
-  color: #f57c00;
-  text-decoration: underline;
-}
 
 @keyframes float {
 

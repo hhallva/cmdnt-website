@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 
 import Cookies from 'js-cookie';
 
-import type { LoginDto, LoginResponseDto } from '../types/auth';
+import type { LoginDto } from '../types/auth';
 import { apiClient } from '../api/client';
 
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,8 +56,12 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <div>
+    <>
       <div className="decoration"></div>
       <div className="decoration"></div>
       <div className="decoration"></div>
@@ -103,17 +108,26 @@ const LoginPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="input-icon">
-                <i className="bi bi-lock"></i>
+              <div className="input-icon position-relative">
+                <i className="bi bi-lock position-absolute start-0 top-50 translate-middle-y text-muted ms-3"></i>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
-                  className="form-control"
+                  className="form-control ps-5" // ← добавляем отступ слева (ps-5 = padding-start: 1.25rem)
                   placeholder="Введите пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  //className="btn btn-link position-absolute start-100 top-50 translate-middle-y border-0 bg-transparent text-muted"
+                  className='password-toggle-btn'
+                  onClick={toggleShowPassword}
+                  aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                >
+                  <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                </button>
               </div>
             </div>
 
@@ -138,7 +152,7 @@ const LoginPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 
