@@ -50,14 +50,14 @@ h1 {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.system-name {
+.systemname {
     font-weight: 600;
     color: var(--color-danger);
     position: relative;
     display: inline-block;
 }
 
-.system-name::after {
+.systemname::after {
     content: '';
     position: absolute;
     bottom: -2px;
