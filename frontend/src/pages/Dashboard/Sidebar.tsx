@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Cookies from 'js-cookie';
@@ -15,12 +15,26 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession }) => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
+
     const allRolesStr = sessionStorage.getItem('allRoles');
     const allRoles: RoleDto[] = allRolesStr ? JSON.parse(allRolesStr) : [];
-
     const userRoleName = allRoles.find(r => r.id === userSession.roleId)?.name?.toLowerCase() || '';
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth <= 768);
+            if (window.innerWidth > 768) {
+                setIsMobileMenuOpen(false); // Закрываем меню при увеличении экрана
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const handleLogout = () => {
         Cookies.remove('authToken');
@@ -57,6 +71,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
         return items;
     };
 
+    const menuItems = getMenuItems();
+
+    if (isMobileView) {
+        return (
+            <div className={`${styles.mobileSidebar} ${isMobileMenuOpen ? styles.mobileSidebarOpen : ''}`}>
+                <div className={styles.mobileHeader}>
+                    <button className={styles.mobileToggleBtn} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                        <i className={`bi ${isMobileMenuOpen ? 'bi-x-lg' : 'bi-list'}`}></i>
+                    </button>
+                </div>
+
+                <ul className={`${styles.mobileNavMenu} ${isMobileMenuOpen ? styles.mobileNavMenuOpen : ''}`}>
+                    {menuItems.map((item, index) => (
+                        <li key={index} className={styles.navItem}>
+                            <a
+                                href="#"
+                                className={styles.navLink}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setIsMobileMenuOpen(false);
+                                    if (item.action) {
+                                        item.action();
+                                    } else if (item.path) {
+                                        navigate(item.path);
+                                    }
+                                }}
+                            >
+                                <i className={`bi ${item.icon}`}></i>
+                                <span className={styles.navText}>{item.label}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
+    }
+
+    // На десктопе — боковое меню слева
     return (
         <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
             <div className={styles.sidebarHeader}>
@@ -66,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
             </div>
 
             <ul className={styles.navMenu}>
-                {getMenuItems().map((item, index) => (
+                {menuItems.map((item, index) => (
                     <li key={index} className={styles.navItem}>
                         <a
                             href="#"
