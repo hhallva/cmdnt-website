@@ -67,7 +67,7 @@ const LoginPage: React.FC = () => {
     const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
     return (
-        <>
+        <div className="login-page">
             {/* Декорации */}
             <div className="decoration"></div>
             <div className="decoration"></div>
@@ -161,7 +161,7 @@ const LoginPage: React.FC = () => {
                     )}
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
