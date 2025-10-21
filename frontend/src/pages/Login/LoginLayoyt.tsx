@@ -47,7 +47,14 @@ const LoginPage: React.FC = () => {
                 sameSite: 'strict',
             });
 
-            localStorage.setItem('userRole', response.roleId.toString());
+            sessionStorage.setItem('userSession', JSON.stringify(response));
+
+            try {
+                const roles = await apiClient.getAllRoles();
+                sessionStorage.setItem('allRoles', JSON.stringify(roles));
+            } catch (error) {
+                console.error('Не удалось загрузить роли при входе:', error);
+            }
 
             navigate('/dashboard');
         } catch (err) {

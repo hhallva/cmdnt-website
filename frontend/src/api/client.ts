@@ -1,10 +1,10 @@
 import Cookies from 'js-cookie';
 import type { LoginDto, LoginResponseDto } from '../types/auth';
 import type { ApiErrorDto } from '../types/ApiErrorDto';
+import type { RoleDto } from '../types/RoleDto';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// Универсальный метод запроса
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const fullUrl = `${API_BASE_URL}${url}`;
 
@@ -17,28 +17,22 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
       ...options,
     });
 
-    // Если ответ OK — парсим JSON
     if (response.ok) {
       return await response.json();
     }
 
-    // Если ответ пришёл, но с ошибкой (4xx, 5xx)
     const errorData: ApiErrorDto = await response.json().catch(() => ({
       timestamp: Date.now(),
       message: `Ошибка ${response.status}`,
       errorCode: response.status,
     }));
 
-    // Выбрасываем ошибку с понятным сообщением
     const errorMessage = errorData.message || `Ошибка ${response.status}`;
     throw new Error(errorMessage);
   } catch (error: any) {
-    // Если fetch не смог даже отправить запрос (сервер выключен, CORS и т.д.)
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new Error('Сервер недоступен. Попробуйте позже.');
     }
-
-    // Иначе — пробрасываем ошибку дальше (например, из JSON-парсинга)
     throw error;
   }
 }
@@ -58,5 +52,9 @@ export const apiClient = {
         Authorization: token ? `Bearer ${token}` : '',
       },
     });
+  },
+
+  getAllRoles: async (): Promise<RoleDto[]> => {
+    return apiClient.getWithAuth<RoleDto[]>('/api/v1/Roles');
   },
 };

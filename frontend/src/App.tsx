@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import DashboardPage from './pages/DashboardPage';
+import LoginPage from './pages//Login//LoginLayoyt';
+import DashboardLayout from './pages/Dashboard/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css'
 
@@ -9,10 +10,10 @@ function App() {
     <Routes>
       <Route path="/" element={<LoginPage />} />
       <Route
-        path="/dashboard"
+        path="/dashboard/*"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <DashboardLayout />
           </ProtectedRoute>
         }
       />
