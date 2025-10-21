@@ -84,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
 
                 <ul className={`${styles.mobileNavMenu} ${isMobileMenuOpen ? styles.mobileNavMenuOpen : ''}`}>
                     {menuItems.map((item, index) => (
-                        <li key={index} className={styles.navItem}>
+                        <li key={index} className={styles.mobileNavItem}>
                             <a
                                 href="#"
                                 className={styles.navLink}
