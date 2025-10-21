@@ -7,6 +7,32 @@
     overflow-x: hidden;
 }
 
+.sidebarHeader {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 1rem;
+}
+
+.toggleBtn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    z-index: 1001;
+}
+
+.toggleBtn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
 .sidebar {
     width: 280px;
     height: 100vh;
@@ -24,70 +50,12 @@
 }
 
 .sidebar.collapsed {
-    width: 80px;
-}
-
-.sidebarHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding: 0 0.5rem;
-}
-
-.toggleBtn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.toggleBtn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
-}
-
-.logo {
-    text-align: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.logo h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0;
-    color: white;
-}
-
-.logoText {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.sidebar.collapsed .logoText {
-    opacity: 0;
-    visibility: hidden;
-    width: 0;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
+    width: 90px;
 }
 
 .navMenu {
     list-style: none;
     padding: 0;
-    margin: 0;
     flex: 1;
 }
 
@@ -98,7 +66,7 @@
 .navLink {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
+    padding: 1rem;
     color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
     border-radius: 8px;

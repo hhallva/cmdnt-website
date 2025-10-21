@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
 
         if (!userRoleName.includes('воспитатель')) {
             items.push(
-                { icon: 'bi-people', label: 'Управление контингентом', path: '/dashboard/contingent' },
+                { icon: 'bi-people', label: 'Студенты', path: '/dashboard/students' },
                 { icon: 'bi-house-door', label: 'Расселение', path: '/dashboard/settlement' },
                 { icon: 'bi-file-earmark-text', label: 'Отчеты', path: '/dashboard/reports' }
             );
@@ -61,8 +61,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
         <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
             <div className={styles.sidebarHeader}>
                 <button className={styles.toggleBtn} onClick={onToggle}>
-                    <i className={`bi ${isCollapsed ? 'bi-chevron-double-right' : 'bi-chevron-double-left'}`}></i>
+                    <i className={`bi bi-list`}></i>
                 </button>
+                <div className={styles.divider}></div>
             </div>
 
             <ul className={styles.navMenu}>
