@@ -1,4 +1,3 @@
-// src/pages/Dashboard/DashboardLayout.tsx
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Cookies from 'js-cookie';
@@ -7,13 +6,12 @@ import styles from './Dashboard.module.css';
 import type { UserSession } from '../../types/UserSession';
 
 const DashboardLayout: React.FC = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(true);
 
     const userSessionStr = sessionStorage.getItem('userSession');
     const userSession: UserSession = JSON.parse(userSessionStr!);
 
     if (!userSession || !userSession.token) {
-        // Убедимся, что токен в cookies тоже удалён
         if (Cookies.get('authToken')) {
             Cookies.remove('authToken');
         }
@@ -37,7 +35,6 @@ const DashboardLayout: React.FC = () => {
                             {userSession.name?.charAt(0) || '?'}{userSession.surname?.charAt(0) || '?'}
                         </div>
                         <span>
-                            {/* Можно показать имя роли из API, если загрузили */}
                             {userSession.roleId === 1
                                 ? 'Администратор'
                                 : userSession.roleId === 2

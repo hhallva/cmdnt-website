@@ -63,7 +63,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
                 <button className={styles.toggleBtn} onClick={onToggle}>
                     <i className={`bi bi-list`}></i>
                 </button>
-                <div className={styles.divider}></div>
             </div>
 
             <ul className={styles.navMenu}>
