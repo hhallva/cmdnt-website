@@ -233,6 +233,10 @@ h1 {
         overflow-x: hidden;
     }
 
+    .login-page {
+        padding: 1rem;
+    }
+
     .container {
         width: 100%;
         max-width: 100%;
