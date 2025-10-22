@@ -48,7 +48,7 @@ namespace CmdntApi.Controllers
                 Name = dbUser.Name,
                 Surname = dbUser.Surname,
                 Patronymic = dbUser.Patronymic,
-                role = new RoleDto
+                Role = new RoleDto
                 {
                     Id = dbUser.Role.Id,
                     Name = dbUser.Role.Name

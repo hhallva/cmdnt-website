@@ -54,12 +54,6 @@
     transform: scale(1.05);
 }
 
-.divider {
-    height: 1px;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.2);
-    margin: 0.25rem 0;
-}
 
 .navMenu {
     list-style: none;
@@ -159,7 +153,6 @@
     font-size: 0.9rem;
 }
 
-
 .sidebar {
     width: 280px;
     height: 100vh;
@@ -192,7 +185,7 @@
 .mobileHeader {
     width: 100%;
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     padding: 0.5rem;
 }
 
@@ -266,7 +259,6 @@
 @media (max-width: 768px) {
     .sidebar {
         display: none;
-        /* Скрываем десктопное меню */
     }
 
     .mainContent {
@@ -299,19 +291,3 @@
     }
 
 }
-
-/*   <div className={styles.header}>
-                    <h1>Панель управления</h1>
-                    <div className={styles.userInfo}>
-                        <div className={styles.userAvatar}>
-                            {userSession.name?.charAt(0) || '?'}{userSession.surname?.charAt(0) || '?'}
-                        </div>
-                        <span>
-                            {userSession.roleId === 1
-                                ? 'Администратор'
-                                : userSession.roleId === 2
-                                    ? 'Комендант'
-                                    : 'Воспитатель'}
-                        </span>
-                    </div>
-                </div> */

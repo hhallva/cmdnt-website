@@ -17,18 +17,13 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
-
-    const allRolesStr = sessionStorage.getItem('allRoles');
-    const allRoles: RoleDto[] = allRolesStr ? JSON.parse(allRolesStr) : [];
-    const userRoleName = allRoles.find(r => r.id === userSession.roleId)?.name?.toLowerCase() || '';
-
     const navigate = useNavigate();
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobileView(window.innerWidth <= 768);
-            if (window.innerWidth > 768) {
-                setIsMobileMenuOpen(false); // Закрываем меню при увеличении экрана
+            setIsMobileView(window.innerWidth <= 768 || window.innerHeight > 581);
+            if (window.innerWidth > 768 || window.innerHeight > 581) {
+                setIsMobileMenuOpen(false);
             }
         };
 
@@ -49,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
             { icon: 'bi-layout-wtf', label: 'Структура общежития', path: '/dashboard/structure', },
         );
 
-        if (!userRoleName.includes('воспитатель')) {
+        if (!userSession.role?.name?.includes('Воспитатель')) {
             items.push(
                 { icon: 'bi-people', label: 'Студенты', path: '/dashboard/students' },
                 { icon: 'bi-house-door', label: 'Расселение', path: '/dashboard/settlement' },
@@ -57,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
             );
         }
 
-        if (userRoleName.includes('администратор')) {
+        if (userSession.role?.name?.includes('Администратор')) {
             items.push(
                 { icon: 'bi-people-fill', label: 'Пользователи', path: '/dashboard/users' },
                 { icon: 'bi-collection', label: 'Группы', path: '/dashboard/groups' }

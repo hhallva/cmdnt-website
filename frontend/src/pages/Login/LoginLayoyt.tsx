@@ -49,13 +49,6 @@ const LoginPage: React.FC = () => {
 
             sessionStorage.setItem('userSession', JSON.stringify(response));
 
-            try {
-                const roles = await apiClient.getAllRoles();
-                sessionStorage.setItem('allRoles', JSON.stringify(roles));
-            } catch (error) {
-                console.error('Не удалось загрузить роли при входе:', error);
-            }
-
             navigate('/dashboard');
         } catch (err) {
             setErrorMessage('Не удалось войти. Проверьте логин и пароль.');

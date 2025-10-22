@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Sidebar from './Sidebar';
 import styles from './Dashboard.module.css';
@@ -7,6 +7,8 @@ import type { UserSession } from '../../types/UserSession';
 
 const DashboardLayout: React.FC = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
+
+    const navigate = useNavigate();
 
     const userSessionStr = sessionStorage.getItem('userSession');
     const userSession: UserSession = JSON.parse(userSessionStr!);
@@ -16,7 +18,7 @@ const DashboardLayout: React.FC = () => {
             Cookies.remove('authToken');
         }
         sessionStorage.clear();
-        window.location.href = '/';
+        navigate('/');
         return null;
     }
 
@@ -34,13 +36,7 @@ const DashboardLayout: React.FC = () => {
                         <div className={styles.userAvatar}>
                             {userSession.name?.charAt(0) || '?'}{userSession.surname?.charAt(0) || '?'}
                         </div>
-                        <span>
-                            {userSession.roleId === 1
-                                ? 'Администратор'
-                                : userSession.roleId === 2
-                                    ? 'Комендант'
-                                    : 'Воспитатель'}
-                        </span>
+                        <span>{userSession.role?.name}</span>
                     </div>
                 </div>
 
