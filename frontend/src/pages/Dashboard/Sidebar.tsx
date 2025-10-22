@@ -5,7 +5,6 @@ import Cookies from 'js-cookie';
 
 import styles from './Dashboard.module.css';
 
-import type { RoleDto } from '../../types/RoleDto';
 import type { UserSession } from '../../types/UserSession';
 
 interface SidebarProps {
@@ -21,8 +20,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobileView(window.innerWidth <= 768 || window.innerHeight > 581);
-            if (window.innerWidth > 768 || window.innerHeight > 581) {
+            setIsMobileView(window.innerWidth <= 768);
+            if (window.innerWidth > 768) {
                 setIsMobileMenuOpen(false);
             }
         };
