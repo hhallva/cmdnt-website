@@ -4,12 +4,11 @@
     min-height: 100vh;
     background: white;
     color: #333;
-    overflow-x: hidden;
 }
 
 .sidebar {
     width: 280px;
-    height: 100vh;
+    min-height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
@@ -215,28 +214,22 @@
 
 .mobileNavMenuOpen {
     max-height: 500px;
-    /* или другое разумное значение */
     overflow: visible;
-    /* чтобы контент не обрезался при анимации */
 }
 
 .mobileNavItem {
     width: 100%;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    /* Разделительная линия */
 }
 
 .mobileNavItem:last-child {
     border-bottom: none;
-    /* Убираем линию у последнего элемента */
 }
 
 .mobileNavMenuOpen .mobileNavItem {
     display: block;
-    /* Показываем элементы при открытии */
 }
 
-/* Применяем стили к .navLink только внутри мобильного меню */
 .mobileNavMenu .navLink {
     width: 100%;
     padding: 1rem 1rem;
@@ -262,9 +255,9 @@
     }
 
     .mainContent {
-        padding-top: 5rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-top: 70px;
+        padding-left: 0rem;
+        padding-right: 0rem;
     }
 
     .mainContent.expanded {

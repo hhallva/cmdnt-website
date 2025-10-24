@@ -30,7 +30,7 @@ const DashboardLayout: React.FC = () => {
                 userSession={userSession}
             />
             <div className={`${styles.mainContent} ${isCollapsed ? styles.expanded : ''}`}>
-                <div className={styles.header}>
+                <div className={styles.header} style={{ paddingTop: window.innerWidth <= 576 ? '70px' : undefined }}>
                     <h1>Панель управления</h1>
                     <div className={styles.userInfo}>
                         <div className={styles.userAvatar}>
@@ -40,7 +40,7 @@ const DashboardLayout: React.FC = () => {
                     </div>
                 </div>
 
-                <Outlet />
+                {/* <Outlet /> теперь может прокручиваться, если его содержимое длинное */}
             </div>
         </div>
     );
