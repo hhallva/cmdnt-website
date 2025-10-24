@@ -10,7 +10,7 @@
 
         public string? Patronymic { get; set; }
 
-        public int RoleId { get; set; }
+        public RoleDto Role { get; set; } = null!;
 
         public string Login { get; set; } = null!;
 

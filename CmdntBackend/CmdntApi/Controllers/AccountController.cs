@@ -1,4 +1,5 @@
-﻿using DataLayer.Data;
+﻿using System.Runtime.CompilerServices;
+using DataLayer.Data;
 using DataLayer.DTOs;
 using DataLayer.DTOs.Account;
 using DataLayer.Services;
@@ -28,7 +29,9 @@ namespace CmdntApi.Controllers
         public async Task<IActionResult> Login(
             [SwaggerRequestBody("Учетные данные пользователя", Required = true)][FromBody] LoginDto user)
         {
-            var dbUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Login == user.Login);
+            var dbUser = await _context.Users
+                            .Include(u => u.Role).AsNoTracking().FirstOrDefaultAsync(u => u.Login == user.Login);
+
             if (dbUser == null)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiErrorDto("Доступ запрещён", StatusCodes.Status403Forbidden));
 
@@ -45,7 +48,11 @@ namespace CmdntApi.Controllers
                 Name = dbUser.Name,
                 Surname = dbUser.Surname,
                 Patronymic = dbUser.Patronymic,
-                RoleId = dbUser.RoleId,
+                Role = new RoleDto
+                {
+                    Id = dbUser.Role.Id,
+                    Name = dbUser.Role.Name
+                },
                 Login = dbUser.Login,
                 Token = token
             };
