@@ -15,12 +15,12 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 576);
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 756);
     const navigate = useNavigate();
 
     useEffect(() => {
         const handleResize = () => {
-            const mobile = window.innerWidth <= 576;
+            const mobile = window.innerWidth <= 756;
             setIsMobileView(mobile);
             if (!mobile) {
                 setIsMobileMenuOpen(false);
