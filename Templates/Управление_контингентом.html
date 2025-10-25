@@ -1,6 +1,7 @@
 ```html
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -126,7 +127,8 @@
             transition: all 0.3s ease;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover,
+        .nav-link.active {
             background: rgba(255, 255, 255, 0.2);
             color: white;
         }
@@ -474,18 +476,23 @@
                 width: 280px;
                 transform: translateX(-100%);
             }
+
             .sidebar.active {
                 transform: translateX(0);
             }
+
             .main-content {
                 margin-left: 0;
             }
+
             .form-section {
                 padding: 1rem;
             }
+
             .students-table {
                 font-size: 0.8rem;
             }
+
             .students-table th,
             .students-table td {
                 padding: 0.5rem;
@@ -493,6 +500,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Боковое меню -->
     <div class="sidebar" id="sidebar">
@@ -501,53 +509,17 @@
                 <i class="bi bi-chevron-double-left"></i>
             </button>
         </div>
-        
+
         <div class="logo">
             <h2 class="logo-text">Общежитие</h2>
             <p class="logo-text">Система учета</p>
         </div>
-        
+
         <ul class="nav-menu">
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-building"></i>
-                    <span class="nav-text">Структура общежития</span>
-                </a>
-            </li>
             <li class="nav-item">
                 <a href="#" class="nav-link active">
                     <i class="bi bi-people"></i>
                     <span class="nav-text">Управление контингентом</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-house-door"></i>
-                    <span class="nav-text">Расселение</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-search"></i>
-                    <span class="nav-text">Поиск</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span class="nav-text">Отчеты</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-gear"></i>
-                    <span class="nav-text">Настройки</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="nav-text">Выйти</span>
                 </a>
             </li>
         </ul>
@@ -573,7 +545,7 @@
             <div class="tab-content active" id="add-tab">
                 <div class="form-section">
                     <h3>Добавить нового студента</h3>
-                    Добавить разделение на блоки, информация о студенте, о обучении, о контактах 
+                    Добавить разделение на блоки, информация о студенте, о обучении, о контактах
                     <form id="addStudentForm">
                         <div class="row">
                             <div class="col-md-6">
@@ -605,7 +577,7 @@
                                         <option value="2">Заочная</option>
                                     </select>
                                 </div>
-                                 <div class="form-group">
+                                <div class="form-group">
                                     <label class="form-label">Бюджет/Контракт</label>
                                     <select class="form-select" required>
                                         <option value="">Выберите форму</option>
@@ -646,7 +618,7 @@
                                     <label class="form-label">Email</label>
                                     <input type="email" class="form-control">
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label class="form-label">Фото студента</label>
                                     <div class="file-upload">
@@ -690,7 +662,7 @@
                             Экспорт в Excel
                         </button>
                     </div>
-                    
+
                     <div class="table-responsive">
                         <table class="students-table">
                             <thead>
@@ -728,7 +700,7 @@
                                     <td>
                                         <div class="action-buttons">
                                             <button class="action-btn edit">Подробнее</button>
-                                           
+
                                         </div>
                                     </td>
                                 </tr>
@@ -740,9 +712,9 @@
                                     <td>Нет</td>
                                     <td>+7 (999) 111-22-33</td>
                                     <td>
-                                       <div class="action-buttons">
+                                        <div class="action-buttons">
                                             <button class="action-btn edit">Подробнее</button>
-                                           
+
                                         </div>
                                     </td>
                                 </tr>
@@ -756,7 +728,7 @@
                                     <td>
                                         <div class="action-buttons">
                                             <button class="action-btn edit">Подробнее</button>
-                                           
+
                                         </div>
                                     </td>
                                 </tr>
@@ -770,14 +742,14 @@
                                     <td>
                                         <div class="action-buttons">
                                             <button class="action-btn edit">Подробнее</button>
-                                           
+
                                         </div>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <nav aria-label="Страницы">
                         <ul class="pagination justify-content-center">
                             <li class="page-item disabled">
@@ -869,7 +841,7 @@
                 <h3 class="export-preview-title">Предпросмотр экспорта</h3>
                 <button class="btn btn-secondary" onclick="closeExportPreview()">&times;</button>
             </div>
-            
+
             <div class="table-responsive">
                 <table class="export-preview-table">
                     <thead>
@@ -926,7 +898,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="d-flex justify-content-end mt-3">
                 <button class="btn btn-secondary me-2" onclick="closeExportPreview()">Отмена</button>
                 <button class="btn btn-success" onclick="confirmExport()">
@@ -944,10 +916,10 @@
         const mainContent = document.getElementById('mainContent');
         const sidebarCollapse = document.getElementById('sidebarCollapse');
 
-        sidebarCollapse.addEventListener('click', function() {
+        sidebarCollapse.addEventListener('click', function () {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
-            
+
             // Меняем иконку при сворачивании/разворачивании
             const icon = this.querySelector('i');
             if (sidebar.classList.contains('collapsed')) {
@@ -961,11 +933,11 @@
 
         // Переключение вкладок
         document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
+            tab.addEventListener('click', function () {
                 // Убираем активный класс со всех вкладок
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
+
                 // Добавляем активный класс к текущей вкладке
                 this.classList.add('active');
                 const tabId = this.getAttribute('data-tab') + '-tab';
@@ -974,7 +946,7 @@
         });
 
         // Обработка формы добавления студента
-        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+        document.getElementById('addStudentForm').addEventListener('submit', function (e) {
             e.preventDefault();
             alert('Студент успешно добавлен!');
             this.reset();
@@ -997,7 +969,7 @@
         }
 
         // Закрытие модального окна при клике вне его области
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             const modal = document.getElementById('exportPreviewModal');
             if (event.target === modal) {
                 modal.style.display = 'none';
@@ -1006,22 +978,23 @@
 
         // Добавим функциональность для активных ссылок
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 // Убираем активный класс со всех ссылок
                 document.querySelectorAll('.nav-link').forEach(item => {
                     item.classList.remove('active');
                 });
-                
+
                 // Добавляем активный класс к текущей ссылке
                 this.classList.add('active');
-                
+
                 // Здесь будет логика переключения контента
                 console.log('Переход к разделу:', this.textContent.trim());
             });
         });
     </script>
 </body>
+
 </html>
 ```
