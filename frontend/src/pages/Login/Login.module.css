@@ -9,7 +9,7 @@
 }
 
 /* src/pages/Login/LoginPage.css */
-.login-page {
+.loginPage {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -83,39 +83,39 @@ h1 {
 }
 
 /* Форма */
-.login-form {
+.loginForm {
     text-align: left;
     margin-top: 1rem;
 }
 
-.form-group {
+.formGroup {
     margin-bottom: 1.25rem;
 }
 
-.form-label-with-error {
+.formLabelWithError {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-.form-label {
+.formLabel {
     font-weight: 500;
     color: #2c3e50;
 }
 
-.error-message-inline {
+.errorMessageInline {
     color: var(--color-danger);
     font-size: 0.875rem;
     white-space: nowrap;
 }
 
 /* Поле ввода с иконками */
-.input-wrapper {
+.inputWrapper {
     position: relative;
 }
 
-.input-wrapper>i {
+.inputWrapper>i {
     position: absolute;
     left: 1rem;
     top: 50%;
@@ -125,7 +125,7 @@ h1 {
     z-index: 2;
 }
 
-.form-control {
+.formControl {
     width: 100%;
     padding: 0.75rem 3rem 0.75rem 2.75rem;
     border: 2px solid var(--color-border);
@@ -141,7 +141,7 @@ h1 {
     box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
 }
 
-.password-toggle-btn {
+.passwordToggleBtn {
     position: absolute;
     right: 1rem;
     top: 50%;
@@ -173,13 +173,13 @@ h1 {
     margin-top: 1rem;
 }
 
-.btn-primary {
+.btnPrimary {
     background-color: var(--color-primary);
     color: white;
     box-shadow: 0 4px 15px rgba(255, 167, 38, 0.3);
 }
 
-.btn-primary:hover:not(:disabled) {
+.btnPrimary:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 167, 38, 0.4);
 }
