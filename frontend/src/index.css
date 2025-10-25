@@ -1,3 +1,4 @@
+/* src\index.css */
 /* Сброс и базовые настройки */
 * {
   margin: 0;
@@ -25,4 +26,24 @@ body {
   background-color: white;
   color: var(--color-text);
   position: relative;
+}
+
+/* --- Переопределение Bootstrap стилей --- */
+.btn-primary {
+  --bs-btn-bg: #ffa726;
+  --bs-btn-border-color: #ffa726;
+  --bs-btn-hover-bg: #f57c00;
+  --bs-btn-hover-border-color: #f57c00;
+  --bs-btn-active-bg: #ffa726;
+  --bs-btn-active-border-color: #ffa726;
+  --bs-btn-disabled-bg: #ffa726;
+  --bs-btn-disabled-border-color: #ffa726;
+  --bs-btn-focus-shadow-rgb: 255, 167, 38;
+}
+
+/* Явно убираем outline и тень при фокусе */
+.btn-primary:focus,
+.btn-primary.focus {
+  outline: 0 !important;
+  box-shadow: none !important;
 }

@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useMatches } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Sidebar from './Sidebar';
 import styles from './Dashboard.module.css';
 import type { UserSession } from '../../types/UserSession';
 
+type RouteHandle = {
+    title?: string;
+};
+
 const DashboardLayout: React.FC = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
 
     const navigate = useNavigate();
+
+    const matches = useMatches();
+    const currentMatch = matches[matches.length - 1];
+    const title = (currentMatch?.handle as RouteHandle)?.title || 'Панель управления';
 
     const userSessionStr = sessionStorage.getItem('userSession');
     const userSession: UserSession = JSON.parse(userSessionStr!);
@@ -31,7 +39,7 @@ const DashboardLayout: React.FC = () => {
             />
             <div className={`${styles.mainContentDesktop} ${isCollapsed ? styles.expanded : ''}`}>
                 <div className={styles.header}>
-                    <h1>Панель управления</h1>
+                    <h1>{title}</h1>
                     <div className={styles.userInfo}>
                         <div className={styles.userAvatar}>
                             {userSession.name?.charAt(0) || '?'}{userSession.surname?.charAt(0) || '?'}
