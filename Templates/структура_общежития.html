@@ -1,6 +1,7 @@
 ```html
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -126,7 +127,8 @@
             transition: all 0.3s ease;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover,
+        .nav-link.active {
             background: rgba(255, 255, 255, 0.2);
             color: white;
         }
@@ -592,25 +594,31 @@
                 width: 280px;
                 transform: translateX(-100%);
             }
+
             .sidebar.active {
                 transform: translateX(0);
             }
+
             .main-content {
                 margin-left: 0;
             }
+
             .blocks-container {
                 grid-template-columns: 1fr;
             }
+
             .block-detail-content {
                 width: 95%;
                 padding: 1rem;
             }
+
             .search-filters {
                 flex-direction: column;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Боковое меню -->
     <div class="sidebar" id="sidebar">
@@ -619,47 +627,17 @@
                 <i class="bi bi-chevron-double-left"></i>
             </button>
         </div>
-        
+
         <div class="logo">
             <h2 class="logo-text">Общежитие</h2>
             <p class="logo-text">Система учета</p>
         </div>
-        
+
         <ul class="nav-menu">
             <li class="nav-item">
                 <a href="#" class="nav-link active">
                     <i class="bi bi-building"></i>
                     <span class="nav-text">Структура общежития</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-people"></i>
-                    <span class="nav-text">Управление контингентом</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-house-door"></i>
-                    <span class="nav-text">Расселение</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span class="nav-text">Отчеты</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-gear"></i>
-                    <span class="nav-text">Настройки</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="nav-text">Выйти</span>
                 </a>
             </li>
         </ul>
@@ -677,7 +655,7 @@
 
         <div class="dormitory-structure">
 
-        <div class="stats-grid">
+            <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number">48</div>
                     <div class="stat-label">Всего мест</div>
@@ -746,7 +724,7 @@
                 </div>
             </div>
 
-           
+
             <!-- Этаж 1 -->
             <div class="floor-section">
                 <div class="floor-header">
@@ -756,7 +734,7 @@
                         <span class="badge bg-success">8 свободно</span>
                     </div>
                 </div>
-                
+
                 <div class="blocks-container">
                     <!-- Блок 101 -->
                     <div class="block-card" onclick="showBlockDetails('101')">
@@ -771,7 +749,8 @@
                             Сидоров С.С., Волков В.В.
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('101')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('101')">Подробнее</button>
                         </div>
                     </div>
 
@@ -787,7 +766,8 @@
                             Иванова А.А., Петрова Б.Б.
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('102')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('102')">Подробнее</button>
                         </div>
                     </div>
 
@@ -803,7 +783,8 @@
                             Иванов И.И., Петров П.П.
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('103')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('103')">Подробнее</button>
                         </div>
                     </div>
 
@@ -820,7 +801,8 @@
                             Белов Б.Б., Орлов О.О., Павлов П.П.
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('104')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('104')">Подробнее</button>
                         </div>
                     </div>
 
@@ -836,7 +818,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('105')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('105')">Подробнее</button>
                         </div>
                     </div>
 
@@ -852,7 +835,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('106')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('106')">Подробнее</button>
                         </div>
                     </div>
                 </div>
@@ -867,7 +851,7 @@
                         <span class="badge bg-success">10 свободно</span>
                     </div>
                 </div>
-                
+
                 <div class="blocks-container">
                     <!-- Блок 201 -->
                     <div class="block-card" onclick="showBlockDetails('201')">
@@ -882,7 +866,8 @@
                             Волков В.В.
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('201')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('201')">Подробнее</button>
                         </div>
                     </div>
 
@@ -899,7 +884,8 @@
                             Волкова В.В., Зайцева З.З.
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('202')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('202')">Подробнее</button>
                         </div>
                     </div>
 
@@ -915,7 +901,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('203')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('203')">Подробнее</button>
                         </div>
                     </div>
 
@@ -931,7 +918,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('204')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('204')">Подробнее</button>
                         </div>
                     </div>
 
@@ -947,7 +935,8 @@
                             Сидоров С.С., Волков В.В., Белов Б.Б.
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('205')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('205')">Подробнее</button>
                         </div>
                     </div>
 
@@ -963,7 +952,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('206')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('206')">Подробнее</button>
                         </div>
                     </div>
                 </div>
@@ -978,7 +968,7 @@
                         <span class="badge bg-success">14 свободно</span>
                     </div>
                 </div>
-                
+
                 <div class="blocks-container">
                     <!-- Блок 301 -->
                     <div class="block-card" onclick="showBlockDetails('301')">
@@ -992,7 +982,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('301')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('301')">Подробнее</button>
                         </div>
                     </div>
 
@@ -1008,7 +999,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('302')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('302')">Подробнее</button>
                         </div>
                     </div>
 
@@ -1024,7 +1016,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('303')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('303')">Подробнее</button>
                         </div>
                     </div>
 
@@ -1040,7 +1033,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('304')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('304')">Подробнее</button>
                         </div>
                     </div>
 
@@ -1056,7 +1050,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('305')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('305')">Подробнее</button>
                         </div>
                     </div>
 
@@ -1072,7 +1067,8 @@
                             Свободен для заселения
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="event.stopPropagation(); showBlockActions('306')">Подробнее</button>
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('306')">Подробнее</button>
                         </div>
                     </div>
                 </div>
@@ -1087,7 +1083,7 @@
                 <h3 class="modal-title">Блок 101</h3>
                 <button class="close-btn" onclick="closeBlockDetailModal()">&times;</button>
             </div>
-            
+
             <div class="block-info">
                 <div class="info-row">
                     <span class="info-label">Тип блока:</span>
@@ -1110,7 +1106,7 @@
                     <span class="info-value">1</span>
                 </div>
             </div>
-            
+
             <div class="students-list">
                 <div class="room-section">
                     <h4 class="room-title">Комната 2 человека</h4>
@@ -1123,7 +1119,8 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Иванов Иван Иванович', 'ИВТ-101', '2', 'Иванов И.И.', '8-999-123-45-67', 'Блок 101')">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Иванов Иван Иванович', 'ИВТ-101', '2', 'Иванов И.И.', '8-999-123-45-67', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                     <div class="student-item">
@@ -1135,11 +1132,12 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Петров Петр Петрович', 'ПИ-102', '2', 'Петров П.П.', '8-999-987-65-43', 'Блок 101')">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Петров Петр Петрович', 'ПИ-102', '2', 'Петров П.П.', '8-999-987-65-43', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="room-section">
                     <h4 class="room-title">Комната 3 человека</h4>
                     <div class="student-item">
@@ -1151,7 +1149,8 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Сидоров Сидор Сидорович', 'ИВТ-101', '2', 'Сидоров С.С.', '8-999-111-22-33', 'Блок 101')">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Сидоров Сидор Сидорович', 'ИВТ-101', '2', 'Сидоров С.С.', '8-999-111-22-33', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                     <div class="student-item">
@@ -1163,7 +1162,8 @@
                             </div>
                         </div>
                         <div class="student-actions">
-                            <button class="btn btn-sm btn-outline-primary" onclick="showStudentCard('Волков Владимир Владимирович', 'ИВТ-101', '2', 'Волков В.В.', '8-999-444-55-66', 'Блок 101')">Карточка</button>
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Волков Владимир Владимирович', 'ИВТ-101', '2', 'Волков В.В.', '8-999-444-55-66', 'Блок 101')">Карточка</button>
                         </div>
                     </div>
                     <div class="free-place">
@@ -1182,10 +1182,10 @@
         const mainContent = document.getElementById('mainContent');
         const sidebarCollapse = document.getElementById('sidebarCollapse');
 
-        sidebarCollapse.addEventListener('click', function() {
+        sidebarCollapse.addEventListener('click', function () {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
-            
+
             // Меняем иконку при сворачивании/разворачивании
             const icon = this.querySelector('i');
             if (sidebar.classList.contains('collapsed')) {
@@ -1227,7 +1227,7 @@
         }
 
         // Закрытие модального окна при клике вне его области
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             const modal = document.getElementById('blockDetailModal');
             if (event.target === modal) {
                 modal.style.display = 'none';
@@ -1236,22 +1236,23 @@
 
         // Добавим функциональность для активных ссылок
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 // Убираем активный класс со всех ссылок
                 document.querySelectorAll('.nav-link').forEach(item => {
                     item.classList.remove('active');
                 });
-                
+
                 // Добавляем активный класс к текущей ссылке
                 this.classList.add('active');
-                
+
                 // Здесь будет логика переключения контента
                 console.log('Переход к разделу:', this.textContent.trim());
             });
         });
     </script>
 </body>
+
 </html>
 ```

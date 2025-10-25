@@ -1,7 +1,9 @@
-import Cookies from 'js-cookie';
-import type { LoginDto, LoginResponseDto } from '../types/auth';
-import type { ApiErrorDto } from '../types/ApiErrorDto';
-import type { RoleDto } from '../types/RoleDto';
+import Cookies from 'js-cookie'
+import type { LoginDto, LoginResponseDto } from '../types/auth'
+import type { ApiErrorDto } from '../types/ApiErrorDto'
+import type { RoleDto } from '../types/RoleDto'
+import type { UserDto } from '../types/UserDto'
+import type { UserStatisticDto } from '../types/UserStatisticDto'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -56,5 +58,13 @@ export const apiClient = {
 
   getAllRoles: async (): Promise<RoleDto[]> => {
     return apiClient.getWithAuth<RoleDto[]>('/api/v1/Roles');
+  },
+
+  getUserStatistics: async (): Promise<UserStatisticDto> => {
+    return apiClient.getWithAuth<UserStatisticDto>('/api/v1/Users/statistic');
+  },
+
+  getAllUsers: async (): Promise<UserDto[]> => {
+    return apiClient.getWithAuth<UserDto[]>('/api/v1/Users');
   },
 };

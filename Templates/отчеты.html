@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -125,7 +126,8 @@
             transition: all 0.3s ease;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover,
+        .nav-link.active {
             background: rgba(255, 255, 255, 0.2);
             color: white;
         }
@@ -521,21 +523,26 @@
                 width: 280px;
                 transform: translateX(-100%);
             }
+
             .sidebar.active {
                 transform: translateX(0);
             }
+
             .main-content {
                 margin-left: 0;
             }
+
             .reports-grid {
                 grid-template-columns: 1fr;
             }
+
             .filters-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Боковое меню -->
     <div class="sidebar" id="sidebar">
@@ -544,53 +551,17 @@
                 <i class="bi bi-chevron-double-left"></i>
             </button>
         </div>
-        
+
         <div class="logo">
             <h2 class="logo-text">Общежитие</h2>
             <p class="logo-text">Система учета</p>
         </div>
-        
+
         <ul class="nav-menu">
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-building"></i>
-                    <span class="nav-text">Структура общежития</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-people"></i>
-                    <span class="nav-text">Управление контингентом</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-house-door"></i>
-                    <span class="nav-text">Расселение</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-search"></i>
-                    <span class="nav-text">Поиск</span>
-                </a>
-            </li>
             <li class="nav-item">
                 <a href="#" class="nav-link active">
                     <i class="bi bi-file-earmark-text"></i>
                     <span class="nav-text">Отчеты</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-gear"></i>
-                    <span class="nav-text">Настройки</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="nav-text">Выйти</span>
                 </a>
             </li>
         </ul>
@@ -655,7 +626,8 @@
                         <i class="bi bi-people"></i>
                     </div>
                     <h4 class="report-title">Общий список проживающих</h4>
-                    <p class="report-description">Полный список всех студентов, проживающих в общежитии с указанием групп, курсов и блоков</p>
+                    <p class="report-description">Полный список всех студентов, проживающих в общежитии с указанием
+                        групп, курсов и блоков</p>
                     <div class="report-meta">
                         <span>Формат: PDF, Excel</span>
                         <span>Обновлен: Сегодня</span>
@@ -682,7 +654,8 @@
                         <i class="bi bi-currency-dollar"></i>
                     </div>
                     <h4 class="report-title">Ведомость оплаты (нет)</h4>
-                    <p class="report-description">Финансовый отчет по оплате за проживание с указанием задолженностей и своевременных платежей</p>
+                    <p class="report-description">Финансовый отчет по оплате за проживание с указанием задолженностей и
+                        своевременных платежей</p>
                     <div class="report-meta">
                         <span>Формат: PDF, Excel</span>
                         <span>Обновлен: Вчера</span>
@@ -709,7 +682,8 @@
                         <i class="bi bi-building"></i>
                     </div>
                     <h4 class="report-title">Списки по блокам (норм)</h4>
-                    <p class="report-description">Разделенные по блокам списки студентов с указанием комнат и количества свободных мест</p>
+                    <p class="report-description">Разделенные по блокам списки студентов с указанием комнат и количества
+                        свободных мест</p>
                     <div class="report-meta">
                         <span>Формат: PDF, Excel</span>
                         <span>Обновлен: Сегодня</span>
@@ -736,7 +710,8 @@
                         <i class="bi bi-tools"></i>
                     </div>
                     <h4 class="report-title">Заявки на ремонт (нет)</h4>
-                    <p class="report-description">Отчет по всем заявкам на ремонт с указанием статуса, приоритета и исполнителей</p>
+                    <p class="report-description">Отчет по всем заявкам на ремонт с указанием статуса, приоритета и
+                        исполнителей</p>
                     <div class="report-meta">
                         <span>Формат: PDF, Excel</span>
                         <span>Обновлен: 2 дня назад</span>
@@ -763,7 +738,8 @@
                         <i class="bi bi-graph-up"></i>
                     </div>
                     <h4 class="report-title">Статистика заселения (нет)</h4>
-                    <p class="report-description">Аналитический отчет по заполняемости блоков, гендерному распределению и среднему сроку проживания</p>
+                    <p class="report-description">Аналитический отчет по заполняемости блоков, гендерному распределению
+                        и среднему сроку проживания</p>
                     <div class="report-meta">
                         <span>Формат: PDF, Excel</span>
                         <span>Обновлен: Неделя назад</span>
@@ -790,7 +766,8 @@
                         <i class="bi bi-calendar-event"></i>
                     </div>
                     <h4 class="report-title">Отчет по нарушениям (нет)</h4>
-                    <p class="report-description">Список всех зафиксированных нарушений правил проживания с указанием мер воздействия</p>
+                    <p class="report-description">Список всех зафиксированных нарушений правил проживания с указанием
+                        мер воздействия</p>
                     <div class="report-meta">
                         <span>Формат: PDF, Excel</span>
                         <span>Обновлен: 3 дня назад</span>
@@ -821,11 +798,11 @@
                 <h3 class="preview-title" id="previewTitle">Предпросмотр отчета</h3>
                 <button class="btn btn-secondary" onclick="closePreview()">&times;</button>
             </div>
-            
+
             <div class="chart-container">
                 <div>Графическое представление данных отчета</div>
             </div>
-            
+
             <div class="table-responsive">
                 <table class="preview-table">
                     <thead>
@@ -876,7 +853,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="d-flex justify-content-end mt-3">
                 <button class="btn btn-secondary me-2" onclick="closePreview()">Закрыть</button>
                 <button class="btn btn-success" onclick="downloadFromPreview()">
@@ -894,10 +871,10 @@
         const mainContent = document.getElementById('mainContent');
         const sidebarCollapse = document.getElementById('sidebarCollapse');
 
-        sidebarCollapse.addEventListener('click', function() {
+        sidebarCollapse.addEventListener('click', function () {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
-            
+
             // Меняем иконку при сворачивании/разворачивании
             const icon = this.querySelector('i');
             if (sidebar.classList.contains('collapsed')) {
@@ -934,7 +911,7 @@
         }
 
         // Закрытие модального окна при клике вне его области
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             const modal = document.getElementById('previewModal');
             if (event.target === modal) {
                 modal.style.display = 'none';
@@ -943,21 +920,22 @@
 
         // Добавим функциональность для активных ссылок
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 // Убираем активный класс со всех ссылок
                 document.querySelectorAll('.nav-link').forEach(item => {
                     item.classList.remove('active');
                 });
-                
+
                 // Добавляем активный класс к текущей ссылке
                 this.classList.add('active');
-                
+
                 // Здесь будет логика переключения контента
                 console.log('Переход к разделу:', this.textContent.trim());
             });
         });
     </script>
 </body>
+
 </html>

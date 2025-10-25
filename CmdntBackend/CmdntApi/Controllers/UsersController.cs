@@ -58,6 +58,7 @@ namespace CmdntApi.Controllers
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
             var users = await _context.Users
+                .Include(u => u.Role)
                 .Select(u => new UserDto
                 {
                     Id = u.Id,
@@ -65,8 +66,11 @@ namespace CmdntApi.Controllers
                     Surname = u.Surname,
                     Patronymic = u.Patronymic,
                     Login = u.Login,
-                    HashPassword = u.HashPassword,
-                    RoleId = u.RoleId
+                    Role = new RoleDto
+                    {
+                        Id = u.Role.Id,
+                        Name = u.Role.Name
+                    }
                 }).ToListAsync();
 
             if (users.Count == 0)
@@ -83,7 +87,9 @@ namespace CmdntApi.Controllers
         public async Task<ActionResult<UserDto>> GetUser(
             [SwaggerParameter(Description = "Уникальный идентификатор пользователя")] int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
                 return NotFound(new ApiErrorDto("Пользователь не найден", StatusCodes.Status404NotFound));
@@ -91,12 +97,15 @@ namespace CmdntApi.Controllers
             var response = new UserDto
             {
                 Id = user.Id,
-                RoleId = user.RoleId,
                 Name = user.Name,
                 Surname = user.Surname,
                 Patronymic = user.Patronymic,
                 Login = user.Login,
-                HashPassword = user.HashPassword
+                Role = new RoleDto
+                {
+                    Id = user.Role.Id,
+                    Name = user.Role.Name
+                }
             };
 
             return Ok(response);
@@ -205,15 +214,22 @@ namespace CmdntApi.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
+            var dbUser = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == user.Id);
+
             var userDto = new UserDto
             {
-                Id = user.Id,
-                RoleId = user.RoleId,
-                Surname = user.Surname,
-                Name = user.Name,
-                Patronymic = user.Patronymic,
-                Login = user.Login,
-                HashPassword = user.HashPassword
+                Id = dbUser.Id,
+                Surname = dbUser.Surname,
+                Name = dbUser.Name,
+                Patronymic = dbUser.Patronymic,
+                Login = dbUser.Login,
+                Role = new RoleDto
+                {
+                    Id = dbUser.Role.Id,
+                    Name = dbUser.Role.Name
+                }
             };
 
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, userDto);
