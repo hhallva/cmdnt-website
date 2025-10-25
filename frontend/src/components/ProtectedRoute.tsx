@@ -33,6 +33,7 @@ const hasRequiredRole = (userRoleName: string | null, requiredRole: RouteHandle[
             return false;
     }
 };
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const location = useLocation();
 

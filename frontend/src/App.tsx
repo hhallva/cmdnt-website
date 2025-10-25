@@ -1,8 +1,8 @@
 import LoginPage from './pages/Login/LoginLayoyt';
 import DashboardLayout from './pages/Dashboard/DashboardLayout';
-import UsersLayout from './pages/Dashboard/Users/UsersLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
+import NotFoundLayout from './pages/NotFound/NotFoundLayout';
 
 export const routes = [
   {
@@ -27,4 +27,5 @@ export const routes = [
       { index: true, element: <Navigate to="structure" replace /> },
     ],
   },
+  { path: "*", element: <NotFoundLayout /> },
 ];
