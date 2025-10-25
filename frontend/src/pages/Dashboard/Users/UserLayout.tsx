@@ -8,6 +8,8 @@ import type { UserStatisticDto } from '../../../types/UserStatisticDto';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
 
+import styles from './User.module.css'
+
 const UsersLayout: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -29,6 +31,7 @@ const UsersLayout: React.FC = () => {
                 console.info("Получение статистики и пользователей");
             } catch (err: any) {
                 console.error('Ошибка при загрузке данных:', err);
+
                 setError(err.message || 'Ошибка при загрузке данных');
             } finally {
                 setLoading(false);
@@ -37,6 +40,22 @@ const UsersLayout: React.FC = () => {
 
         fetchData();
     }, [navigate]);
+
+    const handleEditUser = (user: UserDto) => {
+        alert(`Редактирование пользователя ${user.name} (${user.login})`);
+    };
+
+    const handleChangePassword = (user: UserDto) => {
+        alert(`Изменение пароля для ${user.login}`);
+    };
+
+    const handleDeleteUser = (user: UserDto) => {
+        if (window.confirm(`Вы уверены, что хотите удалить пользователя ${user.name} (${user.login})?`)) {
+            console.log('Удалить пользователя:', user);
+            alert(`Удаление пользователя ${user.login}`);
+        }
+    };
+
 
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
@@ -51,42 +70,62 @@ const UsersLayout: React.FC = () => {
 
     const listTabContent = (
         <>
-
-            <div className="users-table-container mt-4">
-                <h3 className="mb-3">Список пользователей</h3> {/* Добавим отступ снизу */}
-                {users.length > 0 ? (
-                    <table className="users-table table table-striped">
+            <h3 className="mb-3">Список пользователей</h3>
+            {users.length > 0 ? (
+                <div className={styles.tableResponsive}> {/* Используем стиль для обертки таблицы */}
+                    <table className={styles.usersTable}>
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>ФИО</th>
                                 <th>Логин</th>
                                 <th>Роль</th>
-                                {/* Добавь другие столбцы по необходимости */}
+                                <th>Действия</th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.map(user => (
                                 <tr key={user.id}>
-                                    <td>{user.id}</td>
                                     <td>{user.surname} {user.name} {user.patronymic}</td>
                                     <td>{user.login}</td>
-                                    <td>{user.role?.name || 'Не указана'}</td>
-                                    {/* Добавь другие ячейки по необходимости */}
+                                    <td>{user.role?.name}</td>
+                                    <td>
+                                        <div className={styles.actionButtons}> {/* Используем стиль для обертки кнопок */}
+                                            <button
+                                                className={`${styles.actionBtn} ${styles.actionBtnEdit}`} // Объединяем основной и конкретный стиль
+                                                onClick={() => handleEditUser(user)}
+                                                title="Редактировать"
+                                            >
+                                                <i className="bi bi-pencil"></i>
+                                            </button>
+                                            <button
+                                                className={`${styles.actionBtn} ${styles.actionBtnPassword}`} // Объединяем основной и конкретный стиль
+                                                onClick={() => handleChangePassword(user)}
+                                                title="Изменить пароль"
+                                            >
+                                                <i className="bi bi-key"></i>
+                                            </button>
+                                            <button
+                                                className={`${styles.actionBtn} ${styles.actionBtnDelete}`} // Объединяем основной и конкретный стиль
+                                                onClick={() => handleDeleteUser(user)}
+                                                title="Удалить"
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                ) : (
-                    <p>Пользователи не найдены.</p>
-                )}
-            </div>
+                </div>
+            ) : (
+                <p>Пользователи не найдены.</p>
+            )}
         </>
     );
 
-    // Содержимое вкладки "Добавить пользователя" (заглушка)
     const addTabContent = (
-        <div className="form-section bg-light p-3 rounded">
+        <div >
             <h3 className="h5 mb-3">Добавить нового пользователя</h3>
         </div>
     );
@@ -101,7 +140,7 @@ const UsersLayout: React.FC = () => {
             id: 'add',
             title: 'Добавить пользователя',
             content: addTabContent,
-        },
+        }
     ];
 
     return (
