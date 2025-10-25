@@ -1,0 +1,92 @@
+.tabsContainer {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: block;
+}
+
+.tabsHeader {
+    display: flex;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+}
+
+.tabsHeader::-webkit-scrollbar {
+    height: 6px;
+}
+
+.tabsHeader::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
+.tabsHeader::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+
+.tabButton {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    color: #6c757d;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 5px 5px 0 0;
+}
+
+.tabButton:hover:not(.active) {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.tabButton.active {
+    background: #ffa726;
+    color: white;
+}
+
+
+/* --- Адаптивность --- */
+@media (max-width: 768px) {
+    .tabsContainer {
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .tabsHeader {
+        margin-bottom: 1rem;
+    }
+
+    .tabButton {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        margin-right: 0.25rem;
+        border-radius: 5px 5px 0 0;
+    }
+
+    .tabButton.active {
+        border-radius: 5px 5px 0 0;
+    }
+
+    .tabContent {
+        padding: 0.5rem 0;
+    }
+}
+
+/* Если очень много вкладок или очень мало места */
+@media (max-width: 480px) {
+    .tabButton {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        margin-right: 0.2rem;
+    }
+}
