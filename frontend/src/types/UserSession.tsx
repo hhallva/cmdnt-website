@@ -5,7 +5,7 @@ export interface UserSession {
   name: string | null;
   surname: string | null;
   patronymic: string | null;
-  role: RoleDto | null;
+  role: RoleDto;
   login: string | null;
   token: string | null;
 }
