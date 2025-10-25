@@ -7,6 +7,12 @@ import type { UserStatisticDto } from '../types/UserStatisticDto'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+const handleUnauthorized = () => {
+  Cookies.remove('authToken');
+  sessionStorage.clear();
+  window.location.href = '/';
+};
+
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const fullUrl = `${API_BASE_URL}${url}`;
 
@@ -18,6 +24,11 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
       },
       ...options,
     });
+
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new Error('Токен недействителен. Вы будете перенаправлены на страницу входа.');
+    }
 
     if (response.ok) {
       return await response.json();

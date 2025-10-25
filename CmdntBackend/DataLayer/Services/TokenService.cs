@@ -22,7 +22,7 @@ namespace DataLayer.Services
             var token = new JwtSecurityToken(
                 claims: claims,
                 signingCredentials: credentials,
-                expires: DateTime.Now.AddHours(1));
+                expires: DateTime.Now.AddDays(1));
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
