@@ -4,6 +4,7 @@ import type { ApiErrorDto } from '../types/ApiErrorDto'
 import type { RoleDto } from '../types/RoleDto'
 import type { UserDto } from '../types/UserDto'
 import type { UserStatisticDto } from '../types/UserStatisticDto'
+import type { UpdateUserDto } from '../types/UpdateUserDto'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -108,6 +109,10 @@ export const apiClient = {
     return apiClient.requestWithAuth<UserDto[]>('/api/v1/Users');
   },
 
+  getUserById: async (id: number): Promise<UserDto> => {
+    return apiClient.requestWithAuth<UserDto>(`/api/v1/Users/${id}`);
+  },
+
   deleteUser: async (id: number): Promise<void> => {
     await apiClient.requestWithAuth(`/api/v1/Users/${id}`, {
       method: 'DELETE',
@@ -124,12 +129,15 @@ export const apiClient = {
     });
   },
 
-  // updateUser: async (id: number, userData: Partial<UserDto>): Promise<UserDto> => {
-  //   return apiClient.requestWithAuth<UserDto>(`/api/v1/Users/${id}`, {
-  //     method: 'PUT',
-  //     body: JSON.stringify(userData),
-  //   });
-  // },
+  updateUser: async (id: number, userData: UpdateUserDto): Promise<UserDto> => {
+    return apiClient.requestWithAuth<UserDto>(`/api/v1/Users/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+  },
 
   // addUser: async (userData: Omit<UserDto, 'id'> & { password: string }): Promise<UserDto> => {
   //   return apiClient.requestWithAuth<UserDto>('/api/v1/Users', {

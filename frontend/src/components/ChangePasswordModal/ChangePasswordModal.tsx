@@ -68,7 +68,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
 
     return (
         // Используем стили из модуля
-        <div className={styles.modalOverlay} onClick={onClose}> {/* Закрытие при клике вне модального окна */}
+        <div className={styles.modalOverlay}> {/* Закрытие при клике вне модального окна */}
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}> {/* Останавливаем всплытие клика внутри */}
                 <div className={styles.modalHeader}>
                     <h3 className={styles.modalTitle}>Изменение пароля</h3>

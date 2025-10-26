@@ -13,6 +13,7 @@ import InputField from '../../../components/InputField/InputField';
 import SelectField from '../../../components/SelectField/SelectField';
 import CancelButton from '../../../components/CancelButton/CancelButton';
 import ChangePasswordModal from '../../../components/ChangePasswordModal/ChangePasswordModal';
+import EditUserModal from '../../../components/EditUserModal/EditUserModal';
 
 import styles from './User.module.css'
 import type { RoleDto } from '../../../types/RoleDto';
@@ -66,6 +67,16 @@ const UsersLayout: React.FC = () => {
             throw err; // Бросаем ошибку, чтобы вызывающий код (например, useEffect или handleDelete) мог её обработать
         }
     };
+
+    const fetchUsers = async () => {
+        try {
+            const usersResponse = await apiClient.getAllUsers();
+            setUsers(usersResponse);
+        } catch (err: any) {
+            console.error('Ошибка при загрузке пользователей:', err);
+            throw err;
+        }
+    };
     // #endregion
 
     // #region Поиск и фильтрация
@@ -100,8 +111,35 @@ const UsersLayout: React.FC = () => {
     // #endregion
 
     //#region Действия в таблице
-    const handleEditUser = (user: UserDto) => {
-        alert(`Редактирование пользователя ${user.name} (${user.login})`);
+    const [showEditUserModal, setShowEditUserModal] = useState(false);
+    const [userForEdit, setUserForEdit] = useState<UserDto | null>(null);
+
+    const handleEditUser = async (user: UserDto) => {
+        try {
+            const freshUserData = await apiClient.getUserById(user.id);
+            setUserForEdit(freshUserData);
+            setShowEditUserModal(true);
+        } catch (err: any) {
+            console.error('Ошибка при загрузке данных пользователя для редактирования:', err);
+            alert(err.message || 'Ошибка при загрузке данных пользователя');
+        }
+    };
+
+    const handleCloseEditUserModal = () => {
+        setShowEditUserModal(false);
+        setUserForEdit(null);
+    };
+
+    const handleSuccessEditUser = async () => {
+        console.log('Пользователь успешно обновлён. Перезагружаем список пользователей...');
+        try {
+            // --- Перезагружаем список пользователей ---
+            await fetchUsers(); // Предполагается, что fetchUsers - асинхронная функция из твоего useEffect
+        } catch (err: any) {
+            console.error('Ошибка при перезагрузке списка пользователей после редактирования:', err);
+            alert(err.message || 'Ошибка при обновлении списка пользователей');
+            // Ошибка 401 будет перехвачена в apiClient
+        }
     };
 
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -266,6 +304,18 @@ const UsersLayout: React.FC = () => {
                     onClose={() => {
                         setShowChangePasswordModal(false);
                         setUserForPasswordChange(null);
+                    }}
+                />
+            )}
+
+            {showEditUserModal && userForEdit && (
+                <EditUserModal
+                    user={userForEdit}
+                    roles={roles}
+                    onClose={handleCloseEditUserModal}
+                    onSuccess={handleSuccessEditUser}
+                    onError={(msg) => {
+                        alert(msg);
                     }}
                 />
             )}

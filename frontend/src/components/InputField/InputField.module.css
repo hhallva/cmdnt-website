@@ -3,6 +3,7 @@
 /* Стили для группы формы (обёртка поля ввода и метки) */
 .formGroup {
     margin-bottom: 1rem;
+    position: relative;
 }
 
 /* Стили для метки */
@@ -28,6 +29,33 @@
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
 }
+
+/* --- Стили для невалидного состояния --- */
+.formControl.isInvalid,
+.formSelect.isInvalid {
+    /* Добавляем для SelectField */
+    border-color: #dc3545;
+    /* Красная рамка */
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    /* Красная тень */
+}
+
+.formControl.isInvalid:focus,
+.formSelect.isInvalid:focus {
+    /* Добавляем для SelectField */
+    border-color: #bd2130;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* --- Стили для сообщения об ошибке --- */
+.invalidFeedback {
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #dc3545;
+    /* Красный цвет текста */
+}
+
 
 /* Добавим стили для других типов полей, если нужно */
 .formSelect {
