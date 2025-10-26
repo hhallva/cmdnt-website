@@ -1,0 +1,63 @@
+/* src/components/InputField/InputField.module.css */
+
+/* Стили для группы формы (обёртка поля ввода и метки) */
+.formGroup {
+    margin-bottom: 1.5rem;
+}
+
+/* Стили для метки */
+.formLabel {
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Стили для поля ввода */
+.formControl {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.formControl:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+}
+
+/* Добавим стили для других типов полей, если нужно */
+.formSelect {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.formSelect:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+}
+
+.formTextarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    font-size: 1rem;
+    min-height: 120px;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.formTextarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+}
