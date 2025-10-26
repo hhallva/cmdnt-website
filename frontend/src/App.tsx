@@ -19,7 +19,7 @@ export const routes = [
     handle: { title: 'Панель управления' },
     children: [
       { path: "structure", element: <div>Структура</div>, handle: { title: 'Структура общежития', requiredRole: 'educator' } },
-      { path: "students", element: <div>Управление контенгентом</div>, handle: { title: 'Управление контингентом', requiredRole: 'commandant' } },
+      { path: "students", element: <div>Студенты</div>, handle: { title: 'Студенты', requiredRole: 'commandant' } },
       { path: "settlement", element: <div>Расселение</div>, handle: { title: 'Расселение', requiredRole: 'commandant' } },
       { path: "reports", element: <div>Отчеты</div>, handle: { title: 'Отчеты', requiredRole: 'commandant' } },
       { path: "users", element: <UsersLayout />, handle: { title: 'Пользователи', requiredRole: 'admin' } },
