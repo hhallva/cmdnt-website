@@ -12,6 +12,7 @@ import Tabs from '../../../components/Tabs/Tabs';
 import InputField from '../../../components/InputField/InputField';
 import SelectField from '../../../components/SelectField/SelectField';
 import CancelButton from '../../../components/CancelButton/CancelButton';
+import ChangePasswordModal from '../../../components/ChangePasswordModal/ChangePasswordModal';
 
 import styles from './User.module.css'
 import type { RoleDto } from '../../../types/RoleDto';
@@ -103,8 +104,12 @@ const UsersLayout: React.FC = () => {
         alert(`Редактирование пользователя ${user.name} (${user.login})`);
     };
 
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+    const [userForPasswordChange, setUserForPasswordChange] = useState<UserDto | null>(null);
+
     const handleChangePassword = (user: UserDto) => {
-        alert(`Изменение пароля для ${user.login}`);
+        setUserForPasswordChange(user);
+        setShowChangePasswordModal(true);
     };
 
     const handleDeleteUser = async (user: UserDto) => {
@@ -254,6 +259,16 @@ const UsersLayout: React.FC = () => {
         <>
             <StatisticsCard stats={userStats} />
             <Tabs tabs={tabs} defaultActiveTabId="list" />
+
+            {showChangePasswordModal && userForPasswordChange && (
+                <ChangePasswordModal
+                    user={userForPasswordChange}
+                    onClose={() => {
+                        setShowChangePasswordModal(false);
+                        setUserForPasswordChange(null);
+                    }}
+                />
+            )}
         </>
     );
 }

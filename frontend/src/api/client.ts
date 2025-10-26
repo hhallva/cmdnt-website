@@ -114,12 +114,15 @@ export const apiClient = {
     });
   },
 
-  // changeUserPassword: async (id: number, newPassword: string): Promise<void> => {
-  //   await apiClient.requestWithAuth(`/api/v1/Users/${id}/password`, {
-  //     method: 'PATCH',
-  //     body: JSON.stringify({ password: newPassword }),
-  //   });
-  // },
+  changeUserPassword: async (id: number, newPassword: string): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Users/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: newPassword }),
+    });
+  },
 
   // updateUser: async (id: number, userData: Partial<UserDto>): Promise<UserDto> => {
   //   return apiClient.requestWithAuth<UserDto>(`/api/v1/Users/${id}`, {
