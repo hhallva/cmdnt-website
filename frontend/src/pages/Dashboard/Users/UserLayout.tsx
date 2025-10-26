@@ -7,8 +7,12 @@ import type { UserStatisticDto } from '../../../types/UserStatisticDto';
 
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
+import InputField from '../../../components/InputField/InputField';
+import SelectField from '../../../components/SelectField/SelectField';
+import CancelButton from '../../../components/CancelButton/CancelButton';
 
 import styles from './User.module.css'
+import type { RoleDto } from '../../../types/RoleDto';
 
 const UsersLayout: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -16,18 +20,24 @@ const UsersLayout: React.FC = () => {
 
     const [statistics, setStatistics] = useState<UserStatisticDto | null>(null);
     const [users, setUsers] = useState<UserDto[]>([]);
+    const [roles, setRoles] = useState<RoleDto[]>([]);
     const navigate = useNavigate();
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [statsResponse, usersResponse] = await Promise.all([
+                const [statsResponse, usersResponse, rolesResponse] = await Promise.all([
                     apiClient.getUserStatistics(),
-                    apiClient.getAllUsers()
+                    apiClient.getAllUsers(),
+                    apiClient.getAllRoles()
                 ]);
 
                 setStatistics(statsResponse);
                 setUsers(usersResponse);
+                setRoles(rolesResponse);
                 console.info("Получение статистики и пользователей");
             } catch (err: any) {
                 console.error('Ошибка при загрузке данных:', err);
@@ -40,6 +50,32 @@ const UsersLayout: React.FC = () => {
 
         fetchData();
     }, [navigate]);
+
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        setSelectedRoleId(value === 'all' ? 'all' : Number(value));
+    };
+
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setSelectedRoleId('all');
+    };
+
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (user.surname?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (user.patronymic?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+
+        const matchesRole = selectedRoleId === 'all' || user.role?.id === selectedRoleId;
+
+        return matchesSearch && matchesRole;
+    });
+
 
     const handleEditUser = (user: UserDto) => {
         alert(`Редактирование пользователя ${user.name} (${user.login})`);
@@ -56,7 +92,6 @@ const UsersLayout: React.FC = () => {
         }
     };
 
-
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
     if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
@@ -68,59 +103,93 @@ const UsersLayout: React.FC = () => {
         { value: statistics.educatorCount, label: 'Воспитатели' },
     ];
 
+    const roleOptions = [
+        { value: 'all', label: 'Все роли' },
+        ...roles.map(role => ({
+            value: role.id,
+            label: role.name || `Роль ${role.id}`
+        }))
+    ];
+
     const listTabContent = (
         <>
-            <h3 className="mb-3">Список пользователей</h3>
-            {users.length > 0 ? (
-                <div className={styles.tableResponsive}> {/* Используем стиль для обертки таблицы */}
-                    <table className={styles.usersTable}>
-                        <thead>
-                            <tr>
-                                <th>ФИО</th>
-                                <th>Логин</th>
-                                <th>Роль</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.map(user => (
-                                <tr key={user.id}>
-                                    <td>{user.surname} {user.name} {user.patronymic}</td>
-                                    <td>{user.login}</td>
-                                    <td>{user.role?.name}</td>
-                                    <td>
-                                        <div className={styles.actionButtons}> {/* Используем стиль для обертки кнопок */}
-                                            <button
-                                                className={`${styles.actionBtn} ${styles.actionBtnEdit}`} // Объединяем основной и конкретный стиль
-                                                onClick={() => handleEditUser(user)}
-                                                title="Редактировать"
-                                            >
-                                                <i className="bi bi-pencil"></i>
-                                            </button>
-                                            <button
-                                                className={`${styles.actionBtn} ${styles.actionBtnPassword}`} // Объединяем основной и конкретный стиль
-                                                onClick={() => handleChangePassword(user)}
-                                                title="Изменить пароль"
-                                            >
-                                                <i className="bi bi-key"></i>
-                                            </button>
-                                            <button
-                                                className={`${styles.actionBtn} ${styles.actionBtnDelete}`} // Объединяем основной и конкретный стиль
-                                                onClick={() => handleDeleteUser(user)}
-                                                title="Удалить"
-                                            >
-                                                <i className="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <div className="row g-3 mb-3">
+                <div className="col-md-6">
+                    <InputField
+                        label="Поиск по ФИО"
+                        type="text"
+                        placeholder="Введите ФИО"
+                        value={searchTerm}
+                        onChange={handleSearchChange} />
                 </div>
-            ) : (
-                <p>Пользователи не найдены.</p>
-            )}
+                <div className="col-md-3">
+                    <SelectField
+                        label="Роль"
+                        value={selectedRoleId}
+                        onChange={handleRoleChange}
+                        options={roleOptions} />
+                </div>
+                <div className="col-md-1" >
+                    <CancelButton
+                        onClick={handleResetFilters}
+                        label="Сбросить"
+                    />
+                </div>
+            </div>
+
+            <h3 className="mb-3">Список пользователей</h3>
+            {
+                filteredUsers.length > 0 ? (
+                    <div className={styles.tableResponsive}>
+                        <table className={styles.usersTable}>
+                            <thead>
+                                <tr>
+                                    <th>ФИО</th>
+                                    <th>Логин</th>
+                                    <th>Роль</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredUsers.map(user => (
+                                    <tr key={user.id}>
+                                        <td>{user.surname} {user.name} {user.patronymic}</td>
+                                        <td>{user.login}</td>
+                                        <td>{user.role?.name}</td>
+                                        <td>
+                                            <div className={styles.actionButtons}>
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.actionBtnEdit}`}
+                                                    onClick={() => handleEditUser(user)}
+                                                    title="Редактировать"
+                                                >
+                                                    <i className="bi bi-pencil"></i>
+                                                </button>
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.actionBtnPassword}`}
+                                                    onClick={() => handleChangePassword(user)}
+                                                    title="Изменить пароль"
+                                                >
+                                                    <i className="bi bi-key"></i>
+                                                </button>
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.actionBtnDelete}`} // Объединяем основной и конкретный стиль
+                                                    onClick={() => handleDeleteUser(user)}
+                                                    title="Удалить"
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p>Пользователи не найдены.</p>
+                )
+            }
         </>
     );
 
