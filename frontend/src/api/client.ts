@@ -4,8 +4,16 @@ import type { ApiErrorDto } from '../types/ApiErrorDto'
 import type { RoleDto } from '../types/RoleDto'
 import type { UserDto } from '../types/UserDto'
 import type { UserStatisticDto } from '../types/UserStatisticDto'
+import type { UpdateUserDto } from '../types/UpdateUserDto'
+import type { PostUserDto } from '../types/PostUserDto'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const handleUnauthorized = () => {
+  Cookies.remove('authToken');
+  sessionStorage.clear();
+  window.location.href = '/';
+};
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const fullUrl = `${API_BASE_URL}${url}`;
@@ -19,8 +27,29 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
       ...options,
     });
 
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new Error('Токен недействителен. Вы будете перенаправлены на страницу входа.');
+    }
+
     if (response.ok) {
-      return await response.json();
+      if (response.status === 204) {
+        return undefined as unknown as T;
+      }
+      const text = await response.text();
+
+      if (!text) {
+        return undefined as unknown as T;
+      }
+
+      try {
+        const data = JSON.parse(text);
+        return data;
+      } catch (parseError) {
+        console.error("Ошибка парсинга JSON:", parseError);
+        console.error("Полученный текст:", text);
+        throw new Error(`Сервер вернул некорректные данные: ${parseError}`);
+      }
     }
 
     const errorData: ApiErrorDto = await response.json().catch(() => ({
@@ -40,6 +69,11 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const apiClient = {
+
+  //#region 
+  //#endregion
+
+  //#region Авторизация
   singIn: async (credentials: LoginDto) => {
     return request<LoginResponseDto>('/api/v1/SignIn', {
       method: 'POST',
@@ -47,24 +81,74 @@ export const apiClient = {
     });
   },
 
-  getWithAuth: async <T>(url: string): Promise<T> => {
+  requestWithAuth: async <T>(url: string, options: RequestInit = {}): Promise<T> => {
     const token = Cookies.get('authToken');
-    return request<T>(url, {
+    const optionsWithAuth = {
+      ...options,
       headers: {
         Authorization: token ? `Bearer ${token}` : '',
+        ...options.headers,
       },
-    });
+    };
+    return request<T>(url, optionsWithAuth);
   },
+  // #endregion
 
+  //#region Роли
   getAllRoles: async (): Promise<RoleDto[]> => {
-    return apiClient.getWithAuth<RoleDto[]>('/api/v1/Roles');
+    return apiClient.requestWithAuth<RoleDto[]>('/api/v1/Roles');
   },
+  //#endregion
 
+
+  //#region Пользователи
   getUserStatistics: async (): Promise<UserStatisticDto> => {
-    return apiClient.getWithAuth<UserStatisticDto>('/api/v1/Users/statistic');
+    return apiClient.requestWithAuth<UserStatisticDto>('/api/v1/Users/statistic');
   },
 
   getAllUsers: async (): Promise<UserDto[]> => {
-    return apiClient.getWithAuth<UserDto[]>('/api/v1/Users');
+    return apiClient.requestWithAuth<UserDto[]>('/api/v1/Users');
   },
+
+  getUserById: async (id: number): Promise<UserDto> => {
+    return apiClient.requestWithAuth<UserDto>(`/api/v1/Users/${id}`);
+  },
+
+  deleteUser: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Users/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  changeUserPassword: async (id: number, newPassword: string): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Users/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: newPassword }),
+    });
+  },
+
+  updateUser: async (id: number, userData: UpdateUserDto): Promise<UserDto> => {
+    return apiClient.requestWithAuth<UserDto>(`/api/v1/Users/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+  },
+
+  createUser: async (userData: PostUserDto): Promise<UserDto> => {
+    return apiClient.requestWithAuth<UserDto>('/api/v1/Users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+  },
+  //#endregion
+
 };

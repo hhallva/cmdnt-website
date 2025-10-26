@@ -766,9 +766,6 @@
                                 <th>ФИО</th>
                                 <th>Логин</th>
                                 <th>Роль</th>
-                                <th>Email</th>
-                                <th>Телефон</th>
-                                <th>Статус</th>
                                 <th>Действия</th>
                             </tr>
                         </thead>
@@ -777,9 +774,6 @@
                                 <td>Иванов Александр Петрович</td>
                                 <td>admin_ivanov</td>
                                 <td><span class="role-badge badge-admin">Администратор</span></td>
-                                <td>ivanov.ap@admin.edu.ru</td>
-                                <td>+7 (999) 123-45-67</td>
-                                <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
                                         <button class="action-btn edit" onclick="editUser('Иванов Александр Петрович')">
@@ -799,9 +793,6 @@
                                 <td>Петрова Мария Сергеевна</td>
                                 <td>commandant_petrova</td>
                                 <td><span class="role-badge badge-commandant">Комендант</span></td>
-                                <td>petrova.ms@commandant.edu.ru</td>
-                                <td>+7 (999) 987-65-43</td>
-                                <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
                                         <button class="action-btn edit" onclick="editUser('Петрова Мария Сергеевна')">
@@ -822,9 +813,6 @@
                                 <td>Сидоров Дмитрий Александрович</td>
                                 <td>educator_sidorov</td>
                                 <td><span class="role-badge badge-educator">Воспитатель</span></td>
-                                <td>sidorov.da@educator.edu.ru</td>
-                                <td>+7 (999) 111-22-33</td>
-                                <td><span class="badge bg-success">Активен</span></td>
                                 <td>
                                     <div class="action-buttons">
                                         <button class="action-btn edit"
@@ -837,74 +825,6 @@
                                         </button>
                                         <button class="action-btn delete"
                                             onclick="deleteUser('Сидоров Дмитрий Александрович')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Козлова Анна Владимировна</td>
-                                <td>admin_kozlova</td>
-                                <td><span class="role-badge badge-admin">Администратор</span></td>
-                                <td>kozlova.av@admin.edu.ru</td>
-                                <td>+7 (999) 444-55-66</td>
-                                <td><span class="badge bg-success">Активен</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="action-btn edit" onclick="editUser('Козлова Анна Владимировна')">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="action-btn password" onclick="changePassword('admin_kozlova')">
-                                            <i class="bi bi-key"></i>
-                                        </button>
-                                        <button class="action-btn delete"
-                                            onclick="deleteUser('Козлова Анна Владимировна')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Волков Сергей Иванович</td>
-                                <td>commandant_volkov</td>
-                                <td><span class="role-badge badge-commandant">Комендант</span></td>
-                                <td>volkov.si@commandant.edu.ru</td>
-                                <td>+7 (999) 777-88-99</td>
-                                <td><span class="badge bg-success">Активен</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="action-btn edit" onclick="editUser('Волков Сергей Иванович')">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="action-btn password"
-                                            onclick="changePassword('commandant_volkov')">
-                                            <i class="bi bi-key"></i>
-                                        </button>
-                                        <button class="action-btn delete"
-                                            onclick="deleteUser('Волков Сергей Иванович')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Морозова Елена Васильевна</td>
-                                <td>educator_morozova</td>
-                                <td><span class="role-badge badge-educator">Воспитатель</span></td>
-                                <td>morozova.ev@educator.edu.ru</td>
-                                <td>+7 (999) 222-33-44</td>
-                                <td><span class="badge bg-success">Активен</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="action-btn edit" onclick="editUser('Морозова Елена Васильевна')">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="action-btn password"
-                                            onclick="changePassword('educator_morozova')">
-                                            <i class="bi bi-key"></i>
-                                        </button>
-                                        <button class="action-btn delete"
-                                            onclick="deleteUser('Морозова Елена Васильевна')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -936,10 +856,6 @@
                                 <div class="form-group">
                                     <label class="form-label">Логин</label>
                                     <input type="text" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -1085,11 +1001,6 @@
                 document.querySelector('.tab[data-tab="list"]').classList.add('active');
                 document.getElementById('list-tab').classList.add('active');
             }
-        }
-
-        // Функция для редактирования пользователя
-        function editUser(userName) {
-            alert(`Открытие формы редактирования пользователя: ${userName}`);
         }
 
         // Функция для изменения пароля

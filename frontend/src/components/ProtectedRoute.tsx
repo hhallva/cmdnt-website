@@ -9,7 +9,7 @@ type RouteHandle = {
     requiredRole?: 'educator' | 'commandant' | 'admin'; // Минимальная роль для доступа
 };
 
-const getUserSession = (): UserSession | null => {
+export const getUserSession = (): UserSession | null => {
     const userSessionStr = sessionStorage.getItem('userSession');
     return userSessionStr ? JSON.parse(userSessionStr) : null;
 };
@@ -52,7 +52,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     }
 
     const matches = useMatches();
-    const currentMatch = matches[matches.length - 1]; // Последний маршрут - текущий
+    const currentMatch = matches[matches.length - 1];
     const requiredRole = (currentMatch?.handle as RouteHandle)?.requiredRole;
 
     // Если маршрут требует роль, проверяем её
