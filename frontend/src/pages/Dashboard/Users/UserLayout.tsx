@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+
 import { useNavigate } from 'react-router-dom';
+import { getUserSession } from '../../../components/ProtectedRoute';
 import { apiClient } from '../../../api/client';
 
 import type { UserDto } from '../../../types/UserDto';
@@ -15,16 +17,16 @@ import styles from './User.module.css'
 import type { RoleDto } from '../../../types/RoleDto';
 
 const UsersLayout: React.FC = () => {
+    // #region Загрузка данных
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const userSession = getUserSession();
 
     const [statistics, setStatistics] = useState<UserStatisticDto | null>(null);
     const [users, setUsers] = useState<UserDto[]>([]);
     const [roles, setRoles] = useState<RoleDto[]>([]);
     const navigate = useNavigate();
-
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,6 +53,23 @@ const UsersLayout: React.FC = () => {
         fetchData();
     }, [navigate]);
 
+    const fetchStatistics = async () => {
+        try {
+            const statsResponse = await apiClient.getUserStatistics();
+            setStatistics(statsResponse);
+        } catch (err: any) {
+            console.error('Ошибка при загрузке статистики:', err);
+            // Обработка ошибки статистики, если нужно отдельно
+            // setError(err.message || 'Ошибка при загрузке статистики');
+            // Но, возможно, лучше бросить ошибку дальше или вернуть null
+            throw err; // Бросаем ошибку, чтобы вызывающий код (например, useEffect или handleDelete) мог её обработать
+        }
+    };
+    // #endregion
+
+    // #region Поиск и фильтрация
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
@@ -66,6 +85,7 @@ const UsersLayout: React.FC = () => {
         setSelectedRoleId('all');
     };
 
+
     const filteredUsers = users.filter(user => {
         const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (user.surname?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -76,7 +96,9 @@ const UsersLayout: React.FC = () => {
         return matchesSearch && matchesRole;
     });
 
+    // #endregion
 
+    //#region Действия в таблице
     const handleEditUser = (user: UserDto) => {
         alert(`Редактирование пользователя ${user.name} (${user.login})`);
     };
@@ -85,12 +107,20 @@ const UsersLayout: React.FC = () => {
         alert(`Изменение пароля для ${user.login}`);
     };
 
-    const handleDeleteUser = (user: UserDto) => {
+    const handleDeleteUser = async (user: UserDto) => {
         if (window.confirm(`Вы уверены, что хотите удалить пользователя ${user.name} (${user.login})?`)) {
-            console.log('Удалить пользователя:', user);
-            alert(`Удаление пользователя ${user.login}`);
+            try {
+                await apiClient.deleteUser(user.id);
+                console.log('Пользователь успешно удалён с сервера:', user);
+                setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
+                await fetchStatistics();
+            } catch (err: any) {
+                console.error('Ошибка при удалении пользователя:', err);
+                alert(err.message || 'Ошибка при удалении пользователя');
+            }
         }
     };
+    //#endregion
 
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
@@ -138,20 +168,20 @@ const UsersLayout: React.FC = () => {
             </div>
 
             <h3 className="mb-3">Список пользователей</h3>
-            {
-                filteredUsers.length > 0 ? (
-                    <div className={styles.tableResponsive}>
-                        <table className={styles.usersTable}>
-                            <thead>
-                                <tr>
-                                    <th>ФИО</th>
-                                    <th>Логин</th>
-                                    <th>Роль</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredUsers.map(user => (
+            <div className={styles.tableResponsive}>
+                <table className={styles.usersTable}>
+                    <thead>
+                        <tr>
+                            <th>ФИО</th>
+                            <th>Логин</th>
+                            <th>Роль</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            filteredUsers.length > 0 ? (
+                                filteredUsers.map(user => (
                                     <tr key={user.id}>
                                         <td>{user.surname} {user.name} {user.patronymic}</td>
                                         <td>{user.login}</td>
@@ -172,24 +202,32 @@ const UsersLayout: React.FC = () => {
                                                 >
                                                     <i className="bi bi-key"></i>
                                                 </button>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.actionBtnDelete}`} // Объединяем основной и конкретный стиль
-                                                    onClick={() => handleDeleteUser(user)}
-                                                    title="Удалить"
-                                                >
-                                                    <i className="bi bi-trash"></i>
-                                                </button>
+
+                                                {userSession?.id != user.id ? (
+                                                    <button
+                                                        className={`${styles.actionBtn} ${styles.actionBtnDelete}`}
+                                                        onClick={() => handleDeleteUser(user)}
+                                                        title="Удалить"
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </button>
+                                                ) : (<></>)}
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <p>Пользователи не найдены.</p>
-                )
-            }
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={4} className="text-center "> {/* colSpan=4 означает, что ячейка занимает всю ширину таблицы */}
+                                        Пользователи не найдены
+                                    </td>
+                                </tr>
+                            )
+                        }
+                    </tbody>
+                </table>
+            </div>
+
         </>
     );
 

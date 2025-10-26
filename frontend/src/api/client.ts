@@ -31,7 +31,23 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
     }
 
     if (response.ok) {
-      return await response.json();
+      if (response.status === 204) {
+        return undefined as unknown as T;
+      }
+      const text = await response.text();
+
+      if (!text) {
+        return undefined as unknown as T;
+      }
+
+      try {
+        const data = JSON.parse(text);
+        return data;
+      } catch (parseError) {
+        console.error("Ошибка парсинга JSON:", parseError);
+        console.error("Полученный текст:", text);
+        throw new Error(`Сервер вернул некорректные данные: ${parseError}`);
+      }
     }
 
     const errorData: ApiErrorDto = await response.json().catch(() => ({
@@ -51,6 +67,11 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const apiClient = {
+
+  //#region 
+  //#endregion
+
+  //#region Авторизация
   singIn: async (credentials: LoginDto) => {
     return request<LoginResponseDto>('/api/v1/SignIn', {
       method: 'POST',
@@ -58,24 +79,61 @@ export const apiClient = {
     });
   },
 
-  getWithAuth: async <T>(url: string): Promise<T> => {
+  requestWithAuth: async <T>(url: string, options: RequestInit = {}): Promise<T> => {
     const token = Cookies.get('authToken');
-    return request<T>(url, {
+    const optionsWithAuth = {
+      ...options,
       headers: {
         Authorization: token ? `Bearer ${token}` : '',
+        ...options.headers,
       },
-    });
+    };
+    return request<T>(url, optionsWithAuth);
   },
+  // #endregion
 
+  //#region Роли
   getAllRoles: async (): Promise<RoleDto[]> => {
-    return apiClient.getWithAuth<RoleDto[]>('/api/v1/Roles');
+    return apiClient.requestWithAuth<RoleDto[]>('/api/v1/Roles');
   },
+  //#endregion
 
+
+  //#region Пользователи
   getUserStatistics: async (): Promise<UserStatisticDto> => {
-    return apiClient.getWithAuth<UserStatisticDto>('/api/v1/Users/statistic');
+    return apiClient.requestWithAuth<UserStatisticDto>('/api/v1/Users/statistic');
   },
 
   getAllUsers: async (): Promise<UserDto[]> => {
-    return apiClient.getWithAuth<UserDto[]>('/api/v1/Users');
+    return apiClient.requestWithAuth<UserDto[]>('/api/v1/Users');
   },
+
+  deleteUser: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Users/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // changeUserPassword: async (id: number, newPassword: string): Promise<void> => {
+  //   await apiClient.requestWithAuth(`/api/v1/Users/${id}/password`, {
+  //     method: 'PATCH',
+  //     body: JSON.stringify({ password: newPassword }),
+  //   });
+  // },
+
+  // updateUser: async (id: number, userData: Partial<UserDto>): Promise<UserDto> => {
+  //   return apiClient.requestWithAuth<UserDto>(`/api/v1/Users/${id}`, {
+  //     method: 'PUT',
+  //     body: JSON.stringify(userData),
+  //   });
+  // },
+
+  // addUser: async (userData: Omit<UserDto, 'id'> & { password: string }): Promise<UserDto> => {
+  //   return apiClient.requestWithAuth<UserDto>('/api/v1/Users', {
+  //     method: 'POST',
+  //     body: JSON.stringify(userData),
+  //   });
+  // },
+  //#endregion
+
 };

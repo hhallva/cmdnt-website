@@ -9,7 +9,7 @@ type RouteHandle = {
     requiredRole?: 'educator' | 'commandant' | 'admin'; // Минимальная роль для доступа
 };
 
-const getUserSession = (): UserSession | null => {
+export const getUserSession = (): UserSession | null => {
     const userSessionStr = sessionStorage.getItem('userSession');
     return userSessionStr ? JSON.parse(userSessionStr) : null;
 };
