@@ -12,6 +12,7 @@ import type { PostUserDto } from '../../../types/PostUserDto';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
 import InputField from '../../../components/InputField/InputField';
+import PasswordField from '../../../components/PasswordField/PasswordField';
 import SelectField from '../../../components/SelectField/SelectField';
 import CancelButton from '../../../components/CancelButton/CancelButton';
 import ChangePasswordModal from '../../../components/ChangePasswordModal/ChangePasswordModal';
@@ -445,9 +446,8 @@ const UsersLayout: React.FC = () => {
                         />
                     </div>
                     <div className="col-md-6">
-                        <InputField
+                        <PasswordField
                             label="Пароль"
-                            type="password"
                             name="password"
                             value={newUser.password}
                             onChange={handleAddUserChange}
@@ -457,9 +457,8 @@ const UsersLayout: React.FC = () => {
                         />
                     </div>
                     <div className="col-md-6">
-                        <InputField
+                        <PasswordField
                             label="Подтверждение пароля"
-                            type="password"
                             name="confirmPassword"
                             value={confirmPassword}
                             onChange={(e) => {

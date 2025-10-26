@@ -22,6 +22,7 @@
     border-radius: 5px;
     font-size: 1rem;
     transition: all 0.3s ease;
+    position: relative;
 }
 
 .formControl:focus {
@@ -33,16 +34,12 @@
 /* --- Стили для невалидного состояния --- */
 .formControl.isInvalid,
 .formSelect.isInvalid {
-    /* Добавляем для SelectField */
     border-color: #dc3545;
-    /* Красная рамка */
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-    /* Красная тень */
 }
 
 .formControl.isInvalid:focus,
 .formSelect.isInvalid:focus {
-    /* Добавляем для SelectField */
     border-color: #bd2130;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
@@ -53,7 +50,6 @@
     margin-top: 0.25rem;
     font-size: 0.875em;
     color: #dc3545;
-    /* Красный цвет текста */
 }
 
 

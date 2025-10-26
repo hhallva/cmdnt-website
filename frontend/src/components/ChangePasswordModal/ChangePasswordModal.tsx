@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { apiClient } from '../../api/client';
 import type { UserDto } from '../../types/UserDto';
+
+import PasswordField from '../PasswordField/PasswordField';
+
 import styles from './ChangePasswordModal.module.css'; // Импортируем стили
 
 interface ChangePasswordModalProps {
@@ -17,7 +20,6 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     // --- Состояния для отображения пароля ---
-    const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -57,11 +59,6 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
         }
     };
 
-    // --- Функции для переключения отображения пароля ---
-    const toggleShowNewPassword = () => {
-        setShowNewPassword(!showNewPassword);
-    };
-
     const toggleShowConfirmPassword = () => {
         setShowConfirmPassword(!showConfirmPassword);
     };
@@ -86,61 +83,30 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    {/* --- Поле ввода нового пароля с иконкой глаза --- */}
-                    <div className={`${styles.formGroup} position-relative`}> {/* Добавляем position-relative для иконки */}
-                        <label className={styles.formLabel}>Новый пароль</label>
-                        <input
-                            type={showNewPassword ? "text" : "password"} // Переключаем тип
-                            className={`${styles.formControl} pe-5`} // Добавляем pe-5 для отступа под иконку
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            required
-                            disabled={loading}
-                        />
-                        <button
-                            className={styles.passwordToggleBtn} // Стили Bootstrap для иконки
-                            type="button"
-                            onClick={toggleShowNewPassword}
-                            tabIndex={-1} // Исключаем из табуляции
-                            style={{ zIndex: 10 }} // Поверх input
-                        >
-                            {showNewPassword ? (
-                                <i className="bi bi-eye-slash"></i> // Иконка "скрыть"
-                            ) : (
-                                <i className="bi bi-eye"></i> // Иконка "показать"
-                            )}
-                        </button>
-                    </div>
 
-                    {/* --- Поле ввода подтверждения пароля с иконкой глаза --- */}
-                    <div className={`${styles.formGroup} position-relative`}>
-                        <label className={styles.formLabel}>Подтверждение пароля</label>
-                        <input
-                            type={showConfirmPassword ? "text" : "password"} // Переключаем тип
-                            className={`${styles.formControl} pe-5`}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                            disabled={loading}
-                        />
-                        <button
-                            className={styles.passwordToggleBtn}
-                            type="button"
-                            onClick={toggleShowConfirmPassword}
-                            tabIndex={-1}
-                            style={{ zIndex: 10 }}
-                        >
-                            {showConfirmPassword ? (
-                                <i className="bi bi-eye-slash"></i>
-                            ) : (
-                                <i className="bi bi-eye"></i>
-                            )}
-                        </button>
-                    </div>
+
+                <form onSubmit={handleSubmit}>
+
+                    <PasswordField
+                        label="Новый пароль"
+                        name="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        disabled={loading}
+                    />
+
+                    <PasswordField
+                        label="Подтверждение пароля"
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        disabled={loading}
+                    />
 
                     {error && (
-                        <div className="alert alert-danger mb-3">{error}</div> // Сообщение об ошибке
+                        <div className="alert alert-danger mb-3">{error}</div>
                     )}
 
                     <div className={styles.buttonGroup}>
