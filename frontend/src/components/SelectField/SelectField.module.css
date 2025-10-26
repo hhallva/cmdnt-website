@@ -1,5 +1,5 @@
 .formGroup {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1em;
 }
 
 .formLabel {
@@ -62,4 +62,19 @@
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+}
+
+@media (max-width: 768px) {
+    .formGroup {
+        margin-bottom: 0rem;
+    }
+
+    .formLabel {
+        margin-bottom: 0.2rem;
+        font-size: small;
+    }
+
+    .formSelect {
+        font-size: small;
+    }
 }
