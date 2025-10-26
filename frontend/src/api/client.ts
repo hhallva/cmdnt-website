@@ -5,6 +5,7 @@ import type { RoleDto } from '../types/RoleDto'
 import type { UserDto } from '../types/UserDto'
 import type { UserStatisticDto } from '../types/UserStatisticDto'
 import type { UpdateUserDto } from '../types/UpdateUserDto'
+import type { PostUserDto } from '../types/PostUserDto'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -139,12 +140,15 @@ export const apiClient = {
     });
   },
 
-  // addUser: async (userData: Omit<UserDto, 'id'> & { password: string }): Promise<UserDto> => {
-  //   return apiClient.requestWithAuth<UserDto>('/api/v1/Users', {
-  //     method: 'POST',
-  //     body: JSON.stringify(userData),
-  //   });
-  // },
+  createUser: async (userData: PostUserDto): Promise<UserDto> => {
+    return apiClient.requestWithAuth<UserDto>('/api/v1/Users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+  },
   //#endregion
 
 };
