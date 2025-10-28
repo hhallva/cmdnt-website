@@ -10,7 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace CmdntApi.Controllers
 {
     [SwaggerTag("Управление группами обучения")]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     [Authorize]
     public class GroupsController(AppDbContext context) : ControllerBase
@@ -25,7 +25,7 @@ namespace CmdntApi.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "Группы не найдены.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<IEnumerable<GroupDto>>> GetAllGroups()
         {
-            var gorups = await _context.Groups
+            var groups = await _context.Groups
                  .Select(g => new GroupDto
                  {
                      Id = g.Id,
@@ -33,9 +33,9 @@ namespace CmdntApi.Controllers
                      Course = g.Course
                  }).ToListAsync();
 
-            if (gorups.Count == 0)
+            if (groups.Count == 0)
                 return NotFound(new ApiErrorDto("Группы не найдены", StatusCodes.Status404NotFound));
-            return Ok(gorups);
+            return Ok(groups);
         }
 
         [HttpGet("{id}")]

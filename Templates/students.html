@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 
@@ -531,107 +530,12 @@
 
         <div class="contingent-section">
             <div class="tabs">
-                <div class="tab active" data-tab="add">Добавить студента</div>
-                <div class="tab" data-tab="list">Список студентов????</div>
+                <div class="tab active" data-tab="list">Список студентов</div>
+                <div class="tab " data-tab="add">Добавить студента</div>
                 <div class="tab" data-tab="upload">Массовая загрузка</div>
             </div>
 
-            <div class="tab-content active" id="add-tab">
-                <div class="form-section">
-                    <h3>Добавить нового студента</h3>
-                    Добавить разделение на блоки, информация о студенте, о обучении, о контактах
-                    <form id="addStudentForm">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Фамилия</label>
-                                    <input type="text" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Имя</label>
-                                    <input type="text" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Отчество</label>
-                                    <input type="text" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Дата рождения</label>
-                                    <input type="date" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Группа</label> Добавить чтоб можно было вводить и выбрать
-                                    <input type="text" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Форма обучения</label>
-                                    <select class="form-select" required>
-                                        <option value="">Выберите форму</option>
-                                        <option value="1">Очная</option>
-                                        <option value="2">Заочная</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Бюджет/Контракт</label>
-                                    <select class="form-select" required>
-                                        <option value="">Выберите форму</option>
-                                        <option value="1">Бюджет</option>
-                                        <option value="2">Контракт</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Курс</label>
-                                    <select class="form-select" required>
-                                        <option value="">Выберите курс</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Пол</label>
-                                    <select class="form-select" required>
-                                        <option value="">Выберите пол</option>
-                                        <option value="мужской">Мужской</option>
-                                        <option value="женский">Женский</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Откуда приехал</label>
-                                    <input type="text" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Контактный телефон</label>
-                                    <input type="text" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Фото студента</label>
-                                    <div class="file-upload">
-                                        <i class="bi bi-cloud-upload upload-icon"></i>
-                                        <p>Нажмите для загрузки фото</p>
-                                        <input type="file" accept="image/*">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-secondary me-2">Отмена</button>
-                            <button type="submit" class="btn btn-primary">Сохранить студента</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="tab-content" id="list-tab">
+            <div class="tab-content active" id="list-tab">
                 <div class="form-section">
                     <h3>Список студентов????</h3>
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -757,6 +661,101 @@
                             </li>
                         </ul>
                     </nav>
+                </div>
+            </div>
+
+            <div class="tab-content " id="add-tab">
+                <div class="form-section">
+                    <h3>Добавить нового студента</h3>
+                    Добавить разделение на блоки, информация о студенте, о обучении, о контактах
+                    <form id="addStudentForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Фамилия</label>
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Имя</label>
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Отчество</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Дата рождения</label>
+                                    <input type="date" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Группа</label> Добавить чтоб можно было вводить и выбрать
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Форма обучения</label>
+                                    <select class="form-select" required>
+                                        <option value="">Выберите форму</option>
+                                        <option value="1">Очная</option>
+                                        <option value="2">Заочная</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Бюджет/Контракт</label>
+                                    <select class="form-select" required>
+                                        <option value="">Выберите форму</option>
+                                        <option value="1">Бюджет</option>
+                                        <option value="2">Контракт</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Курс</label>
+                                    <select class="form-select" required>
+                                        <option value="">Выберите курс</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Пол</label>
+                                    <select class="form-select" required>
+                                        <option value="">Выберите пол</option>
+                                        <option value="мужской">Мужской</option>
+                                        <option value="женский">Женский</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Откуда приехал</label>
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Контактный телефон</label>
+                                    <input type="text" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Фото студента</label>
+                                    <div class="file-upload">
+                                        <i class="bi bi-cloud-upload upload-icon"></i>
+                                        <p>Нажмите для загрузки фото</p>
+                                        <input type="file" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Сохранить студента</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -991,4 +990,3 @@
 </body>
 
 </html>
-```
