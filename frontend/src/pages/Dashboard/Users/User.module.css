@@ -1,3 +1,7 @@
+.tableResponsive {
+    overflow-x: auto;
+}
+
 .usersTable {
     width: 100%;
     border-collapse: collapse;
@@ -6,7 +10,7 @@
 
 .usersTable th,
 .usersTable td {
-    padding: 1rem;
+    padding: 0.5rem;
     text-align: left;
     border-bottom: 1px solid #dee2e6;
 }
@@ -21,9 +25,7 @@
     background: #f8f9fa;
 }
 
-.tableResponsive {
-    overflow-x: auto;
-}
+
 
 .usersManagement {
     background: white;
