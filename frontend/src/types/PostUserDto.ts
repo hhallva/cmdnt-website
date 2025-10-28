@@ -1,4 +1,3 @@
-// src/types/PostUserDto.ts
 export interface PostUserDto {
     roleId: number;
     surname: string | null;
