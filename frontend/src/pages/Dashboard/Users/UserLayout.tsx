@@ -11,6 +11,7 @@ import type { PostUserDto } from '../../../types/PostUserDto';
 
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
+import CommonTable from '../../../components/CommonTable/CommonTable';
 import InputField from '../../../components/InputField/InputField';
 import PasswordField from '../../../components/PasswordField/PasswordField';
 import SelectField from '../../../components/SelectField/SelectField';
@@ -85,6 +86,14 @@ const UsersLayout: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
 
+    const roleOptions = [
+        { value: 'all', label: 'Все роли' },
+        ...roles.map(role => ({
+            value: role.id,
+            label: role.name || `Роль ${role.id}`
+        }))
+    ];
+
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
@@ -112,7 +121,69 @@ const UsersLayout: React.FC = () => {
 
     // #endregion
 
-    //#region Действия в таблице
+    // #region Таблица
+    const userColumns = [
+        {
+            key: 'fullName',
+            title: 'ФИО',
+            render: (user: UserDto) => `${user.surname || ''} ${user.name || ''} ${user.patronymic || ''}`.trim() || 'Нет',
+        },
+        {
+            key: 'login',
+            title: 'Логин',
+        },
+        {
+            key: 'role.name',
+            title: 'Роль',
+            render: (user: UserDto) => user.role?.name ?? "Нет",
+        },
+    ];
+
+    const userActions = [
+        {
+            render: (user: UserDto) => (
+                <button
+                    className={`${styles.actionBtn} ${styles.actionBtnEdit}`}
+                    onClick={() => handleEditUser(user)}
+                    title="Редактировать"
+                >
+                    <i className="bi bi-pencil"></i>
+                </button>
+            ),
+        },
+        {
+            render: (user: UserDto) => (
+                <button
+                    className={`${styles.actionBtn} ${styles.actionBtnPassword}`}
+                    onClick={() => handleChangePassword(user)}
+                    title="Изменить пароль"
+                >
+                    <i className="bi bi-key"></i>
+                </button>
+            ),
+        },
+        {
+            render: (user: UserDto) => {
+                if (userSession && userSession.id !== user.id) {
+                    return (
+                        <button
+                            className={`${styles.actionBtn} ${styles.actionBtnDelete}`}
+                            onClick={() => handleDeleteUser(user)}
+                            title="Удалить"
+                        >
+                            <i className="bi bi-trash"></i>
+                        </button>
+                    );
+                }
+                return null;
+            },
+        },
+    ];
+
+
+    // #endregion  
+
+    // #region Действия в таблице
     const [showEditUserModal, setShowEditUserModal] = useState(false);
     const [userForEdit, setUserForEdit] = useState<UserDto | null>(null);
 
@@ -167,7 +238,7 @@ const UsersLayout: React.FC = () => {
     };
     //#endregion
 
-
+    // #region Добавление пользователя
     const [newUser, setNewUser] = useState<Omit<PostUserDto, 'password'> & { password: string }>({
         roleId: 0,
         surname: '',
@@ -271,6 +342,7 @@ const UsersLayout: React.FC = () => {
             setIsAddingUser(false);
         }
     };
+    // #endregion 
 
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
@@ -283,14 +355,7 @@ const UsersLayout: React.FC = () => {
         { value: statistics.educatorCount, label: 'Воспитатели' },
     ];
 
-    const roleOptions = [
-        { value: 'all', label: 'Все роли' },
-        ...roles.map(role => ({
-            value: role.id,
-            label: role.name || `Роль ${role.id}`
-        }))
-    ];
-
+    // #region Вкладки
     const listTabContent = (
         <>
             <div className="row g-3 mb-3">
@@ -317,66 +382,14 @@ const UsersLayout: React.FC = () => {
                 </div>
             </div>
 
-            <h3 className="mb-3">Список пользователей</h3>
-            <div className={styles.tableResponsive}>
-                <table className={styles.usersTable}>
-                    <thead>
-                        <tr>
-                            <th>ФИО</th>
-                            <th>Логин</th>
-                            <th>Роль</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            filteredUsers.length > 0 ? (
-                                filteredUsers.map(user => (
-                                    <tr key={user.id}>
-                                        <td>{user.surname} {user.name} {user.patronymic}</td>
-                                        <td>{user.login}</td>
-                                        <td>{user.role?.name}</td>
-                                        <td>
-                                            <div className={styles.actionButtons}>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.actionBtnEdit}`}
-                                                    onClick={() => handleEditUser(user)}
-                                                    title="Редактировать"
-                                                >
-                                                    <i className="bi bi-pencil"></i>
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.actionBtnPassword}`}
-                                                    onClick={() => handleChangePassword(user)}
-                                                    title="Изменить пароль"
-                                                >
-                                                    <i className="bi bi-key"></i>
-                                                </button>
-
-                                                {userSession?.id != user.id ? (
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.actionBtnDelete}`}
-                                                        onClick={() => handleDeleteUser(user)}
-                                                        title="Удалить"
-                                                    >
-                                                        <i className="bi bi-trash"></i>
-                                                    </button>
-                                                ) : (<></>)}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={4} className="text-center "> {/* colSpan=4 означает, что ячейка занимает всю ширину таблицы */}
-                                        Пользователи не найдены
-                                    </td>
-                                </tr>
-                            )
-                        }
-                    </tbody>
-                </table>
-            </div>
+            <CommonTable
+                title="Список пользователей"
+                data={filteredUsers}
+                totalCount={users.length}
+                columns={userColumns}
+                actions={userActions}
+                emptyMessage="Пользователи не найдены"
+            />
 
         </>
     );
@@ -531,6 +544,7 @@ const UsersLayout: React.FC = () => {
             content: addTabContent,
         }
     ];
+    // #endregion 
 
     return (
         <>

@@ -6,6 +6,7 @@ import { apiClient } from '../../../api/client';
 import type { StudentsDto } from '../../../types/students';
 
 import Tabs from '../../../components/Tabs/Tabs';
+import CommonTable from '../../../components/CommonTable/CommonTable'
 
 import styles from './Students.module.css';
 
@@ -55,61 +56,76 @@ const StudentsLayout: React.FC = () => {
 
     // #endregion
 
+    // #region Таблица
+    const studentColumns = [
+        {
+            key: 'fullName',
+            title: 'ФИО',
+            render: (student: StudentsDto) => `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет',
+        },
+        {
+            key: 'group.name',
+            title: 'Группа',
+        },
+        {
+            key: 'group.course',
+            title: 'Курс',
+            className: 'text-center',
+        },
+        {
+            key: 'gender',
+            title: 'Пол',
+            className: 'text-center',
+            render: (student: StudentsDto) => student.gender ? "М" : "Ж",
+        },
+        {
+            key: 'blockNumber',
+            title: 'Блок',
+            className: 'text-center',
+            render: (student: StudentsDto) => student.blockNumber ?? "Нет",
+        },
+        {
+            key: 'phone',
+            title: 'Телефон',
+            render: (student: StudentsDto) => student.phone ?? "Нет",
+        },
+        {
+            key: 'birthday',
+            title: 'Дата рождения',
+            render: (student: StudentsDto) =>
+                new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(student.birthday)),
+        },
+    ];
+
+    const studentActions = [
+        {
+            render: (student: StudentsDto) => (
+                <button
+                    className={`${styles.actionBtn} ${styles.actionBtnMore}`}
+                    onClick={() => alert(`Подробная информация о студенте:\n${student.surname} ${student.name} ${student.patronymic}\nID: ${student.id}`)}
+                >
+                    Подробнее
+                </button>
+            ),
+        },
+    ];
+
+    // #endregion
+
+
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
 
     const listTabContent = (
         <>
-            <h3 className="mb-3">Список студентов</h3>
-            <div className={styles.tableResponsive}>
-                <table className={styles.table}>
-                    <thead>
-                        <tr>
-                            <th>ФИО</th>
-                            <th >Группа</th>
-                            <th className="text-center">Курс</th>
-                            <th className="text-center">Пол</th>
-                            <th className="text-center">Блок</th>
-                            <th>Телефон</th>
-                            <th>Дата рождения</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            filteredStudents.length > 0 ? (
-                                filteredStudents.map(student => (
-                                    <tr key={student.id}>
-                                        <td>{student.surname} {student.name} {student.patronymic}</td>
-                                        <td>{student.group.name}</td>
-                                        <td className="text-center">{student.group.course}</td>
-                                        <td className="text-center">{student.gender ? "М" : "Ж"}</td>
-                                        <td className="text-center">{student.blockNumber ?? "Нет"}</td>
-                                        <td>{student.phone ?? "Нет"}</td>
-                                        <td>{new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(student.birthday))}</td>
-                                        <td>
-                                            <div>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.actionBtnMore}`}
-                                                    onClick={() => alert(`Подробная информация о студенте:\n${student.surname} ${student.name} ${student.patronymic}\nID: ${student.id}`)}
-                                                >
-                                                    Подробнее
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={8} className="text-center">
-                                        Студенты не найдены
-                                    </td>
-                                </tr>
-                            )
-                        }
-                    </tbody>
-                </table>
-            </div>
+            <CommonTable
+                title="Список студентов"
+                data={students}
+                totalCount={students.length}
+                columns={studentColumns}
+                actions={studentActions}
+                emptyMessage="Студенты не найдены"
+            />
         </>
     );
 
