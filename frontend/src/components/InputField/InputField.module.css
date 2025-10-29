@@ -2,7 +2,6 @@
 
 /* Стили для группы формы (обёртка поля ввода и метки) */
 .formGroup {
-    margin-bottom: 1rem;
     position: relative;
 }
 

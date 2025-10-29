@@ -1,0 +1,64 @@
+/* src/components/ActionButton/ActionButton.module.css */
+
+.actionButton {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0;
+    outline: none;
+    margin-top: 2em;
+}
+
+/* --- Стили для разных размеров --- */
+/* Размер sm (маленький) */
+.actionButton.size-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    /* 14px */
+    border-radius: 0.25rem;
+    /* 4px */
+}
+
+/* Размер md (средний, по умолчанию) */
+.actionButton.size-md {
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    /* 16px */
+    border-radius: 0.375rem;
+    /* 6px */
+}
+
+/* Размер lg (большой) */
+.actionButton.size-lg {
+    padding: 0.5rem 1rem;
+    font-size: 1.25rem;
+    /* 20px */
+    border-radius: 0.5rem;
+    /* 8px */
+}
+
+/* --- Состояние Disabled --- */
+.actionButton.disabled {
+    pointer-events: none;
+    /* Запрещаем клики */
+    opacity: 0.65;
+    /* Делаем полупрозрачным */
+    cursor: not-allowed;
+    /* Меняем курсор */
+    /* background-color и border-color обычно не меняются для disabled в Bootstrap,
+     но можно добавить, если нужно */
+}
+
+/* --- Адаптивность --- */
+/* Если нужно адаптировать под мобильные устройства */
+@media (max-width: 768px) {
+
+    /* Можно, например, немного уменьшить padding или font-size для больших кнопок на мобильных */
+    .actionButton {
+        margin-top: 0rem;
+        font-size: small;
+    }
+}

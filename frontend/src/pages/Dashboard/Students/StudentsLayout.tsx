@@ -10,6 +10,8 @@ import Tabs from '../../../components/Tabs/Tabs';
 import CommonTable from '../../../components/CommonTable/CommonTable'
 import InputField from '../../../components/InputField/InputField';
 import SelectField from '../../../components/SelectField/SelectField';
+import ActionButton from '../../../components/ActionButton/ActionButton'
+import CancelButton from '../../../components/CancelButton/CancelButton';
 
 import styles from './Students.module.css';
 
@@ -112,7 +114,7 @@ const StudentsLayout: React.FC = () => {
                         aValue = `${a.surname || ''} ${a.name || ''} ${a.patronymic || ''}`.trim().toLowerCase();
                         bValue = `${b.surname || ''} ${b.name || ''} ${b.patronymic || ''}`.trim().toLowerCase();
                         break;
-                    case 'course':
+                    case 'group.course':
                         aValue = a.group?.course ?? 0;
                         bValue = b.group?.course ?? 0;
                         break;
@@ -199,20 +201,17 @@ const StudentsLayout: React.FC = () => {
             key: 'group.course',
             title: 'Курс',
             sortable: true,
-            className: 'text-center',
         },
         {
             key: 'gender',
             title: 'Пол',
             sortable: true,
-            className: 'text-center',
             render: (student: StudentsDto) => student.gender ? "М" : "Ж",
         },
         {
             key: 'blockNumber',
             title: 'Блок',
             sortable: true,
-            className: 'text-center',
             render: (student: StudentsDto) => student.blockNumber ?? "Нет",
         },
         {
@@ -251,34 +250,31 @@ const StudentsLayout: React.FC = () => {
     const listTabContent = (
         <>
             <div className={styles.searchAndFilterSection}>
-                {/* Всегда видимое поле поиска */}
                 <div className="row g-2 mb-2 align-items-end">
-                    <div className="col-md-8">
+                    <div className="col-md-6">
                         <InputField
-                            label="Поиск по ФИО или номеру блока"
+                            label="Поиск"
                             type="text"
                             placeholder="Введите ФИО или номер блока..."
                             value={searchTerm}
                             onChange={handleSearchChange}
                         />
                     </div>
-                    <div className="col-md-4 d-flex gap-2">
-                        <button
-                            className="btn btn-outline-primary"
+                    <div className="col-md-6 d-flex gap-2">
+                        <ActionButton
+                            variant="outline-primary"
+                            size="md"
                             onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
                             aria-expanded={isAdvancedFilterOpen}
                             aria-controls="advancedFilters"
                         >
                             <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} me-1`}></i>
                             {isAdvancedFilterOpen ? 'Скрыть фильтры' : 'Расширенные фильтры'}
-                        </button>
-                        <button className="btn btn-outline-secondary" onClick={resetFiltersAndSorts}>
-                            Сбросить
-                        </button>
+                        </ActionButton>
+                        <CancelButton onClick={resetFiltersAndSorts} />
                     </div>
                 </div>
 
-                {/* Панель расширенных фильтров (разворачивается/сворачивается) */}
                 {isAdvancedFilterOpen && (
                     <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
                         <div className="row g-3 mb-3">
