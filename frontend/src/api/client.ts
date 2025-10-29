@@ -12,6 +12,8 @@ import type { PostUserDto } from '../types/PostUserDto'
 
 import type { StudentsDto } from '../types/students'
 
+import type { GroupDto } from '../types/groups'
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const handleUnauthorized = () => {
@@ -160,4 +162,10 @@ export const apiClient = {
     return apiClient.requestWithAuth<[StudentsDto]>('/api/v1/Students');
   },
   //#endregion
+
+  //#region Группы
+  getAllGroups: async (): Promise<GroupDto[]> => {
+    return apiClient.requestWithAuth<[GroupDto]>('/api/v1/Groups');
+  },
+  //#endregion 
 };

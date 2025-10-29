@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../../api/client';
 
 import type { StudentsDto } from '../../../types/students';
+import type { GroupDto } from '../../../types/groups';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import CommonTable from '../../../components/CommonTable/CommonTable'
@@ -16,16 +17,19 @@ const StudentsLayout: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [students, setStudents] = useState<StudentsDto[]>([]);
+    const [groups, setGroups] = useState<GroupDto[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [studentsResponse] = await Promise.all([
+                const [studentsResponse, groupsResponse] = await Promise.all([
                     apiClient.getAllStudents(),
+                    apiClient.getAllGroups()
                 ]);
 
                 setStudents(studentsResponse);
+                setGroups(groupsResponse);
                 console.info("Получение студентов");
             } catch (err: any) {
                 console.error('Ошибка при загрузке данных:', err);
