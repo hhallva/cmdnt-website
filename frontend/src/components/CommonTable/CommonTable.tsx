@@ -7,10 +7,11 @@ import styles from './CommonTable.module.css'; // Создадим стили п
 // `title` - заголовок колонки
 // `render` - (опционально) функция для кастомного рендеринга ячейки
 interface ColumnDefinition<T> {
-    key: keyof T | string; // keyof T для прямых ключей, string для вложенных (например, 'group.name')
-    title: ReactNode;
-    render?: (item: T) => React.ReactNode; // item - объект из массива данных
-    className?: string; // Дополнительный класс для ячейки этой колонки
+    key: keyof T | string;
+    title: ReactNode; // Может быть строкой или JSX
+    sortable?: boolean; // Можно ли сортировать по этой колонке
+    render?: (item: T) => ReactNode;
+    className?: string;
 }
 
 // Тип для определения действия
@@ -19,44 +20,89 @@ interface ActionDefinition<T> {
     render: (item: T) => React.ReactNode;
 }
 
-// Пропсы для компонента таблицы
+// Новый тип для конфигурации сортировки
+interface SortConfig {
+    key: string;
+    direction: 'asc' | 'desc';
+}
+
+
 interface CommonTableProps<T> {
-    title?: string; // Заголовок таблицы (опционально)
-    data: T[]; // Массив данных для отображения
-    totalCount?: number; // Общее количество записей (опционально)
-    columns: ColumnDefinition<T>[]; // Определение колонок
-    actions?: ActionDefinition<T>[]; // Определение действий (опционально)
-    emptyMessage?: string; // Сообщение, если данных нет (по умолчанию "Данные не найдены")
-    className?: string; // Дополнительный класс для всей таблицы
+    title?: string;
+    data: T[];
+    columns: ColumnDefinition<T>[];
+    actions?: ActionDefinition<T>[];
+    emptyMessage?: string;
+    className?: string;
+    totalCount?: number;
+    enableSorting?: boolean; // Включена ли сортировка в принципе
+    onSortRequest?: (key: string) => void; // Callback для запроса сортировки
+    sortConfig?: SortConfig | null; // Текущая конфигурация сортировки
 }
 
 // Универсальный компонент таблицы
 const CommonTable = <T extends Record<string, any>>({
     title,
     data,
-    totalCount,
     columns,
     actions,
     emptyMessage = 'Данные не найдены',
     className = '',
+    totalCount,
+    // Новые пропсы
+    enableSorting = false,
+    onSortRequest,
+    sortConfig,
 }: CommonTableProps<T>) => {
 
-    // --- Вспомогательная функция для получения значения по ключу, включая вложенные ключи ---
+    // --- Вспомогательная функция для получения значения по ключу ---
     const getValueByPath = (obj: T, path: string | keyof T): any => {
-        // Если path является keyof T (например, 'name'), возвращаем obj[path] напрямую
         if (typeof path === 'string' && path in obj) {
             return obj[path as keyof T];
         }
-        // Если path - строка с точками (например, 'group.name'), разбиваем и углубляемся
         if (typeof path === 'string') {
             return path.split('.').reduce((acc, part) => acc && acc[part], obj as any);
         }
-        // Для простых ключей keyof T
         return obj[path];
+    };
+
+    // --- Рендер заголовка колонки с возможностью сортировки ---
+    const renderColumnTitle = (column: ColumnDefinition<T>) => {
+        // Если сортировка выключена или колонка не сортируемая, просто возвращаем title
+        if (!enableSorting || !column.sortable) {
+            return column.title;
+        }
+
+        return (
+            <div
+                onClick={() => onSortRequest && onSortRequest(column.key as string)}
+                style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                }}
+            >
+                <span>{column.title}</span>
+                <span style={{ opacity: sortConfig?.key === column.key ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
+                    {sortConfig?.key === column.key ? (
+                        sortConfig.direction === 'asc' ? (
+                            <i className="bi bi-sort-alpha-down" style={{ color: '#0d6efd' }}></i>
+                        ) : (
+                            <i className="bi bi-sort-alpha-up" style={{ color: '#0d6efd' }}></i>
+                        )
+                    ) : (
+                        <i className="bi bi-arrow-down-up"></i> // Иконка по умолчанию
+                    )}
+                </span>
+            </div>
+        );
     };
 
     return (
         <div className={`${styles.tableWrapper} ${className}`}>
+            {/* Обновлённый заголовок с информацией о количестве записей */}
             {(title || (totalCount !== undefined && data.length > 0)) && (
                 <div className={styles.tableHeader}>
                     {title && <h3 className={styles.tableTitle}>{title}</h3>}
@@ -71,11 +117,12 @@ const CommonTable = <T extends Record<string, any>>({
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            {/* Рендерим заголовки колонок */}
+                            {/* Рендерим заголовки колонок с учетом сортировки */}
                             {columns.map((column, index) => (
-                                <th key={index} className={column.className}>{column.title}</th>
+                                <th key={index} className={column.className}>
+                                    {renderColumnTitle(column)}
+                                </th>
                             ))}
-                            {/* Если есть действия, добавляем колонку для них */}
                             {actions && actions.length > 0 && <th>Действия</th>}
                         </tr>
                     </thead>
@@ -85,8 +132,7 @@ const CommonTable = <T extends Record<string, any>>({
                                 <tr key={rowIndex}>
                                     {columns.map((column, colIndex) => (
                                         <td key={colIndex} className={column.className}>
-                                            {column.render ? column.render(item) :
-                                                getValueByPath(item, column.key) ?? 'Нет'}
+                                            {column.render ? column.render(item) : (getValueByPath(item, column.key) ?? 'Нет')}
                                         </td>
                                     ))}
                                     {actions && actions.length > 0 && (

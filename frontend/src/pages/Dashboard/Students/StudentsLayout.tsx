@@ -56,12 +56,9 @@ const StudentsLayout: React.FC = () => {
     const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'all'>('all');
 
     // --- Сортировки ---
-    const [sortConfig, setSortConfig] = useState<Record<string, 'asc' | 'desc' | null>>({
-        fullName: 'asc',
-        course: null,
-        gender: null,
-        blockNumber: null,
-        birthday: null,
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
     });
 
     // --- Обработчики ---
@@ -74,13 +71,7 @@ const StudentsLayout: React.FC = () => {
         setSelectedGroupId('all');
         setSelectedCourse('all');
         setSelectedGender('all');
-        setSortConfig({
-            fullName: 'asc',
-            course: null,
-            gender: null,
-            blockNumber: null,
-            birthday: null,
-        });
+        setSortConfig({ key: 'fullName', direction: 'asc' });
     };
 
     // --- Логика фильтрации и сортировки ---
@@ -110,13 +101,13 @@ const StudentsLayout: React.FC = () => {
 
         // 3. Сортировка
         // Определяем активное поле сортировки (первое не null)
-        const activeSortKey = Object.keys(sortConfig).find(key => sortConfig[key] !== null);
-        if (activeSortKey && sortConfig[activeSortKey]) {
-            const direction = sortConfig[activeSortKey] === 'asc' ? 1 : -1;
+        if (sortConfig) {
+            const { key, direction } = sortConfig;
+            const dirMultiplier = direction === 'asc' ? 1 : -1;
             result.sort((a, b) => {
                 let aValue, bValue;
 
-                switch (activeSortKey) {
+                switch (key) {
                     case 'fullName':
                         aValue = `${a.surname || ''} ${a.name || ''} ${a.patronymic || ''}`.trim().toLowerCase();
                         bValue = `${b.surname || ''} ${b.name || ''} ${b.patronymic || ''}`.trim().toLowerCase();
@@ -141,8 +132,8 @@ const StudentsLayout: React.FC = () => {
                         return 0;
                 }
 
-                if (aValue < bValue) return -1 * direction;
-                if (aValue > bValue) return 1 * direction;
+                if (aValue < bValue) return -1 * dirMultiplier;
+                if (aValue > bValue) return 1 * dirMultiplier;
                 return 0;
             });
         }
@@ -153,18 +144,18 @@ const StudentsLayout: React.FC = () => {
     // --- Функции для управления сортировкой ---
     const requestSort = (key: string) => {
         setSortConfig(prevConfig => {
-            // Если кликнули по тому же полю, меняем направление или сбрасываем
-            if (prevConfig[key] === 'asc') {
-                return { ...Object.fromEntries(Object.keys(prevConfig).map(k => [k, null])), [key]: 'desc' };
-            } else if (prevConfig[key] === 'desc') {
-                return { ...Object.fromEntries(Object.keys(prevConfig).map(k => [k, null])), [key]: 'asc' }; // Цикл: desc -> asc
+            // Если кликнули по тому же полю, меняем направление
+            if (prevConfig && prevConfig.key === key) {
+                return {
+                    key,
+                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc'
+                };
             } else {
-                // Если кликнули по новому полю, сбрасываем другие и устанавливаем asc
-                return { ...Object.fromEntries(Object.keys(prevConfig).map(k => [k, null])), [key]: 'asc' };
+                // Если кликнули по новому полю, устанавливаем asc
+                return { key, direction: 'asc' };
             }
         });
     };
-
     // Получаем уникальные курсы из групп для фильтра
     const uniqueCourses = useMemo(() => {
         const courses = new Set<number>();
@@ -196,28 +187,8 @@ const StudentsLayout: React.FC = () => {
     const studentColumns = [
         {
             key: 'fullName',
-            title: (
-                <div
-                    onClick={() => requestSort('fullName')}
-                    style={{
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                    }}>
-                    <span>ФИО</span>
-                    <span style={{ opacity: sortConfig.fullName !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
-                        {sortConfig.fullName === 'asc' ? (
-                            <i className="bi bi-sort-alpha-down" style={{ color: '#0d6efd' }}></i>
-                        ) : sortConfig.fullName === 'desc' ? (
-                            <i className="bi bi-sort-alpha-up" style={{ color: '#0d6efd' }}></i>
-                        ) : (
-                            <i className="bi bi-arrow-down-up" ></i>
-                        )}
-                    </span>
-                </div>
-            ),
+            title: 'ФИО',
+            sortable: true,
             render: (student: StudentsDto) => `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет',
         },
         {
@@ -226,84 +197,21 @@ const StudentsLayout: React.FC = () => {
         },
         {
             key: 'group.course',
-            title: (
-                <div
-                    onClick={() => requestSort('course')}
-                    style={{
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                    }}
-                >
-                    <span>Курс</span>
-                    <span style={{ opacity: sortConfig.course !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
-                        {sortConfig.course === 'asc' ? (
-                            <i className="bi bi-sort-numeric-down" style={{ color: '#0d6efd' }}></i>
-                        ) : sortConfig.course === 'desc' ? (
-                            <i className="bi bi-sort-numeric-up" style={{ color: '#0d6efd' }}></i>
-                        ) : (
-                            <i className="bi bi-arrow-down-up"></i>
-                        )}
-                    </span>
-                </div>
-            ),
+            title: 'Курс',
+            sortable: true,
             className: 'text-center',
         },
         {
             key: 'gender',
-            title: (
-                <div
-                    onClick={() => requestSort('gender')}
-                    style={{
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                    }}
-                >
-                    <span>Пол</span>
-                    <span style={{ opacity: sortConfig.gender !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
-                        {sortConfig.gender === 'asc' ? ( // Мужской -> Женский
-                            <i className="bi bi-sort-down" style={{ color: '#0d6efd' }}></i>
-                        ) : sortConfig.gender === 'desc' ? ( // Женский -> Мужской
-                            <i className="bi bi-sort-up" style={{ color: '#0d6efd' }}></i>
-                        ) : (
-                            <i className="bi bi-arrow-down-up"></i>
-                        )}
-                    </span>
-                </div>
-            ),
+            title: 'Пол',
+            sortable: true,
             className: 'text-center',
             render: (student: StudentsDto) => student.gender ? "М" : "Ж",
         },
         {
             key: 'blockNumber',
-            title: (
-                <div
-                    onClick={() => requestSort('blockNumber')}
-                    style={{
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                    }}
-                >
-                    <span>Блок</span>
-                    <span style={{ opacity: sortConfig.blockNumber !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
-                        {sortConfig.blockNumber === 'asc' ? (
-                            <i className="bi bi-sort-alpha-down" style={{ color: '#0d6efd' }}></i>
-                        ) : sortConfig.blockNumber === 'desc' ? (
-                            <i className="bi bi-sort-alpha-up" style={{ color: '#0d6efd' }}></i>
-                        ) : (
-                            <i className="bi bi-arrow-down-up"></i>
-                        )}
-                    </span>
-                </div>
-            ),
+            title: 'Блок',
+            sortable: true,
             className: 'text-center',
             render: (student: StudentsDto) => student.blockNumber ?? "Нет",
         },
@@ -314,29 +222,8 @@ const StudentsLayout: React.FC = () => {
         },
         {
             key: 'birthday',
-            title: (
-                <div
-                    onClick={() => requestSort('birthday')}
-                    style={{
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                    }}
-                >
-                    <span>Дата рождения</span>
-                    <span style={{ opacity: sortConfig.birthday !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
-                        {sortConfig.birthday === 'asc' ? (
-                            <i className="bi bi-sort-numeric-down" style={{ color: '#0d6efd' }}></i>
-                        ) : sortConfig.birthday === 'desc' ? (
-                            <i className="bi bi-sort-numeric-up" style={{ color: '#0d6efd' }}></i>
-                        ) : (
-                            <i className="bi bi-arrow-down-up"></i>
-                        )}
-                    </span>
-                </div>
-            ),
+            title: 'День рождения',
+            sortable: true,
             render: (student: StudentsDto) =>
                 new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(student.birthday)),
         },
@@ -430,6 +317,9 @@ const StudentsLayout: React.FC = () => {
                 totalCount={students.length}
                 columns={studentColumns}
                 actions={studentActions}
+                enableSorting={true}
+                onSortRequest={requestSort}
+                sortConfig={sortConfig}
                 emptyMessage="Студенты не найдены"
             />
         </>
