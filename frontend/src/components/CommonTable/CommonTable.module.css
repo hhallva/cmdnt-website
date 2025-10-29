@@ -1,7 +1,3 @@
-.tableWrapper {
-    /* Можно добавить отступы или другие стили обёртки */
-}
-
 .tableResponsive {
     overflow-x: auto;
 }

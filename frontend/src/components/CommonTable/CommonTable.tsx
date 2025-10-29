@@ -1,5 +1,5 @@
 // src/components/CommonTable/CommonTable.tsx
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import styles from './CommonTable.module.css'; // Создадим стили позже
 
 // Тип для определения колонки
@@ -8,7 +8,7 @@ import styles from './CommonTable.module.css'; // Создадим стили п
 // `render` - (опционально) функция для кастомного рендеринга ячейки
 interface ColumnDefinition<T> {
     key: keyof T | string; // keyof T для прямых ключей, string для вложенных (например, 'group.name')
-    title: string;
+    title: ReactNode;
     render?: (item: T) => React.ReactNode; // item - объект из массива данных
     className?: string; // Дополнительный класс для ячейки этой колонки
 }
@@ -82,17 +82,13 @@ const CommonTable = <T extends Record<string, any>>({
                     <tbody>
                         {data.length > 0 ? (
                             data.map((item, rowIndex) => (
-                                <tr key={rowIndex}> {/* Используем rowIndex, если у item нет уникального id */}
-                                    {/* Рендерим ячейки для каждой колонки */}
+                                <tr key={rowIndex}>
                                     {columns.map((column, colIndex) => (
                                         <td key={colIndex} className={column.className}>
-                                            {/* Если есть кастомный рендерер, используем его */}
                                             {column.render ? column.render(item) :
-                                                // Иначе отображаем значение по ключу */}
                                                 getValueByPath(item, column.key) ?? 'Нет'}
                                         </td>
                                     ))}
-                                    {/* Если есть действия, рендерим их */}
                                     {actions && actions.length > 0 && (
                                         <td>
                                             <div className={styles.actionButtons}>
@@ -107,7 +103,6 @@ const CommonTable = <T extends Record<string, any>>({
                                 </tr>
                             ))
                         ) : (
-                            // Сообщение, если данных нет
                             <tr>
                                 <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center">
                                     {emptyMessage}

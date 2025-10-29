@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
@@ -8,6 +8,8 @@ import type { GroupDto } from '../../../types/groups';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import CommonTable from '../../../components/CommonTable/CommonTable'
+import InputField from '../../../components/InputField/InputField';
+import SelectField from '../../../components/SelectField/SelectField';
 
 import styles from './Students.module.css';
 
@@ -42,29 +44,180 @@ const StudentsLayout: React.FC = () => {
 
         fetchData();
     }, [navigate]);
-
-    const fetchStudents = async () => {
-        try {
-            const studentsResponse = await apiClient.getAllStudents();
-            setStudents(studentsResponse);
-        } catch (err: any) {
-            console.error('Ошибка при загрузке студентов:', err);
-            throw err;
-        }
-    };
     // #endregion
 
-    // #region Поиск и фильтрация
+    // #region Поиск, фильтрация, сортировка
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
 
-    const filteredStudents = students
+    // --- Фильтры ---
+    const [selectedGroupId, setSelectedGroupId] = useState<number | 'all'>('all');
+    const [selectedCourse, setSelectedCourse] = useState<number | 'all'>('all');
+    const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'all'>('all');
 
+    // --- Сортировки ---
+    const [sortConfig, setSortConfig] = useState<Record<string, 'asc' | 'desc' | null>>({
+        fullName: 'asc',
+        course: null,
+        gender: null,
+        blockNumber: null,
+        birthday: null,
+    });
+
+    // --- Обработчики ---
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const resetFiltersAndSorts = () => {
+        setSearchTerm('');
+        setSelectedGroupId('all');
+        setSelectedCourse('all');
+        setSelectedGender('all');
+        setSortConfig({
+            fullName: 'asc',
+            course: null,
+            gender: null,
+            blockNumber: null,
+            birthday: null,
+        });
+    };
+
+    // --- Логика фильтрации и сортировки ---
+    const processedStudents = useMemo(() => {
+        let result = [...students];
+
+        // 1. Поиск
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            result = result.filter(student =>
+                `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.toLowerCase().includes(term) ||
+                (student.blockNumber && student.blockNumber.toLowerCase().includes(term))
+            );
+        }
+
+        // 2. Расширенные фильтры
+        if (selectedGroupId !== 'all') {
+            result = result.filter(student => student.group?.id === selectedGroupId);
+        }
+        if (selectedCourse !== 'all') {
+            result = result.filter(student => student.group?.course === selectedCourse);
+        }
+        if (selectedGender !== 'all') {
+            const genderBool = selectedGender === 'male';
+            result = result.filter(student => student.gender === genderBool);
+        }
+
+        // 3. Сортировка
+        // Определяем активное поле сортировки (первое не null)
+        const activeSortKey = Object.keys(sortConfig).find(key => sortConfig[key] !== null);
+        if (activeSortKey && sortConfig[activeSortKey]) {
+            const direction = sortConfig[activeSortKey] === 'asc' ? 1 : -1;
+            result.sort((a, b) => {
+                let aValue, bValue;
+
+                switch (activeSortKey) {
+                    case 'fullName':
+                        aValue = `${a.surname || ''} ${a.name || ''} ${a.patronymic || ''}`.trim().toLowerCase();
+                        bValue = `${b.surname || ''} ${b.name || ''} ${b.patronymic || ''}`.trim().toLowerCase();
+                        break;
+                    case 'course':
+                        aValue = a.group?.course ?? 0;
+                        bValue = b.group?.course ?? 0;
+                        break;
+                    case 'gender':
+                        aValue = a.gender ? 1 : 0;
+                        bValue = b.gender ? 1 : 0;
+                        break;
+                    case 'blockNumber':
+                        aValue = a.blockNumber?.toLowerCase() ?? '';
+                        bValue = b.blockNumber?.toLowerCase() ?? '';
+                        break;
+                    case 'birthday':
+                        aValue = new Date(a.birthday).getTime();
+                        bValue = new Date(b.birthday).getTime();
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (aValue < bValue) return -1 * direction;
+                if (aValue > bValue) return 1 * direction;
+                return 0;
+            });
+        }
+
+        return result;
+    }, [students, searchTerm, selectedGroupId, selectedCourse, selectedGender, sortConfig]);
+
+    // --- Функции для управления сортировкой ---
+    const requestSort = (key: string) => {
+        setSortConfig(prevConfig => {
+            // Если кликнули по тому же полю, меняем направление или сбрасываем
+            if (prevConfig[key] === 'asc') {
+                return { ...Object.fromEntries(Object.keys(prevConfig).map(k => [k, null])), [key]: 'desc' };
+            } else if (prevConfig[key] === 'desc') {
+                return { ...Object.fromEntries(Object.keys(prevConfig).map(k => [k, null])), [key]: 'asc' }; // Цикл: desc -> asc
+            } else {
+                // Если кликнули по новому полю, сбрасываем другие и устанавливаем asc
+                return { ...Object.fromEntries(Object.keys(prevConfig).map(k => [k, null])), [key]: 'asc' };
+            }
+        });
+    };
+
+    // Получаем уникальные курсы из групп для фильтра
+    const uniqueCourses = useMemo(() => {
+        const courses = new Set<number>();
+        groups.forEach(group => {
+            if (group.course) courses.add(group.course);
+        });
+        return Array.from(courses).sort((a, b) => a - b);
+    }, [groups]);
+
+    // Подготавливаем опции для SelectField
+    const groupOptions = useMemo(() => [
+        { value: 'all', label: 'Все группы' },
+        ...groups.map(group => ({ value: group.id, label: group.name }))
+    ], [groups]);
+
+    const courseOptions = useMemo(() => [
+        { value: 'all', label: 'Все курсы' },
+        ...uniqueCourses.map(course => ({ value: course, label: `${course} курс` }))
+    ], [uniqueCourses]);
+
+    const genderOptions = [
+        { value: 'all', label: 'Любой пол' },
+        { value: 'male', label: 'Мужской' },
+        { value: 'female', label: 'Женский' },
+    ];
     // #endregion
 
     // #region Таблица
     const studentColumns = [
         {
             key: 'fullName',
-            title: 'ФИО',
+            title: (
+                <div
+                    onClick={() => requestSort('fullName')}
+                    style={{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                    }}>
+                    <span>ФИО</span>
+                    <span style={{ opacity: sortConfig.fullName !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
+                        {sortConfig.fullName === 'asc' ? (
+                            <i className="bi bi-sort-alpha-down" style={{ color: '#0d6efd' }}></i>
+                        ) : sortConfig.fullName === 'desc' ? (
+                            <i className="bi bi-sort-alpha-up" style={{ color: '#0d6efd' }}></i>
+                        ) : (
+                            <i className="bi bi-arrow-down-up" ></i>
+                        )}
+                    </span>
+                </div>
+            ),
             render: (student: StudentsDto) => `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет',
         },
         {
@@ -73,18 +226,84 @@ const StudentsLayout: React.FC = () => {
         },
         {
             key: 'group.course',
-            title: 'Курс',
+            title: (
+                <div
+                    onClick={() => requestSort('course')}
+                    style={{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                    }}
+                >
+                    <span>Курс</span>
+                    <span style={{ opacity: sortConfig.course !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
+                        {sortConfig.course === 'asc' ? (
+                            <i className="bi bi-sort-numeric-down" style={{ color: '#0d6efd' }}></i>
+                        ) : sortConfig.course === 'desc' ? (
+                            <i className="bi bi-sort-numeric-up" style={{ color: '#0d6efd' }}></i>
+                        ) : (
+                            <i className="bi bi-arrow-down-up"></i>
+                        )}
+                    </span>
+                </div>
+            ),
             className: 'text-center',
         },
         {
             key: 'gender',
-            title: 'Пол',
+            title: (
+                <div
+                    onClick={() => requestSort('gender')}
+                    style={{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                    }}
+                >
+                    <span>Пол</span>
+                    <span style={{ opacity: sortConfig.gender !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
+                        {sortConfig.gender === 'asc' ? ( // Мужской -> Женский
+                            <i className="bi bi-sort-down" style={{ color: '#0d6efd' }}></i>
+                        ) : sortConfig.gender === 'desc' ? ( // Женский -> Мужской
+                            <i className="bi bi-sort-up" style={{ color: '#0d6efd' }}></i>
+                        ) : (
+                            <i className="bi bi-arrow-down-up"></i>
+                        )}
+                    </span>
+                </div>
+            ),
             className: 'text-center',
             render: (student: StudentsDto) => student.gender ? "М" : "Ж",
         },
         {
             key: 'blockNumber',
-            title: 'Блок',
+            title: (
+                <div
+                    onClick={() => requestSort('blockNumber')}
+                    style={{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                    }}
+                >
+                    <span>Блок</span>
+                    <span style={{ opacity: sortConfig.blockNumber !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
+                        {sortConfig.blockNumber === 'asc' ? (
+                            <i className="bi bi-sort-alpha-down" style={{ color: '#0d6efd' }}></i>
+                        ) : sortConfig.blockNumber === 'desc' ? (
+                            <i className="bi bi-sort-alpha-up" style={{ color: '#0d6efd' }}></i>
+                        ) : (
+                            <i className="bi bi-arrow-down-up"></i>
+                        )}
+                    </span>
+                </div>
+            ),
             className: 'text-center',
             render: (student: StudentsDto) => student.blockNumber ?? "Нет",
         },
@@ -95,7 +314,29 @@ const StudentsLayout: React.FC = () => {
         },
         {
             key: 'birthday',
-            title: 'Дата рождения',
+            title: (
+                <div
+                    onClick={() => requestSort('birthday')}
+                    style={{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                    }}
+                >
+                    <span>Дата рождения</span>
+                    <span style={{ opacity: sortConfig.birthday !== null ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
+                        {sortConfig.birthday === 'asc' ? (
+                            <i className="bi bi-sort-numeric-down" style={{ color: '#0d6efd' }}></i>
+                        ) : sortConfig.birthday === 'desc' ? (
+                            <i className="bi bi-sort-numeric-up" style={{ color: '#0d6efd' }}></i>
+                        ) : (
+                            <i className="bi bi-arrow-down-up"></i>
+                        )}
+                    </span>
+                </div>
+            ),
             render: (student: StudentsDto) =>
                 new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(student.birthday)),
         },
@@ -122,9 +363,70 @@ const StudentsLayout: React.FC = () => {
 
     const listTabContent = (
         <>
+            <div className={styles.searchAndFilterSection}>
+                {/* Всегда видимое поле поиска */}
+                <div className="row g-2 mb-2 align-items-end">
+                    <div className="col-md-8">
+                        <InputField
+                            label="Поиск по ФИО или номеру блока"
+                            type="text"
+                            placeholder="Введите ФИО или номер блока..."
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                        />
+                    </div>
+                    <div className="col-md-4 d-flex gap-2">
+                        <button
+                            className="btn btn-outline-primary"
+                            onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
+                            aria-expanded={isAdvancedFilterOpen}
+                            aria-controls="advancedFilters"
+                        >
+                            <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} me-1`}></i>
+                            {isAdvancedFilterOpen ? 'Скрыть фильтры' : 'Расширенные фильтры'}
+                        </button>
+                        <button className="btn btn-outline-secondary" onClick={resetFiltersAndSorts}>
+                            Сбросить
+                        </button>
+                    </div>
+                </div>
+
+                {/* Панель расширенных фильтров (разворачивается/сворачивается) */}
+                {isAdvancedFilterOpen && (
+                    <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
+                        <div className="row g-3 mb-3">
+                            <div className="col-md-3">
+                                <SelectField
+                                    label="Группа"
+                                    value={selectedGroupId}
+                                    onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                                    options={groupOptions}
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <SelectField
+                                    label="Курс"
+                                    value={selectedCourse}
+                                    onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                                    options={courseOptions}
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <SelectField
+                                    label="Пол"
+                                    value={selectedGender}
+                                    onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
+                                    options={genderOptions}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <CommonTable
                 title="Список студентов"
-                data={students}
+                data={processedStudents}
                 totalCount={students.length}
                 columns={studentColumns}
                 actions={studentActions}
