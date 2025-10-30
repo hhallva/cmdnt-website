@@ -11,7 +11,6 @@ import CommonTable from '../../../components/CommonTable/CommonTable'
 import InputField from '../../../components/InputField/InputField';
 import SelectField from '../../../components/SelectField/SelectField';
 import ActionButton from '../../../components/ActionButton/ActionButton'
-import CancelButton from '../../../components/CancelButton/CancelButton';
 
 import styles from './Students.module.css';
 
@@ -250,34 +249,37 @@ const StudentsLayout: React.FC = () => {
     //#region Список студентов
     const listTabContent = (
         <>
-            <div className={styles.searchAndFilterSection}>
-                <div className="row g-2 mb-2 align-items-end">
-                    <div className="col-md-6">
-                        <InputField
-                            label="Поиск"
-                            type="text"
-                            placeholder="Введите ФИО или номер блока..."
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                        />
-                    </div>
-                    <div className="col-md-6 d-flex gap-2">
-                        <ActionButton
-                            variant='secondary'
-                            onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
-                            aria-expanded={isAdvancedFilterOpen}
-                            aria-controls="advancedFilters"
-                        >
-                            <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} me-1`}></i>
-                            {isAdvancedFilterOpen ? 'Скрыть фильтры' : 'Расширенные фильтры'}
-                        </ActionButton>
-                        <CancelButton onClick={resetFiltersAndSorts} />
-                    </div>
+            <div className="row g-2 mb-3 align-items-end">
+                <div className="col-md-6">
+                    <InputField
+                        label=""
+                        type="text"
+                        placeholder="Поиск по ФИО или Блоку..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                </div>
+                <div className="col-md-6 d-flex gap-2">
+                    <ActionButton
+                        variant='secondary'
+                        onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
+                        aria-expanded={isAdvancedFilterOpen}
+                        aria-controls="advancedFilters"
+                    >
+                        <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} me-1`}></i>
+                        {isAdvancedFilterOpen ? 'Скрыть фильтры' : 'Расширенные фильтры'}
+                    </ActionButton>
+                    <ActionButton
+                        variant='dark'
+                        onClick={resetFiltersAndSorts}
+                    >
+                        Сбросить
+                    </ActionButton>
                 </div>
 
                 {isAdvancedFilterOpen && (
                     <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
-                        <div className="row g-3 mb-3">
+                        <div className="row g-3">
                             <div className="col-md-3">
                                 <SelectField
                                     label="Группа"
@@ -306,7 +308,6 @@ const StudentsLayout: React.FC = () => {
                     </div>
                 )}
             </div>
-
             <CommonTable
                 title="Список студентов"
                 data={processedStudents}
@@ -370,11 +371,12 @@ const StudentsLayout: React.FC = () => {
 
     const addTabContent = (
         <>
-            <h3>Добавить нового студента</h3>
-            <div className="p-3">
+
+            <>
+                <h3 className="mb-2">Добавить нового студента</h3>
+
                 <form onSubmit={handleAddStudentSubmit}>
                     <div className="row g-3">
-                        {/* --- Блок 1: Информация о студенте --- */}
                         <div className="col-12">
                             <h4 className="h6 mb-3 pb-2 border-bottom">Информация о студенте</h4>
                         </div>
@@ -383,7 +385,6 @@ const StudentsLayout: React.FC = () => {
                                 label="Фамилия"
                                 type="text"
                                 name="surname"
-                                value={''}
                                 required
                             />
                         </div>
@@ -392,7 +393,6 @@ const StudentsLayout: React.FC = () => {
                                 label="Имя"
                                 type="text"
                                 name="name"
-                                value={''}
                                 required
                             />
                         </div>
@@ -401,7 +401,6 @@ const StudentsLayout: React.FC = () => {
                                 label="Отчество"
                                 type="text"
                                 name="patronymic"
-                                value={''}
                             />
                         </div>
                         <div className="col-md-4">
@@ -409,7 +408,6 @@ const StudentsLayout: React.FC = () => {
                                 label="Дата рождения"
                                 type="date"
                                 name="birthday"
-                                value={''}
                                 required
                             />
                         </div>
@@ -417,7 +415,6 @@ const StudentsLayout: React.FC = () => {
                             <SelectField
                                 label="Пол"
                                 name="gender"
-                                value={''}
                                 options={genderAddOptions}
                                 required
                             />
@@ -427,7 +424,6 @@ const StudentsLayout: React.FC = () => {
                                 label="Откуда приехал"
                                 type="text"
                                 name="fromWhere"
-                                value={''}
                                 required
                             />
                         </div>
@@ -439,7 +435,6 @@ const StudentsLayout: React.FC = () => {
                             <SelectField
                                 label="Группа"
                                 name="groupId"
-                                value={''}
                                 options={groupOptions}
                                 required
                             />
@@ -448,7 +443,6 @@ const StudentsLayout: React.FC = () => {
                             <SelectField
                                 label="Курс"
                                 name="course"
-                                value={''}
                                 options={courseAddOptions}
                                 required
                             />
@@ -460,22 +454,24 @@ const StudentsLayout: React.FC = () => {
                         <div className="col-md-4">
                             <InputField
                                 label="Контактный телефон"
-                                type="tel" // Используем tel для телефонов
+                                type="tel"
                                 name="phone"
-                                value={''}
                             />
                         </div>
                     </div>
 
                     {/* Кнопки действия */}
                     <div className="d-flex justify-content-end mt-4 pt-2">
-                        <CancelButton
+                        <ActionButton
+                            variant='dark'
                             onClick={() => {
                                 if (window.confirm('Вы уверены, что хотите отменить добавление студента?')) {
                                     resetStudentForm()
                                 }
                             }}
-                        />
+                        >
+                            Сбросить
+                        </ActionButton>
                         <ActionButton
                             variant='primary'
                             onClick={() => resetStudentForm()}
@@ -488,7 +484,7 @@ const StudentsLayout: React.FC = () => {
 
                     </div>
                 </form>
-            </div>
+            </>
         </>
     );
     //#endregion

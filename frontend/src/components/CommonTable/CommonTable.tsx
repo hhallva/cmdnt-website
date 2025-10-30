@@ -102,7 +102,6 @@ const CommonTable = <T extends Record<string, any>>({
 
     return (
         <div className={`${styles.tableWrapper} ${className}`}>
-            {/* Обновлённый заголовок с информацией о количестве записей */}
             {(title || (totalCount !== undefined && data.length > 0)) && (
                 <div className={styles.tableHeader}>
                     {title && <h3 className={styles.tableTitle}>{title}</h3>}

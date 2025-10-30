@@ -15,7 +15,7 @@ import CommonTable from '../../../components/CommonTable/CommonTable';
 import InputField from '../../../components/InputField/InputField';
 import PasswordField from '../../../components/PasswordField/PasswordField';
 import SelectField from '../../../components/SelectField/SelectField';
-import CancelButton from '../../../components/CancelButton/CancelButton';
+import ActionButton from '../../../components/ActionButton/ActionButton';
 import ChangePasswordModal from '../../../components/ChangePasswordModal/ChangePasswordModal';
 import EditUserModal from '../../../components/EditUserModal/EditUserModal';
 
@@ -361,24 +361,24 @@ const UsersLayout: React.FC = () => {
             <div className="row g-3 mb-3">
                 <div className="col-md-6">
                     <InputField
-                        label="Поиск по ФИО"
                         type="text"
-                        placeholder="Введите ФИО"
+                        placeholder="Поиск по ФИО..."
                         value={searchTerm}
                         onChange={handleSearchChange} />
                 </div>
                 <div className="col-md-3">
                     <SelectField
-                        label="Роль"
                         value={selectedRoleId}
                         onChange={handleRoleChange}
                         options={roleOptions} />
                 </div>
-                <div className="col-md-1" >
-                    <CancelButton
+                <div className="col-md-2 " >
+                    <ActionButton
+                        variant='dark'
                         onClick={handleResetFilters}
-                        label="Сбросить"
-                    />
+                    >
+                        Сбросить
+                    </ActionButton>
                 </div>
             </div>
 

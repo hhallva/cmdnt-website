@@ -9,7 +9,6 @@
     transition: all 0.3s ease;
     margin: 0;
     outline: none;
-    margin-top: 2em;
 }
 
 
@@ -31,7 +30,14 @@
     background-color: #bdbdbd;
 }
 
+.actionButton.variant-dark {
+    color: #fff;
+    background-color: #6c757d;
+}
 
+.actionButton.variant-dark:hover:not(.disabled) {
+    background-color: #5a6268;
+}
 
 
 /* --- Стили для разных размеров --- */
@@ -82,5 +88,6 @@
     .actionButton {
         margin-top: 0rem;
         font-size: small;
+        padding: 0.5rem 1rem;
     }
 }
