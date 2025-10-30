@@ -12,6 +12,28 @@
     margin-top: 2em;
 }
 
+
+.actionButton.variant-primary {
+    color: #fff;
+    background-color: var(--color-primary);
+}
+
+.actionButton.variant-primary:hover:not(.disabled) {
+    background-color: #f57c00;
+}
+
+.actionButton.variant-secondary {
+    color: #424242;
+    background-color: #dbdbdb;
+}
+
+.actionButton.variant-secondary:hover:not(.disabled) {
+    background-color: #bdbdbd;
+}
+
+
+
+
 /* --- Стили для разных размеров --- */
 /* Размер sm (маленький) */
 .actionButton.size-sm {

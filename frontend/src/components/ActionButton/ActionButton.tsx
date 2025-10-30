@@ -28,7 +28,6 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         <>
             <button className={`${styles.actionButton} 
                          ${styles[`variant-${variant}`]} 
-                         ${styles[`size-${size}`]} 
                          ${disabled ? styles.disabled : ''} 
                          ${className}`}
                 onClick={!disabled ? onClick : undefined}

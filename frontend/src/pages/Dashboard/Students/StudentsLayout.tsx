@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
 
-import type { StudentsDto } from '../../../types/students';
+import type { StudentsDto, PostStudentsDto } from '../../../types/students';
 import type { GroupDto } from '../../../types/groups';
 
 import Tabs from '../../../components/Tabs/Tabs';
@@ -247,6 +247,7 @@ const StudentsLayout: React.FC = () => {
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
 
+    //#region Список студентов
     const listTabContent = (
         <>
             <div className={styles.searchAndFilterSection}>
@@ -262,8 +263,7 @@ const StudentsLayout: React.FC = () => {
                     </div>
                     <div className="col-md-6 d-flex gap-2">
                         <ActionButton
-                            variant="outline-primary"
-                            size="md"
+                            variant='secondary'
                             onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
                             aria-expanded={isAdvancedFilterOpen}
                             aria-controls="advancedFilters"
@@ -320,13 +320,179 @@ const StudentsLayout: React.FC = () => {
             />
         </>
     );
+    //#endregion
+
+    //#region Добавление студента
+
+
+
+
+
+    const resetStudentForm = () => {
+
+    };
+
+    const handleAddStudentSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Здесь будет логика добавления студента через API
+
+        alert('Новый студент добавлен (заглушка)!');
+        resetStudentForm()
+    };
+
+    const formOfEducationOptions = [
+        { value: '', label: 'Выберите форму обучения' },
+        { value: 'очная', label: 'Очная' },
+        { value: 'заочная', label: 'Заочная' },
+    ];
+
+    const budgetOrContractOptions = [
+        { value: '', label: 'Выберите тип финансирования' },
+        { value: 'бюджет', label: 'Бюджет' },
+        { value: 'контракт', label: 'Контракт' },
+    ];
+
+    const courseAddOptions = [
+        { value: '', label: 'Выберите курс' },
+        { value: '1', label: '1' },
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+        { value: '4', label: '4' },
+        { value: '5', label: '5' },
+    ];
+
+    const genderAddOptions = [
+        { value: '', label: 'Выберите пол' },
+        { value: 'мужской', label: 'Мужской' },
+        { value: 'женский', label: 'Женский' },
+    ];
 
     const addTabContent = (
         <>
             <h3>Добавить нового студента</h3>
-            <p>Здесь будет форма для добавления нового студента.</p>
+            <div className="p-3">
+                <form onSubmit={handleAddStudentSubmit}>
+                    <div className="row g-3">
+                        {/* --- Блок 1: Информация о студенте --- */}
+                        <div className="col-12">
+                            <h4 className="h6 mb-3 pb-2 border-bottom">Информация о студенте</h4>
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Фамилия"
+                                type="text"
+                                name="surname"
+                                value={''}
+                                required
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Имя"
+                                type="text"
+                                name="name"
+                                value={''}
+                                required
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Отчество"
+                                type="text"
+                                name="patronymic"
+                                value={''}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Дата рождения"
+                                type="date"
+                                name="birthday"
+                                value={''}
+                                required
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <SelectField
+                                label="Пол"
+                                name="gender"
+                                value={''}
+                                options={genderAddOptions}
+                                required
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Откуда приехал"
+                                type="text"
+                                name="fromWhere"
+                                value={''}
+                                required
+                            />
+                        </div>
+
+                        <div className="col-12 mt-4 pt-2">
+                            <h4 className="h6 mb-3 pb-2 border-bottom">Обучение</h4>
+                        </div>
+                        <div className="col-md-3">
+                            <SelectField
+                                label="Группа"
+                                name="groupId"
+                                value={''}
+                                options={groupOptions}
+                                required
+                            />
+                        </div>
+                        <div className="col-md-3">
+                            <SelectField
+                                label="Курс"
+                                name="course"
+                                value={''}
+                                options={courseAddOptions}
+                                required
+                            />
+                        </div>
+
+                        <div className="col-12 mt-4 pt-2">
+                            <h4 className="h6 mb-3 pb-2 border-bottom">Контакты</h4>
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Контактный телефон"
+                                type="tel" // Используем tel для телефонов
+                                name="phone"
+                                value={''}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Кнопки действия */}
+                    <div className="d-flex justify-content-end mt-4 pt-2">
+                        <CancelButton
+                            onClick={() => {
+                                if (window.confirm('Вы уверены, что хотите отменить добавление студента?')) {
+                                    resetStudentForm()
+                                }
+                            }}
+                        />
+                        <ActionButton
+                            variant='primary'
+                            onClick={() => resetStudentForm()}
+                            className="ms-2"
+                        >
+                            <i className="bi bi-save me-1"></i>
+                            Сохранить студента
+                        </ActionButton>
+
+
+                    </div>
+                </form>
+            </div>
         </>
     );
+    //#endregion
+
 
     const tabs = [
         {
