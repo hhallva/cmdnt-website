@@ -10,6 +10,7 @@ interface ActionButtonProps {
     disabled?: boolean;
     ariaLabel?: string; // Для доступности
     className?: string; // Дополнительные классы
+    type?: 'button' | 'submit' | 'reset';
     style?: React.CSSProperties; // Inline стили
 }
 
@@ -21,12 +22,13 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     disabled = false,
     ariaLabel,
     className = '',
+    type = 'button',
     style = {},
     ...restProps // Для передачи других пропсов, если нужно
 }) => {
     return (
         <>
-            <button className={`${styles.actionButton} 
+            <button type={type} className={`${styles.actionButton} 
                          ${styles[`variant-${variant}`]} 
                          ${disabled ? styles.disabled : ''} 
                          ${className}`}

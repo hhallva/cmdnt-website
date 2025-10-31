@@ -17,8 +17,8 @@ export interface PostStudentsDto {
     surname: string | null;
     patronymic: string | null;
     birthday: string;
-    group: GroupDto | null;
-    gender: boolean;
+    groupId: number | null;
+    gender: boolean | null;
     phone: string | null;
     origin: string | null;
 }

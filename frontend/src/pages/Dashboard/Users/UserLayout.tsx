@@ -82,6 +82,8 @@ const UsersLayout: React.FC = () => {
     };
     // #endregion
 
+    // #region Список пользователей 
+
     // #region Поиск и фильтрация
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
@@ -120,6 +122,61 @@ const UsersLayout: React.FC = () => {
     });
 
     // #endregion
+
+    // #region Действия в таблице
+    const [showEditUserModal, setShowEditUserModal] = useState(false);
+    const [userForEdit, setUserForEdit] = useState<UserDto | null>(null);
+
+    const handleEditUser = async (user: UserDto) => {
+        try {
+            const freshUserData = await apiClient.getUserById(user.id);
+            setUserForEdit(freshUserData);
+            setShowEditUserModal(true);
+        } catch (err: any) {
+            console.error('Ошибка при загрузке данных пользователя для редактирования:', err);
+            alert(err.message || 'Ошибка при загрузке данных пользователя');
+        }
+    };
+
+    const handleCloseEditUserModal = () => {
+        setShowEditUserModal(false);
+        setUserForEdit(null);
+    };
+
+    const handleSuccessEditUser = async () => {
+        console.log('Пользователь успешно обновлён. Перезагружаем список пользователей...');
+        try {
+            // --- Перезагружаем список пользователей ---
+            await fetchUsers(); // Предполагается, что fetchUsers - асинхронная функция из твоего useEffect
+        } catch (err: any) {
+            console.error('Ошибка при перезагрузке списка пользователей после редактирования:', err);
+            alert(err.message || 'Ошибка при обновлении списка пользователей');
+            // Ошибка 401 будет перехвачена в apiClient
+        }
+    };
+
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+    const [userForPasswordChange, setUserForPasswordChange] = useState<UserDto | null>(null);
+
+    const handleChangePassword = (user: UserDto) => {
+        setUserForPasswordChange(user);
+        setShowChangePasswordModal(true);
+    };
+
+    const handleDeleteUser = async (user: UserDto) => {
+        if (window.confirm(`Вы уверены, что хотите удалить пользователя ${user.name} (${user.login})?`)) {
+            try {
+                await apiClient.deleteUser(user.id);
+                console.log('Пользователь успешно удалён с сервера:', user);
+                setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
+                await fetchStatistics();
+            } catch (err: any) {
+                console.error('Ошибка при удалении пользователя:', err);
+                alert(err.message || 'Ошибка при удалении пользователя');
+            }
+        }
+    };
+    //#endregion
 
     // #region Таблица
     const userColumns = [
@@ -179,64 +236,47 @@ const UsersLayout: React.FC = () => {
             },
         },
     ];
-
-
     // #endregion  
 
-    // #region Действия в таблице
-    const [showEditUserModal, setShowEditUserModal] = useState(false);
-    const [userForEdit, setUserForEdit] = useState<UserDto | null>(null);
+    const listTabContent = (
+        <>
+            <div className="row g-3 mb-3">
+                <div className="col-md-6">
+                    <InputField
+                        type="text"
+                        placeholder="Поиск по ФИО..."
+                        value={searchTerm}
+                        onChange={handleSearchChange} />
+                </div>
+                <div className="col-md-3">
+                    <SelectField
+                        value={selectedRoleId}
+                        onChange={handleRoleChange}
+                        options={roleOptions} />
+                </div>
+                <div className="col-md-2 " >
+                    <ActionButton
+                        variant='dark'
+                        onClick={handleResetFilters}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
+            </div>
 
-    const handleEditUser = async (user: UserDto) => {
-        try {
-            const freshUserData = await apiClient.getUserById(user.id);
-            setUserForEdit(freshUserData);
-            setShowEditUserModal(true);
-        } catch (err: any) {
-            console.error('Ошибка при загрузке данных пользователя для редактирования:', err);
-            alert(err.message || 'Ошибка при загрузке данных пользователя');
-        }
-    };
+            <CommonTable
+                title="Список пользователей"
+                data={filteredUsers}
+                totalCount={users.length}
+                columns={userColumns}
+                actions={userActions}
+                emptyMessage="Пользователи не найдены"
+            />
 
-    const handleCloseEditUserModal = () => {
-        setShowEditUserModal(false);
-        setUserForEdit(null);
-    };
+        </>
+    );
 
-    const handleSuccessEditUser = async () => {
-        console.log('Пользователь успешно обновлён. Перезагружаем список пользователей...');
-        try {
-            // --- Перезагружаем список пользователей ---
-            await fetchUsers(); // Предполагается, что fetchUsers - асинхронная функция из твоего useEffect
-        } catch (err: any) {
-            console.error('Ошибка при перезагрузке списка пользователей после редактирования:', err);
-            alert(err.message || 'Ошибка при обновлении списка пользователей');
-            // Ошибка 401 будет перехвачена в apiClient
-        }
-    };
-
-    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-    const [userForPasswordChange, setUserForPasswordChange] = useState<UserDto | null>(null);
-
-    const handleChangePassword = (user: UserDto) => {
-        setUserForPasswordChange(user);
-        setShowChangePasswordModal(true);
-    };
-
-    const handleDeleteUser = async (user: UserDto) => {
-        if (window.confirm(`Вы уверены, что хотите удалить пользователя ${user.name} (${user.login})?`)) {
-            try {
-                await apiClient.deleteUser(user.id);
-                console.log('Пользователь успешно удалён с сервера:', user);
-                setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
-                await fetchStatistics();
-            } catch (err: any) {
-                console.error('Ошибка при удалении пользователя:', err);
-                alert(err.message || 'Ошибка при удалении пользователя');
-            }
-        }
-    };
-    //#endregion
+    //#endregion 
 
     // #region Добавление пользователя
     const [newUser, setNewUser] = useState<Omit<PostUserDto, 'password'> & { password: string }>({
@@ -342,57 +382,6 @@ const UsersLayout: React.FC = () => {
             setIsAddingUser(false);
         }
     };
-    // #endregion 
-
-    if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
-    if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
-    if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
-
-    const userStats = [
-        { value: statistics.totalUsers, label: 'Всего пользователей' },
-        { value: statistics.adminCount, label: 'Администраторы' },
-        { value: statistics.commandantCount, label: 'Коменданты' },
-        { value: statistics.educatorCount, label: 'Воспитатели' },
-    ];
-
-    // #region Вкладки
-    const listTabContent = (
-        <>
-            <div className="row g-3 mb-3">
-                <div className="col-md-6">
-                    <InputField
-                        type="text"
-                        placeholder="Поиск по ФИО..."
-                        value={searchTerm}
-                        onChange={handleSearchChange} />
-                </div>
-                <div className="col-md-3">
-                    <SelectField
-                        value={selectedRoleId}
-                        onChange={handleRoleChange}
-                        options={roleOptions} />
-                </div>
-                <div className="col-md-2 " >
-                    <ActionButton
-                        variant='dark'
-                        onClick={handleResetFilters}
-                    >
-                        Сбросить
-                    </ActionButton>
-                </div>
-            </div>
-
-            <CommonTable
-                title="Список пользователей"
-                data={filteredUsers}
-                totalCount={users.length}
-                columns={userColumns}
-                actions={userActions}
-                emptyMessage="Пользователи не найдены"
-            />
-
-        </>
-    );
 
     const addTabContent = (
         <div className="p-3">
@@ -531,6 +520,18 @@ const UsersLayout: React.FC = () => {
             </form>
         </div>
     );
+    // #endregion 
+
+    if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
+    if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
+    if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
+
+    const userStats = [
+        { value: statistics.totalUsers, label: 'Всего пользователей' },
+        { value: statistics.adminCount, label: 'Администраторы' },
+        { value: statistics.commandantCount, label: 'Коменданты' },
+        { value: statistics.educatorCount, label: 'Воспитатели' },
+    ]
 
     const tabs = [
         {
@@ -544,7 +545,6 @@ const UsersLayout: React.FC = () => {
             content: addTabContent,
         }
     ];
-    // #endregion 
 
     return (
         <>
