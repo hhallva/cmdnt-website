@@ -19,12 +19,11 @@ export const routes = [
     ),
     handle: { title: 'Панель управления' },
     children: [
-      { path: "structure", element: <div>Структура</div>, handle: { title: 'Структура общежития', requiredRole: 'educator' } },
+      { path: "structure", element: <></>, handle: { title: 'Структура общежития', requiredRole: 'educator' } },
       { path: "students", element: <StudentsLayout />, handle: { title: 'Студенты', requiredRole: 'commandant' } },
-      { path: "settlement", element: <div>Расселение</div>, handle: { title: 'Расселение', requiredRole: 'commandant' } },
-      { path: "reports", element: <div>Отчеты</div>, handle: { title: 'Отчеты', requiredRole: 'commandant' } },
+      { path: "settlement", element: <></>, handle: { title: 'Расселение', requiredRole: 'commandant' } },
       { path: "users", element: <UsersLayout />, handle: { title: 'Пользователи', requiredRole: 'admin' } },
-      { path: "groups", element: <div>Группы</div>, handle: { title: 'Группы', requiredRole: 'admin' } },
+      { path: "groups", element: <></>, handle: { title: '?Группы?', requiredRole: 'admin' } },
       // Редирект с /dashboard на первый раздел, если нужно
       { index: true, element: <Navigate to="structure" replace /> },
     ],

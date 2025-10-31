@@ -179,7 +179,7 @@ const UsersLayout: React.FC = () => {
     //#endregion
 
     // #region Таблица
-    const userColumns = [
+    const columns = [
         {
             key: 'fullName',
             title: 'ФИО',
@@ -196,7 +196,7 @@ const UsersLayout: React.FC = () => {
         },
     ];
 
-    const userActions = [
+    const actions = [
         {
             render: (user: UserDto) => (
                 <button
@@ -268,8 +268,8 @@ const UsersLayout: React.FC = () => {
                 title="Список пользователей"
                 data={filteredUsers}
                 totalCount={users.length}
-                columns={userColumns}
-                actions={userActions}
+                columns={columns}
+                actions={actions}
                 emptyMessage="Пользователи не найдены"
             />
 
@@ -288,8 +288,8 @@ const UsersLayout: React.FC = () => {
         password: '',
     });
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [addUserErrors, setAddUserErrors] = useState<Record<string, string>>({});
-    const [isAddingUser, setIsAddingUser] = useState(false);
+    const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+    const [isAdding, setIsAdding] = useState(false);
 
     const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -299,13 +299,25 @@ const UsersLayout: React.FC = () => {
             [name]: name === 'roleId' ? Number(val) : val,
         }));
 
-        if (addUserErrors[name]) {
-            setAddUserErrors(prev => {
+        if (addErrors[name]) {
+            setAddErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors[name];
                 return newErrors;
             });
         }
+    };
+
+    const resetAddForm = () => {
+        setNewUser({
+            roleId: 0,
+            surname: '',
+            name: '',
+            patronymic: '',
+            login: '',
+            password: '',
+        });
+        setAddErrors({});
     };
 
     const validateAddUserForm = (): boolean => {
@@ -342,7 +354,7 @@ const UsersLayout: React.FC = () => {
             errors.confirmPassword = 'Пароли не совпадают.';
         }
 
-        setAddUserErrors(errors);
+        setAddErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
@@ -352,7 +364,7 @@ const UsersLayout: React.FC = () => {
             return;
         }
 
-        setIsAddingUser(true);
+        setIsAdding(true);
         try {
             const userDataToSend: PostUserDto = {
                 ...newUser,
@@ -370,7 +382,7 @@ const UsersLayout: React.FC = () => {
                 password: '',
             });
             setConfirmPassword('');
-            setAddUserErrors({});
+            setAddErrors({});
             // Перезагружаем список пользователей и статистику
             await fetchUsers();
             await fetchStatistics();
@@ -379,7 +391,7 @@ const UsersLayout: React.FC = () => {
             alert(err.message || 'Ошибка при добавлении пользователя');
             // Ошибка 401 будет перехвачена в apiClient
         } finally {
-            setIsAddingUser(false);
+            setIsAdding(false);
         }
     };
 
@@ -396,8 +408,8 @@ const UsersLayout: React.FC = () => {
                             value={newUser.surname || ''}
                             onChange={handleAddUserChange}
                             required
-                            error={addUserErrors.surname}
-                            disabled={isAddingUser}
+                            error={addErrors.surname}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -408,8 +420,8 @@ const UsersLayout: React.FC = () => {
                             value={newUser.name || ''}
                             onChange={handleAddUserChange}
                             required
-                            error={addUserErrors.name}
-                            disabled={isAddingUser}
+                            error={addErrors.name}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -419,8 +431,8 @@ const UsersLayout: React.FC = () => {
                             name="patronymic"
                             value={newUser.patronymic || ''}
                             onChange={handleAddUserChange}
-                            error={addUserErrors.patronymic}
-                            disabled={isAddingUser}
+                            error={addErrors.patronymic}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -431,8 +443,8 @@ const UsersLayout: React.FC = () => {
                             value={newUser.login || ''}
                             onChange={handleAddUserChange}
                             required
-                            error={addUserErrors.login}
-                            disabled={isAddingUser}
+                            error={addErrors.login}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -443,8 +455,8 @@ const UsersLayout: React.FC = () => {
                             onChange={handleAddUserChange}
                             options={roleOptions}
                             required
-                            error={addUserErrors.roleId}
-                            disabled={isAddingUser}
+                            error={addErrors.roleId}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -454,8 +466,8 @@ const UsersLayout: React.FC = () => {
                             value={newUser.password}
                             onChange={handleAddUserChange}
                             required
-                            error={addUserErrors.password}
-                            disabled={isAddingUser}
+                            error={addErrors.password}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -465,8 +477,8 @@ const UsersLayout: React.FC = () => {
                             value={confirmPassword}
                             onChange={(e) => {
                                 setConfirmPassword(e.target.value);
-                                if (addUserErrors.confirmPassword) {
-                                    setAddUserErrors(prev => {
+                                if (addErrors.confirmPassword) {
+                                    setAddErrors(prev => {
                                         const newErrors = { ...prev };
                                         delete newErrors.confirmPassword;
                                         return newErrors;
@@ -474,48 +486,27 @@ const UsersLayout: React.FC = () => {
                                 }
                             }}
                             required
-                            error={addUserErrors.confirmPassword}
-                            disabled={isAddingUser}
+                            error={addErrors.confirmPassword}
+                            disabled={isAdding}
                         />
                     </div>
                 </div>
-                <div className="d-flex justify-content-end mt-3">
-                    <button
-                        type="button"
-                        className="btn btn-secondary me-2"
-                        onClick={() => {
-                            setNewUser({
-                                roleId: 0,
-                                surname: '',
-                                name: '',
-                                patronymic: '',
-                                login: '',
-                                password: '',
-                            });
-                            setConfirmPassword('');
-                            setAddUserErrors({});
-                        }}
-                        disabled={isAddingUser}
+                {/* Кнопки действия */}
+                <div className="d-flex justify-content-end mt-4 pt-2">
+                    <ActionButton
+                        variant='dark'
+                        onClick={resetAddForm}
+                        disabled={isAdding}
                     >
-                        Очистить
-                    </button>
-                    <button
-                        type="submit"
-                        className="btn btn-success"
-                        disabled={isAddingUser}
+                        Сбросить
+                    </ActionButton>
+                    <ActionButton
+                        type='submit'
+                        variant='primary'
+                        className="ms-2"
                     >
-                        {isAddingUser ? (
-                            <>
-                                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                Добавление...
-                            </>
-                        ) : (
-                            <>
-                                <i className="bi bi-plus-circle me-1"></i>
-                                Добавить пользователя
-                            </>
-                        )}
-                    </button>
+                        Добавить
+                    </ActionButton>
                 </div>
             </form>
         </div>

@@ -33,7 +33,7 @@ const StudentsLayout: React.FC = () => {
         origin: '',
     });
     const [isAdding, setIsAdding] = useState(false);
-    const [addError, setAddError] = useState<string | null>(null);
+    const [addError, setAddErrors] = useState<Record<string, string>>({});
 
     const groupAddOptions = useMemo(() => [
         { value: 'all', label: 'Выберите группу' },
@@ -208,7 +208,7 @@ const StudentsLayout: React.FC = () => {
     // #endregion
 
     // #region Таблица
-    const studentColumns = [
+    const columns = [
         {
             key: 'fullName',
             title: 'ФИО',
@@ -250,7 +250,7 @@ const StudentsLayout: React.FC = () => {
         },
     ];
 
-    const studentActions = [
+    const actions = [
         {
             render: (student: StudentsDto) => (
                 <button
@@ -332,8 +332,8 @@ const StudentsLayout: React.FC = () => {
                 title="Список студентов"
                 data={processedStudents}
                 totalCount={students.length}
-                columns={studentColumns}
-                actions={studentActions}
+                columns={columns}
+                actions={actions}
                 enableSorting={true}
                 onSortRequest={requestSort}
                 sortConfig={sortConfig}
@@ -361,7 +361,7 @@ const StudentsLayout: React.FC = () => {
         });
 
         if (addError) {
-            setAddError(null);
+            setAddErrors({});
         }
     };
 
@@ -376,13 +376,13 @@ const StudentsLayout: React.FC = () => {
             phone: '',
             origin: '',
         });
-        setAddError(null);
+        setAddErrors({});
     };
 
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsAdding(true);
-        setAddError(null);
+        setAddErrors({});
 
         try {
             const studentDataToSend: PostStudentsDto = {
@@ -403,7 +403,7 @@ const StudentsLayout: React.FC = () => {
         } catch (err: any) {
             console.error('Ошибка при добавлении студента:', err);
             const errorMessage = err.message || 'Ошибка при добавлении студента';
-            setAddError(errorMessage);
+            setAddErrors(errorMessage);
         } finally {
             setIsAdding(false);
         }
@@ -515,8 +515,6 @@ const StudentsLayout: React.FC = () => {
                         <h4 className="h6 mb-2 pb-2 border-bottom">Дополнительные контакты</h4>
                     </div>
                 </div>
-
-                {/* Кнопки действия */}
                 <div className="d-flex justify-content-end mt-4 pt-2">
                     <ActionButton
                         variant='dark'
@@ -528,7 +526,6 @@ const StudentsLayout: React.FC = () => {
                     <ActionButton
                         type='submit'
                         variant='primary'
-                        onClick={() => handleAddSubmit}
                         className="ms-2"
                     >
                         Добавить

@@ -3,41 +3,51 @@ import React from 'react';
 import styles from './ActionButton.module.css'; // Создадим стили позже
 
 interface ActionButtonProps {
-    onClick: () => void;
-    children: React.ReactNode; // Содержимое кнопки (текст, иконки)
+    onClick?: () => void;
+    children: React.ReactNode;
     variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark' | 'outline-primary' | 'outline-secondary'; // Примеры вариантов
-    size?: 'sm' | 'md' | 'lg'; // Размеры
+    size?: 'sm' | 'md' | 'lg';
     disabled?: boolean;
-    ariaLabel?: string; // Для доступности
-    className?: string; // Дополнительные классы
+    ariaLabel?: string;
+    className?: string;
+    style?: React.CSSProperties;
     type?: 'button' | 'submit' | 'reset';
-    style?: React.CSSProperties; // Inline стили
+    name?: string;
+    value?: string | number;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
     onClick,
     children,
-    variant = 'primary', // По умолчанию
-    size = 'md',
+    variant = 'primary',
+    size = 'lg',
     disabled = false,
     ariaLabel,
     className = '',
-    type = 'button',
     style = {},
-    ...restProps // Для передачи других пропсов, если нужно
+    type = 'button',
+    name,
+    value,
+    ...restProps
 }) => {
     return (
         <>
-            <button type={type} className={`${styles.actionButton} 
-                         ${styles[`variant-${variant}`]} 
-                         ${disabled ? styles.disabled : ''} 
-                         ${className}`}
+            <button
+                type={type}
+                name={name}
+                value={value}
+                className={`
+                    ${styles.actionButton} 
+                    ${styles[`variant-${variant}`]} 
+                    ${styles[`size-${size}`]} 
+                    ${disabled ? styles.disabled : ''} 
+                    ${className}
+                `}
                 onClick={!disabled ? onClick : undefined}
                 aria-label={ariaLabel}
-                aria-disabled={disabled}
                 style={style}
+                aria-disabled={disabled}
                 {...restProps}
-                tabIndex={disabled ? -1 : 0}
             >
                 {children}
             </button>
