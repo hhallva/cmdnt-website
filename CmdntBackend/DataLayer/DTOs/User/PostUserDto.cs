@@ -23,7 +23,7 @@ namespace DataLayer.DTOs.User
         [StringLength(100, MinimumLength = 5, ErrorMessage = "Пароль должен содержать от 5 до 100 символов.")]
         public string Password { get; set; } = null!;
 
-        [Range(1, 3, ErrorMessage = "Идентификатор роли должен быть в диапазоне от 1 до 3. Где 1 - Администратор, 2 - Коммендант, 3 - Воспитатель.")]
+        [Range(1, 3, ErrorMessage = "Идентификатор роли должен быть в диапазоне от 1 до 3. Где 1 - Администратор, 2 - Комендант, 3 - Воспитатель.")]
         public int RoleId { get; set; }
     }
 }
