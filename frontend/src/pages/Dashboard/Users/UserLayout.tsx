@@ -407,7 +407,6 @@ const UsersLayout: React.FC = () => {
                             name="surname"
                             value={newUser.surname || ''}
                             onChange={handleAddUserChange}
-                            required
                             error={addErrors.surname}
                             disabled={isAdding}
                         />
@@ -419,7 +418,6 @@ const UsersLayout: React.FC = () => {
                             name="name"
                             value={newUser.name || ''}
                             onChange={handleAddUserChange}
-                            required
                             error={addErrors.name}
                             disabled={isAdding}
                         />
@@ -442,7 +440,6 @@ const UsersLayout: React.FC = () => {
                             name="login"
                             value={newUser.login || ''}
                             onChange={handleAddUserChange}
-                            required
                             error={addErrors.login}
                             disabled={isAdding}
                         />
@@ -454,7 +451,6 @@ const UsersLayout: React.FC = () => {
                             value={newUser.roleId}
                             onChange={handleAddUserChange}
                             options={roleOptions}
-                            required
                             error={addErrors.roleId}
                             disabled={isAdding}
                         />
@@ -465,7 +461,6 @@ const UsersLayout: React.FC = () => {
                             name="password"
                             value={newUser.password}
                             onChange={handleAddUserChange}
-                            required
                             error={addErrors.password}
                             disabled={isAdding}
                         />
@@ -485,7 +480,6 @@ const UsersLayout: React.FC = () => {
                                     });
                                 }
                             }}
-                            required
                             error={addErrors.confirmPassword}
                             disabled={isAdding}
                         />

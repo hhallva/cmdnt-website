@@ -10,7 +10,7 @@ import type { UserStatisticDto } from '../types/UserStatisticDto'
 import type { UpdateUserDto } from '../types/UpdateUserDto'
 import type { PostUserDto } from '../types/PostUserDto'
 
-import type { StudentsDto } from '../types/students'
+import type { PostStudentsDto, StudentsDto } from '../types/students'
 
 import type { GroupDto } from '../types/groups'
 
@@ -160,6 +160,16 @@ export const apiClient = {
   //#region Студенты
   getAllStudents: async (): Promise<StudentsDto[]> => {
     return apiClient.requestWithAuth<[StudentsDto]>('/api/v1/Students');
+  },
+
+  createStudent: async (data: PostStudentsDto): Promise<StudentsDto> => {
+    return apiClient.requestWithAuth<StudentsDto>('/api/v1/Students', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
   },
   //#endregion
 

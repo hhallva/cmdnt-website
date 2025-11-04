@@ -33,7 +33,7 @@ const StudentsLayout: React.FC = () => {
         origin: '',
     });
     const [isAdding, setIsAdding] = useState(false);
-    const [addError, setAddErrors] = useState<Record<string, string>>({});
+    const [addErrors, setAddErrors] = useState<Record<string, string>>({});
 
     const groupAddOptions = useMemo(() => [
         { value: 'all', label: 'Выберите группу' },
@@ -65,6 +65,15 @@ const StudentsLayout: React.FC = () => {
         fetchData();
     }, [navigate]);
 
+    const fetchStudents = async () => {
+        try {
+            const response = await apiClient.getAllStudents();
+            setStudents(response);
+        } catch (err: any) {
+            console.error('Ошибка при загрузке студентов:', err);
+            throw err;
+        }
+    };
 
     // #endregion
 
@@ -360,7 +369,7 @@ const StudentsLayout: React.FC = () => {
             return { ...prev, [name]: val };
         });
 
-        if (addError) {
+        if (addErrors) {
             setAddErrors({});
         }
     };
@@ -379,11 +388,69 @@ const StudentsLayout: React.FC = () => {
         setAddErrors({});
     };
 
+    const validateAddStudentForm = (): boolean => {
+        const errors: Record<string, string> = {};
+        if (!newStudent.surname?.trim()) {
+            errors.surname = 'Фамилия обязательна.';
+        } else if (newStudent.surname.length > 100) {
+            errors.surname = 'Фамилия должна содержать не более 100 символов.';
+        }
+
+        if (!newStudent.name?.trim()) {
+            errors.name = 'Имя обязательно.';
+        } else if (newStudent.name.length > 100) {
+            errors.name = 'Имя должно содержать не более 100 символов.';
+        }
+
+        if (newStudent.patronymic && newStudent.patronymic.length > 100) {
+            errors.patronymic = 'Отчество должно содержать не более 100 символов.';
+        }
+
+        if (!newStudent.birthday) {
+            errors.birthday = 'Дата рождения обязательна.';
+        } else {
+            const birthDate = new Date(newStudent.birthday);
+            const today = new Date();
+            if (isNaN(birthDate.getTime())) {
+                errors.birthday = 'Некорректная дата рождения.';
+            } else if (birthDate > today) {
+                errors.birthday = 'Дата рождения не может быть в будущем.';
+            }
+        }
+
+        if (newStudent.gender === null || newStudent.gender === undefined) {
+            errors.gender = 'Пол обязателен для выбора.';
+        }
+
+        if (newStudent.origin && newStudent.origin.length > 300) {
+            errors.origin = 'Поле Откуда приехал должно содержать не более 300 символов.';
+        }
+
+        if (!newStudent.groupId || newStudent.groupId <= 0) {
+            errors.groupId = 'Пожалуйста, выберите группу.';
+        }
+
+        if (!newStudent.phone?.trim()) {
+            errors.phone = 'Номер телефона обязателен.';
+        } else if (newStudent.phone) {
+            const phoneRegex = /^8\d{10}$/;
+            if (!phoneRegex.test(newStudent.phone)) {
+                errors.phone = 'Телефон должен быть в формате 89000000000.';
+            }
+        }
+
+
+        setAddErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsAdding(true);
-        setAddErrors({});
+        if (!validateAddStudentForm()) {
+            return;
+        }
 
+        setIsAdding(true);
         try {
             const studentDataToSend: PostStudentsDto = {
                 ...newStudent,
@@ -392,13 +459,13 @@ const StudentsLayout: React.FC = () => {
 
             console.log('Отправка данных нового студента:', studentDataToSend);
 
-            //const createdStudent = await apiClient.createStudent(studentDataToSend);
-
-            //console.log('Новый студент успешно добавлен:', createdStudent);
+            const createdStudent = await apiClient.createStudent(studentDataToSend);
+            alert('Cтудент успешно добавлен!');
+            console.log('Новый студент успешно добавлен:', createdStudent);
 
             resetAddForm();
 
-            //await fetchStudents(); 
+            await fetchStudents();
 
         } catch (err: any) {
             console.error('Ошибка при добавлении студента:', err);
@@ -428,7 +495,7 @@ const StudentsLayout: React.FC = () => {
                             name="surname"
                             value={newStudent.surname || ''}
                             onChange={handleAddChange}
-                            required
+                            error={addErrors.surname}
                             disabled={isAdding}
                         />
                     </div>
@@ -439,8 +506,8 @@ const StudentsLayout: React.FC = () => {
                             name="name"
                             value={newStudent.name || ''}
                             onChange={handleAddChange}
-                            required
                             disabled={isAdding}
+                            error={addErrors.name}
                         />
                     </div>
                     <div className="col-md-4">
@@ -451,6 +518,7 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.patronymic || ''}
                             onChange={handleAddChange}
                             disabled={isAdding}
+                            error={addErrors.patronymic}
                         />
                     </div>
                     <div className="col-md-4">
@@ -460,8 +528,8 @@ const StudentsLayout: React.FC = () => {
                             name="birthday"
                             value={newStudent.birthday || ''}
                             onChange={handleAddChange}
-                            required
                             disabled={isAdding}
+                            error={addErrors.birthday}
                         />
                     </div>
                     <div className="col-md-4">
@@ -475,8 +543,8 @@ const StudentsLayout: React.FC = () => {
                             }
                             onChange={handleAddChange}
                             options={genderAddOptions}
-                            required
                             disabled={isAdding}
+                            error={addErrors.gender}
                         />
                     </div>
                     <div className="col-md-4">
@@ -486,8 +554,8 @@ const StudentsLayout: React.FC = () => {
                             name="origin"
                             value={newStudent.origin || ''}
                             onChange={handleAddChange}
-                            required
                             disabled={isAdding}
+                            error={addErrors.origin}
                         />
                     </div>
                     <div className="col-md-4">
@@ -497,8 +565,8 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.groupId ?? ''}
                             onChange={handleAddChange}
                             options={groupAddOptions}
-                            required
                             disabled={isAdding}
+                            error={addErrors.groupId}
                         />
                     </div>
                     <div className="col-md-4">
@@ -509,6 +577,7 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.phone || ''}
                             onChange={handleAddChange}
                             disabled={isAdding}
+                            error={addErrors.phone}
                         />
                     </div>
                     <div className="col-12 mt-4 pt-2">
