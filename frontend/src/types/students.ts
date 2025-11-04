@@ -12,7 +12,7 @@ export interface StudentsDto {
     blockNumber: string | null;
 }
 
-export interface PostStudentsDto {
+export interface PostStudentDto {
     name: string | null;
     surname: string | null;
     patronymic: string | null;

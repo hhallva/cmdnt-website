@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
 
-import type { StudentsDto, PostStudentsDto } from '../../../types/students';
+import type { StudentsDto, PostStudentDto } from '../../../types/students';
 import type { GroupDto } from '../../../types/groups';
 
 import Tabs from '../../../components/Tabs/Tabs';
@@ -21,25 +21,6 @@ const StudentsLayout: React.FC = () => {
 
     const [students, setStudents] = useState<StudentsDto[]>([]);
     const [groups, setGroups] = useState<GroupDto[]>([]);
-
-    const [newStudent, setNewStudent] = useState<Omit<PostStudentsDto, 'id'> & { id?: number }>({
-        name: '',
-        surname: '',
-        patronymic: '',
-        birthday: '',
-        groupId: null,
-        gender: null,
-        phone: '',
-        origin: '',
-    });
-    const [isAdding, setIsAdding] = useState(false);
-    const [addErrors, setAddErrors] = useState<Record<string, string>>({});
-
-    const groupAddOptions = useMemo(() => [
-        { value: 'all', label: 'Выберите группу' },
-        ...groups.map(group => ({ value: group.id, label: group.name }))
-    ], [groups]);
-
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -74,7 +55,6 @@ const StudentsLayout: React.FC = () => {
             throw err;
         }
     };
-
     // #endregion
 
     //#region Список студентов
@@ -273,9 +253,6 @@ const StudentsLayout: React.FC = () => {
     ];
     // #endregion
 
-    if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
-    if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
-
     const listTabContent = (
         <>
             <div className="row g-2 mb-3 align-items-end">
@@ -353,6 +330,19 @@ const StudentsLayout: React.FC = () => {
     //#endregion
 
     //#region Добавление студента
+    const [newStudent, setNewStudent] = useState<Omit<PostStudentDto, 'id'> & { id?: number }>({
+        name: '',
+        surname: '',
+        patronymic: '',
+        birthday: '',
+        groupId: null,
+        gender: null,
+        phone: '',
+        origin: '',
+    });
+    const [isAdding, setIsAdding] = useState(false);
+    const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+
     const handleAddChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         const val = value;
@@ -369,8 +359,12 @@ const StudentsLayout: React.FC = () => {
             return { ...prev, [name]: val };
         });
 
-        if (addErrors) {
-            setAddErrors({});
+        if (addErrors[name]) {
+            setAddErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            });
         }
     };
 
@@ -452,7 +446,7 @@ const StudentsLayout: React.FC = () => {
 
         setIsAdding(true);
         try {
-            const studentDataToSend: PostStudentsDto = {
+            const studentDataToSend: PostStudentDto = {
                 ...newStudent,
                 groupId: newStudent.groupId && newStudent.groupId !== 0 ? newStudent.groupId : null,
             };
@@ -475,6 +469,11 @@ const StudentsLayout: React.FC = () => {
             setIsAdding(false);
         }
     };
+
+    const groupAddOptions = useMemo(() => [
+        { value: 'all', label: 'Выберите группу' },
+        ...groups.map(group => ({ value: group.id, label: group.name }))
+    ], [groups]);
 
     const genderAddOptions = [
         { value: '', label: 'Выберите пол' },
@@ -604,6 +603,9 @@ const StudentsLayout: React.FC = () => {
         </>
     );
     //#endregion
+
+    if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
+    if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
 
     const tabs = [
         {
