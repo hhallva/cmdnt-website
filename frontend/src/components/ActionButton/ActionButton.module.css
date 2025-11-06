@@ -42,6 +42,16 @@
 }
 
 
+.actionButton.variant-danger {
+    color: #fff;
+    background-color: var(--color-danger);
+}
+
+.actionButton.variant-danger:hover:not(.disabled) {
+    background-color: var(--color-danger-hover);
+}
+
+
 /* --- Стили для разных размеров --- */
 /* Размер sm (маленький) */
 .actionButton.size-sm {
