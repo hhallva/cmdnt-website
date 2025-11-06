@@ -1,6 +1,6 @@
 ﻿using DataLayer.DTOs.Group;
 
-namespace DataLayer.DTOs.Student
+namespace DataLayer.DTOs.Students
 {
     public class StudentDto
     {

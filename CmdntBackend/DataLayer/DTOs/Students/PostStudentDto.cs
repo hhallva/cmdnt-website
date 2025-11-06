@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DataLayer.DTOs.Student
+namespace DataLayer.DTOs.Students
 {
     public class PostStudentDto
     {
