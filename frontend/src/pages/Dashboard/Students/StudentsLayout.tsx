@@ -340,12 +340,23 @@ const StudentsLayout: React.FC = () => {
         phone: '',
         origin: '',
     });
-    const [isAdding, setIsAdding] = useState(false);
-    const [addErrors, setAddErrors] = useState<Record<string, string>>({});
 
-    // --- НОВОЕ: Состояния для дополнительных контактов ---
     const [newContacts, setNewContacts] = useState<{ comment: string; phone: string }[]>([]);
-    const [contactErrors, setContactErrors] = useState<{ comment?: string; phone?: string }[]>([]); // Ошибки для каждого контакта
+
+    const [formErrors, setFormErrors] = useState<{
+        surname?: string;
+        name?: string;
+        patronymic?: string;
+        birthday?: string;
+        gender?: string;
+        origin?: string;
+        groupId?: string;
+        phone?: string;
+        contacts?: { comment?: string; phone?: string }[];
+    }>({});
+
+    const [isAdding, setIsAdding] = useState(false);
+
 
     const handleAddChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -363,10 +374,10 @@ const StudentsLayout: React.FC = () => {
             return { ...prev, [name]: val };
         });
 
-        if (addErrors[name]) {
-            setAddErrors(prev => {
+        if (formErrors[name as keyof typeof formErrors]) {
+            setFormErrors(prev => {
                 const newErrors = { ...prev };
-                delete newErrors[name];
+                delete newErrors[name as keyof typeof formErrors];
                 return newErrors;
             });
         }
@@ -378,15 +389,18 @@ const StudentsLayout: React.FC = () => {
             return;
         }
         setNewContacts(prev => [...prev, { comment: '', phone: '' }]);
-        setContactErrors(prev => [...prev, { comment: undefined, phone: undefined }]);
     };
 
     const handleRemoveContactField = (index: number) => {
         setNewContacts(prev => prev.filter((_, i) => i !== index));
-        setContactErrors(prev => prev.filter((_, i) => i !== index));
-        // if (addError?.includes('Максимальное количество')) {
-        //     setAddError(null);
-        // }
+        setFormErrors(prev => {
+            if (prev.contacts) {
+                const newContactErrors = [...prev.contacts];
+                newContactErrors.splice(index, 1);
+                return { ...prev, contacts: newContactErrors };
+            }
+            return prev;
+        });
     };
 
     const handleContactChange = (index: number, field: 'comment' | 'phone', value: string) => {
@@ -396,42 +410,115 @@ const StudentsLayout: React.FC = () => {
             return newContacts;
         });
 
-        setContactErrors(prev => {
-            const newErrors = [...prev];
-            if (newErrors[index]) {
-                newErrors[index] = { ...newErrors[index], [field]: undefined };
+        setFormErrors(prev => {
+            if (prev.contacts && prev.contacts[index]) {
+                const newContactErrors = [...prev.contacts];
+                newContactErrors[index] = { ...newContactErrors[index], [field]: undefined };
+                return { ...prev, contacts: newContactErrors };
             }
-            return newErrors;
+            return prev;
         });
     };
 
-    const validateAddContacts = (): boolean => {
+    const validateForm = (): boolean => {
+        const errors: typeof formErrors = {}; // Используем тот же тип
         let isValid = true;
-        const newErrors: { comment?: string; phone?: string }[] = [];
+
+        // --- Валидация основной формы ---
+        if (!newStudent.surname?.trim()) {
+            errors.surname = 'Фамилия обязательна.';
+            isValid = false;
+        } else if (newStudent.surname.length > 100) {
+            errors.surname = 'Фамилия должна содержать не более 100 символов.';
+            isValid = false;
+        }
+
+        if (!newStudent.name?.trim()) {
+            errors.name = 'Имя обязательно.';
+            isValid = false;
+        } else if (newStudent.name.length > 100) {
+            errors.name = 'Имя должно содержать не более 100 символов.';
+            isValid = false;
+        }
+
+        if (newStudent.patronymic && newStudent.patronymic.length > 100) {
+            errors.patronymic = 'Отчество должно содержать не более 100 символов.';
+            isValid = false;
+        }
+
+        if (!newStudent.birthday) {
+            errors.birthday = 'Дата рождения обязательна.';
+            isValid = false;
+        } else {
+            const birthDate = new Date(newStudent.birthday);
+            const today = new Date();
+            if (isNaN(birthDate.getTime())) {
+                errors.birthday = 'Некорректная дата рождения.';
+                isValid = false;
+            } else if (birthDate > today) {
+                errors.birthday = 'Дата рождения не может быть в будущем.';
+                isValid = false;
+            }
+        }
+
+        if (newStudent.gender === null || newStudent.gender === undefined) {
+            errors.gender = 'Пол обязателен для выбора.';
+            isValid = false;
+        }
+
+        if (newStudent.origin && newStudent.origin.length > 300) {
+            errors.origin = 'Поле "Откуда приехал" должно содержать не более 300 символов.';
+            isValid = false;
+        }
+
+        if (!newStudent.groupId || newStudent.groupId <= 0) {
+            errors.groupId = 'Пожалуйста, выберите группу.';
+            isValid = false;
+        }
+
+        if (!newStudent.phone?.trim()) {
+            errors.phone = 'Телефон обязателен.';
+            isValid = false;
+        } else {
+            const phoneRegex = /^8\d{10}$/;
+            if (!phoneRegex.test(newStudent.phone)) {
+                errors.phone = 'Телефон должен быть в формате 89000000000.';
+                isValid = false;
+            }
+        }
+
+        // --- Валидация контактов ---
+        const contactErrorsArray: { comment?: string; phone?: string }[] = [];
+        let contactsValid = true;
 
         newContacts.forEach((contact, index) => {
-            const errors: { comment?: string; phone?: string } = {};
+            const contactErrors: { comment?: string; phone?: string } = {};
 
             if (!contact.comment.trim()) {
-                errors.comment = 'Комментарий обязателен.';
-                isValid = false;
+                contactErrors.comment = 'Комментарий обязателен.';
+                contactsValid = false;
             }
 
             if (!contact.phone.trim()) {
-                errors.phone = 'Телефон обязателен.';
-                isValid = false;
+                contactErrors.phone = 'Телефон обязателен.';
+                contactsValid = false;
             } else {
                 const phoneRegex = /^8\d{10}$/;
                 if (!phoneRegex.test(contact.phone)) {
-                    errors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
-                    isValid = false;
+                    contactErrors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
+                    contactsValid = false;
                 }
             }
 
-            newErrors[index] = errors;
+            contactErrorsArray[index] = contactErrors;
         });
 
-        setContactErrors(newErrors);
+        if (!contactsValid) {
+            errors.contacts = contactErrorsArray;
+            isValid = false;
+        }
+
+        setFormErrors(errors);
         return isValid;
     };
 
@@ -447,68 +534,12 @@ const StudentsLayout: React.FC = () => {
             origin: '',
         });
         setNewContacts([])
-        setAddErrors({});
-    };
-
-    const validateAddStudentForm = (): boolean => {
-        const errors: Record<string, string> = {};
-        if (!newStudent.surname?.trim()) {
-            errors.surname = 'Фамилия обязательна.';
-        } else if (newStudent.surname.length > 100) {
-            errors.surname = 'Фамилия должна содержать не более 100 символов.';
-        }
-
-        if (!newStudent.name?.trim()) {
-            errors.name = 'Имя обязательно.';
-        } else if (newStudent.name.length > 100) {
-            errors.name = 'Имя должно содержать не более 100 символов.';
-        }
-
-        if (newStudent.patronymic && newStudent.patronymic.length > 100) {
-            errors.patronymic = 'Отчество должно содержать не более 100 символов.';
-        }
-
-        if (!newStudent.birthday) {
-            errors.birthday = 'Дата рождения обязательна.';
-        } else {
-            const birthDate = new Date(newStudent.birthday);
-            const today = new Date();
-            if (isNaN(birthDate.getTime())) {
-                errors.birthday = 'Некорректная дата рождения.';
-            } else if (birthDate > today) {
-                errors.birthday = 'Дата рождения не может быть в будущем.';
-            }
-        }
-
-        if (newStudent.gender === null || newStudent.gender === undefined) {
-            errors.gender = 'Пол обязателен для выбора.';
-        }
-
-        if (newStudent.origin && newStudent.origin.length > 300) {
-            errors.origin = 'Поле Откуда приехал должно содержать не более 300 символов.';
-        }
-
-        if (!newStudent.groupId || newStudent.groupId <= 0) {
-            errors.groupId = 'Пожалуйста, выберите группу.';
-        }
-
-        if (!newStudent.phone?.trim()) {
-            errors.phone = 'Номер телефона обязателен.';
-        } else if (newStudent.phone) {
-            const phoneRegex = /^8\d{10}$/;
-            if (!phoneRegex.test(newStudent.phone)) {
-                errors.phone = 'Телефон должен быть в формате 89000000000.';
-            }
-        }
-
-
-        setAddErrors(errors);
-        return Object.keys(errors).length === 0;
+        setFormErrors({});
     };
 
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validateAddStudentForm() || !validateAddContacts()) return;
+        if (!validateForm()) return;
 
 
         setIsAdding(true);
@@ -546,7 +577,7 @@ const StudentsLayout: React.FC = () => {
         } catch (err: any) {
             console.error('Ошибка при добавлении студента:', err);
             const errorMessage = err.message || 'Ошибка при добавлении студента';
-            setAddErrors(errorMessage);
+            setFormErrors(prev => ({ ...prev, form: errorMessage }));
         } finally {
             setIsAdding(false);
         }
@@ -576,7 +607,7 @@ const StudentsLayout: React.FC = () => {
                             name="surname"
                             value={newStudent.surname || ''}
                             onChange={handleAddChange}
-                            error={addErrors.surname}
+                            error={formErrors.surname}
                             disabled={isAdding}
                         />
                     </div>
@@ -588,7 +619,7 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.name || ''}
                             onChange={handleAddChange}
                             disabled={isAdding}
-                            error={addErrors.name}
+                            error={formErrors.name}
                         />
                     </div>
                     <div className="col-md-4">
@@ -599,7 +630,7 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.patronymic || ''}
                             onChange={handleAddChange}
                             disabled={isAdding}
-                            error={addErrors.patronymic}
+                            error={formErrors.patronymic}
                         />
                     </div>
                     <div className="col-md-4">
@@ -610,7 +641,7 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.birthday || ''}
                             onChange={handleAddChange}
                             disabled={isAdding}
-                            error={addErrors.birthday}
+                            error={formErrors.birthday}
                         />
                     </div>
                     <div className="col-md-4">
@@ -625,7 +656,7 @@ const StudentsLayout: React.FC = () => {
                             onChange={handleAddChange}
                             options={genderAddOptions}
                             disabled={isAdding}
-                            error={addErrors.gender}
+                            error={formErrors.gender}
                         />
                     </div>
                     <div className="col-md-4">
@@ -636,7 +667,7 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.origin || ''}
                             onChange={handleAddChange}
                             disabled={isAdding}
-                            error={addErrors.origin}
+                            error={formErrors.origin}
                         />
                     </div>
                     <div className="col-md-4">
@@ -647,7 +678,7 @@ const StudentsLayout: React.FC = () => {
                             onChange={handleAddChange}
                             options={groupAddOptions}
                             disabled={isAdding}
-                            error={addErrors.groupId}
+                            error={formErrors.groupId}
                         />
                     </div>
                     <div className="col-md-4">
@@ -658,7 +689,7 @@ const StudentsLayout: React.FC = () => {
                             value={newStudent.phone || ''}
                             onChange={handleAddChange}
                             disabled={isAdding}
-                            error={addErrors.phone}
+                            error={formErrors.phone}
                         />
                     </div>
                     <div className="additional-contacts-section mt-4 pt-2">
@@ -675,7 +706,7 @@ const StudentsLayout: React.FC = () => {
                                                 value={contact.comment}
                                                 onChange={(e) => handleContactChange(index, 'comment', e.target.value)}
                                                 disabled={isAdding}
-                                                error={contactErrors[index]?.comment}
+                                                error={formErrors.contacts?.[index]?.comment}
                                             />
                                         </div>
                                         <div className="col-md-6">
@@ -685,7 +716,7 @@ const StudentsLayout: React.FC = () => {
                                                 value={contact.phone}
                                                 onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
                                                 disabled={isAdding}
-                                                error={contactErrors[index]?.phone} // Передаём ошибку для этого поля контакта
+                                                error={formErrors.contacts?.[index]?.phone}
                                             />
                                         </div>
                                         <div className="col-md-1 d-flex align-items-end">
