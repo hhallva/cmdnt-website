@@ -22,3 +22,9 @@ export interface PostStudentDto {
     phone: string | null;
     origin: string | null;
 }
+
+export interface ContactDto {
+    comment: string;
+    phone: string;
+}
+
