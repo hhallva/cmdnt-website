@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
 
-import type { StudentsDto, PostStudentDto } from '../../../types/students';
+import type { StudentsDto, PostStudentDto, ContactDto } from '../../../types/students';
 import type { GroupDto } from '../../../types/groups';
 
 import Tabs from '../../../components/Tabs/Tabs';
@@ -343,6 +343,10 @@ const StudentsLayout: React.FC = () => {
     const [isAdding, setIsAdding] = useState(false);
     const [addErrors, setAddErrors] = useState<Record<string, string>>({});
 
+    // --- НОВОЕ: Состояния для дополнительных контактов ---
+    const [newContacts, setNewContacts] = useState<{ comment: string; phone: string }[]>([]);
+    const [contactErrors, setContactErrors] = useState<{ comment?: string; phone?: string }[]>([]); // Ошибки для каждого контакта
+
     const handleAddChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         const val = value;
@@ -368,6 +372,69 @@ const StudentsLayout: React.FC = () => {
         }
     };
 
+    const handleAddContactField = () => {
+        if (newContacts.length >= 5) {
+            alert('Максимальное количество дополнительных контактов: 5.');
+            return;
+        }
+        setNewContacts(prev => [...prev, { comment: '', phone: '' }]);
+        setContactErrors(prev => [...prev, { comment: undefined, phone: undefined }]);
+    };
+
+    const handleRemoveContactField = (index: number) => {
+        setNewContacts(prev => prev.filter((_, i) => i !== index));
+        setContactErrors(prev => prev.filter((_, i) => i !== index));
+        // if (addError?.includes('Максимальное количество')) {
+        //     setAddError(null);
+        // }
+    };
+
+    const handleContactChange = (index: number, field: 'comment' | 'phone', value: string) => {
+        setNewContacts(prev => {
+            const newContacts = [...prev];
+            newContacts[index] = { ...newContacts[index], [field]: value };
+            return newContacts;
+        });
+
+        setContactErrors(prev => {
+            const newErrors = [...prev];
+            if (newErrors[index]) {
+                newErrors[index] = { ...newErrors[index], [field]: undefined };
+            }
+            return newErrors;
+        });
+    };
+
+    const validateAddContacts = (): boolean => {
+        let isValid = true;
+        const newErrors: { comment?: string; phone?: string }[] = [];
+
+        newContacts.forEach((contact, index) => {
+            const errors: { comment?: string; phone?: string } = {};
+
+            if (!contact.comment.trim()) {
+                errors.comment = 'Комментарий обязателен.';
+                isValid = false;
+            }
+
+            if (!contact.phone.trim()) {
+                errors.phone = 'Телефон обязателен.';
+                isValid = false;
+            } else {
+                const phoneRegex = /^8\d{10}$/;
+                if (!phoneRegex.test(contact.phone)) {
+                    errors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
+                    isValid = false;
+                }
+            }
+
+            newErrors[index] = errors;
+        });
+
+        setContactErrors(newErrors);
+        return isValid;
+    };
+
     const resetAddForm = () => {
         setNewStudent({
             name: '',
@@ -379,6 +446,7 @@ const StudentsLayout: React.FC = () => {
             phone: '',
             origin: '',
         });
+        setNewContacts([])
         setAddErrors({});
     };
 
@@ -440,9 +508,8 @@ const StudentsLayout: React.FC = () => {
 
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validateAddStudentForm()) {
-            return;
-        }
+        if (!validateAddStudentForm() || !validateAddContacts()) return;
+
 
         setIsAdding(true);
         try {
@@ -452,10 +519,25 @@ const StudentsLayout: React.FC = () => {
             };
 
             console.log('Отправка данных нового студента:', studentDataToSend);
-
             const createdStudent = await apiClient.createStudent(studentDataToSend);
-            alert('Cтудент успешно добавлен!');
             console.log('Новый студент успешно добавлен:', createdStudent);
+
+            if (newContacts.length > 0) {
+                try {
+                    const contactsToSend: Omit<ContactDto, 'id'>[] = newContacts.map(c => ({
+                        comment: c.comment.trim(),
+                        phone: c.phone.trim(),
+                    }));
+
+                    console.log('Отправка дополнительных контактов:', contactsToSend);
+                    const addedContacts = await apiClient.addStudentContacts(createdStudent.id, contactsToSend);
+                    console.log('Контакты успешно добавлены:', addedContacts);
+
+                } catch (contactErr: any) {
+                    console.error('Ошибка при добавлении контактов:', contactErr);
+                    alert(`Студент "${createdStudent.surname}" успешно добавлен, но произошла ошибка при добавлении контактов: ${contactErr.message || 'Неизвестная ошибка'}`);
+                }
+            }
 
             resetAddForm();
 
@@ -579,9 +661,60 @@ const StudentsLayout: React.FC = () => {
                             error={addErrors.phone}
                         />
                     </div>
-                    <div className="col-12 mt-4 pt-2">
+                    <div className="additional-contacts-section mt-4 pt-2">
                         <h4 className="h6 mb-2 pb-2 border-bottom">Дополнительные контакты</h4>
+
+                        {newContacts.length > 0 && (
+                            <div className="contact-fields-container">
+                                {newContacts.map((contact, index) => (
+                                    <div key={index} className="row g-2 mb-2 contact-field-row">
+                                        <div className="col-md-5">
+                                            <InputField
+                                                label="Комментарий"
+                                                type="text"
+                                                value={contact.comment}
+                                                onChange={(e) => handleContactChange(index, 'comment', e.target.value)}
+                                                disabled={isAdding}
+                                                error={contactErrors[index]?.comment}
+                                            />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <InputField
+                                                label="Телефон"
+                                                type="tel"
+                                                value={contact.phone}
+                                                onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
+                                                disabled={isAdding}
+                                                error={contactErrors[index]?.phone} // Передаём ошибку для этого поля контакта
+                                            />
+                                        </div>
+                                        <div className="col-md-1 d-flex align-items-end">
+                                            <ActionButton
+                                                type="button"
+                                                variant='danger'
+                                                onClick={() => handleRemoveContactField(index)}
+                                                disabled={isAdding}
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </ActionButton>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {newContacts.length < 5 && (
+                            <ActionButton
+                                type="button"
+                                size='md'
+                                onClick={handleAddContactField}>
+                                <i className="bi bi-plus-circle me-1"></i>
+                                Добавить контакт
+                            </ActionButton>
+                        )}
                     </div>
+
+
                 </div>
                 <div className="d-flex justify-content-end mt-4 pt-2">
                     <ActionButton
