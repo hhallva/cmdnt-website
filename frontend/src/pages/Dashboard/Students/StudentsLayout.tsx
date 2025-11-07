@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 
 import { apiClient } from '../../../api/client';
 
@@ -253,19 +254,42 @@ const StudentsLayout: React.FC = () => {
     ];
     // #endregion
 
+    const handleExportToExcel = () => {
+        // Подготовим данные для экспорта из processedStudents
+        const dataForExport = processedStudents.map(student => ({
+            'ФИО': `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет',
+            'Группа': student.group?.name || 'Нет',
+            'Курс': student.group?.course || 'Нет',
+            'Пол': student.gender ? 'Мужчина' : 'Женщина',
+            'Блок': student.blockNumber || 'Нет',
+            'Телефон': student.phone || 'Нет',
+            'День рождения': new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(student.birthday)),
+        }));
+
+        // Создаём книгу Excel
+        const wb = XLSX.utils.book_new();
+        // Создаём лист из данных
+        const ws = XLSX.utils.json_to_sheet(dataForExport);
+        // Добавляем лист в книгу
+        XLSX.utils.book_append_sheet(wb, ws, "Студенты");
+
+        // Генерируем и скачиваем файл
+        XLSX.writeFile(wb, `Список_студентов_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
     const listTabContent = (
         <>
-            <div className="row g-2 mb-3 align-items-end">
-                <div className="col-md-6">
-                    <InputField
-                        label=""
-                        type="text"
-                        placeholder="Поиск по ФИО или Блоку..."
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                    />
-                </div>
-                <div className="col-md-6 d-flex gap-2">
+            <div className="d-flex justify-content-between align-items-start mb-3"> {/* align-items-start для выравнивания по верхнему краю, если фильтры раскроются */}
+                <div className="d-flex gap-2 flex-wrap"> {/* Контейнер для левой группы элементов */}
+                    <div style={{ minWidth: '350px' }}> {/* Ограничиваем ширину поля поиска, чтобы оно не сжималось слишком сильно */}
+                        <InputField
+                            label=""
+                            type="text"
+                            placeholder="Поиск по ФИО или Блоку..."
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                        />
+                    </div>
                     <ActionButton
                         variant='secondary'
                         onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
@@ -282,38 +306,49 @@ const StudentsLayout: React.FC = () => {
                         Сбросить
                     </ActionButton>
                 </div>
+                {/* Правая часть - кнопка экспорта */}
+                <div>
+                    <ActionButton
+                        variant='success'
+                        onClick={handleExportToExcel}
+                    >
+                        <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                        Экспорт в Excel
+                    </ActionButton>
+                </div>
+            </div>
 
-                {isAdvancedFilterOpen && (
-                    <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
-                        <div className="row g-3">
-                            <div className="col-md-3">
-                                <SelectField
-                                    label="Группа"
-                                    value={selectedGroupId}
-                                    onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                    options={groupOptions}
-                                />
-                            </div>
-                            <div className="col-md-3">
-                                <SelectField
-                                    label="Курс"
-                                    value={selectedCourse}
-                                    onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                    options={courseOptions}
-                                />
-                            </div>
-                            <div className="col-md-3">
-                                <SelectField
-                                    label="Пол"
-                                    value={selectedGender}
-                                    onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
-                                    options={genderOptions}
-                                />
-                            </div>
+            {/* Расширенные фильтры - теперь вне основного контейнера, но под ним */}
+            {isAdvancedFilterOpen && (
+                <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
+                    <div className="row g-3">
+                        <div className="col-md-3">
+                            <SelectField
+                                label="Группа"
+                                value={selectedGroupId}
+                                onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                                options={groupOptions}
+                            />
+                        </div>
+                        <div className="col-md-3">
+                            <SelectField
+                                label="Курс"
+                                value={selectedCourse}
+                                onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                                options={courseOptions}
+                            />
+                        </div>
+                        <div className="col-md-3">
+                            <SelectField
+                                label="Пол"
+                                value={selectedGender}
+                                onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
+                                options={genderOptions}
+                            />
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
             <CommonTable
                 title="Список студентов"
                 data={processedStudents}

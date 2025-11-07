@@ -51,6 +51,16 @@
     background-color: var(--color-danger-hover);
 }
 
+.actionButton.variant-success {
+    color: #fff;
+    background-color: #28a745;
+}
+
+.actionButton.variant-success:hover:not(.disabled) {
+    background-color: #157347;
+}
+
+
 
 /* --- Стили для разных размеров --- */
 /* Размер sm (маленький) */
