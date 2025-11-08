@@ -247,7 +247,7 @@ const StudentsLayout: React.FC = () => {
                     variant='info'
                     size='md'
                     className={`${styles.actionBtn} ${styles.actionBtnMore}`}
-                    onClick={() => alert(`Подробная информация о студенте:\n${student.surname} ${student.name} ${student.patronymic}\nID: ${student.id}`)}
+                    onClick={() => navigate(`/dashboard/students/${student.id}`)}
                 >
                     Подробнее
                 </ActionButton>

@@ -162,6 +162,10 @@ export const apiClient = {
     return apiClient.requestWithAuth<[StudentsDto]>('/api/v1/Students');
   },
 
+  getStudentById: async (id: number): Promise<StudentsDto> => {
+    return apiClient.requestWithAuth<StudentsDto>(`/api/v1/Students/${id}`);
+  },
+
   createStudent: async (data: PostStudentDto): Promise<StudentsDto> => {
     return apiClient.requestWithAuth<StudentsDto>('/api/v1/Students', {
       method: 'POST',
