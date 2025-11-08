@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-
 import { useNavigate } from 'react-router-dom';
+
 import { getUserSession } from '../../../components/ProtectedRoute';
 import { apiClient } from '../../../api/client';
 
@@ -11,10 +11,11 @@ import type { PostUserDto } from '../../../types/PostUserDto';
 
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
+import CommonTable from '../../../components/CommonTable/CommonTable';
 import InputField from '../../../components/InputField/InputField';
 import PasswordField from '../../../components/PasswordField/PasswordField';
 import SelectField from '../../../components/SelectField/SelectField';
-import CancelButton from '../../../components/CancelButton/CancelButton';
+import ActionButton from '../../../components/ActionButton/ActionButton';
 import ChangePasswordModal from '../../../components/ChangePasswordModal/ChangePasswordModal';
 import EditUserModal from '../../../components/EditUserModal/EditUserModal';
 
@@ -81,9 +82,19 @@ const UsersLayout: React.FC = () => {
     };
     // #endregion
 
+    // #region Список пользователей 
+
     // #region Поиск и фильтрация
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
+
+    const roleOptions = [
+        { value: 'all', label: 'Все роли' },
+        ...roles.map(role => ({
+            value: role.id,
+            label: role.name || `Роль ${role.id}`
+        }))
+    ];
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
@@ -112,7 +123,7 @@ const UsersLayout: React.FC = () => {
 
     // #endregion
 
-    //#region Действия в таблице
+    // #region Действия в таблице
     const [showEditUserModal, setShowEditUserModal] = useState(false);
     const [userForEdit, setUserForEdit] = useState<UserDto | null>(null);
 
@@ -167,7 +178,107 @@ const UsersLayout: React.FC = () => {
     };
     //#endregion
 
+    // #region Таблица
+    const columns = [
+        {
+            key: 'fullName',
+            title: 'ФИО',
+            render: (user: UserDto) => `${user.surname || ''} ${user.name || ''} ${user.patronymic || ''}`.trim() || 'Нет',
+        },
+        {
+            key: 'login',
+            title: 'Логин',
+        },
+        {
+            key: 'role.name',
+            title: 'Роль',
+            render: (user: UserDto) => user.role?.name ?? "Нет",
+        },
+    ];
 
+    const actions = [
+        {
+            render: (user: UserDto) => (
+                <button
+                    className={`${styles.actionBtn} ${styles.actionBtnEdit}`}
+                    onClick={() => handleEditUser(user)}
+                    title="Редактировать"
+                >
+                    <i className="bi bi-pencil"></i>
+                </button>
+            ),
+        },
+        {
+            render: (user: UserDto) => (
+                <button
+                    className={`${styles.actionBtn} ${styles.actionBtnPassword}`}
+                    onClick={() => handleChangePassword(user)}
+                    title="Изменить пароль"
+                >
+                    <i className="bi bi-key"></i>
+                </button>
+            ),
+        },
+        {
+            render: (user: UserDto) => {
+                if (userSession && userSession.id !== user.id) {
+                    return (
+                        <button
+                            className={`${styles.actionBtn} ${styles.actionBtnDelete}`}
+                            onClick={() => handleDeleteUser(user)}
+                            title="Удалить"
+                        >
+                            <i className="bi bi-trash"></i>
+                        </button>
+                    );
+                }
+                return null;
+            },
+        },
+    ];
+    // #endregion  
+
+    const listTabContent = (
+        <>
+            <div className="row g-3 mb-3">
+                <div className="col-md-6">
+                    <InputField
+                        type="text"
+                        placeholder="Поиск по ФИО..."
+                        value={searchTerm}
+                        onChange={handleSearchChange} />
+                </div>
+                <div className="col-md-3">
+                    <SelectField
+                        value={selectedRoleId}
+                        onChange={handleRoleChange}
+                        options={roleOptions} />
+                </div>
+                <div className="col-md-2 " >
+                    <ActionButton
+                        variant='dark'
+                        onClick={handleResetFilters}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
+            </div>
+
+            <CommonTable
+                title="Список пользователей"
+                data={filteredUsers}
+                totalCount={users.length}
+                columns={columns}
+                actions={actions}
+                emptyMessage="Пользователи не найдены"
+            />
+
+        </>
+    );
+
+    //#endregion 
+
+    // #region Добавление пользователя
     const [newUser, setNewUser] = useState<Omit<PostUserDto, 'password'> & { password: string }>({
         roleId: 0,
         surname: '',
@@ -177,8 +288,8 @@ const UsersLayout: React.FC = () => {
         password: '',
     });
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [addUserErrors, setAddUserErrors] = useState<Record<string, string>>({});
-    const [isAddingUser, setIsAddingUser] = useState(false);
+    const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+    const [isAdding, setIsAdding] = useState(false);
 
     const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -188,13 +299,25 @@ const UsersLayout: React.FC = () => {
             [name]: name === 'roleId' ? Number(val) : val,
         }));
 
-        if (addUserErrors[name]) {
-            setAddUserErrors(prev => {
+        if (addErrors[name]) {
+            setAddErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors[name];
                 return newErrors;
             });
         }
+    };
+
+    const resetAddForm = () => {
+        setNewUser({
+            roleId: 0,
+            surname: '',
+            name: '',
+            patronymic: '',
+            login: '',
+            password: '',
+        });
+        setAddErrors({});
     };
 
     const validateAddUserForm = (): boolean => {
@@ -231,7 +354,7 @@ const UsersLayout: React.FC = () => {
             errors.confirmPassword = 'Пароли не совпадают.';
         }
 
-        setAddUserErrors(errors);
+        setAddErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
@@ -241,7 +364,7 @@ const UsersLayout: React.FC = () => {
             return;
         }
 
-        setIsAddingUser(true);
+        setIsAdding(true);
         try {
             const userDataToSend: PostUserDto = {
                 ...newUser,
@@ -259,7 +382,7 @@ const UsersLayout: React.FC = () => {
                 password: '',
             });
             setConfirmPassword('');
-            setAddUserErrors({});
+            setAddErrors({});
             // Перезагружаем список пользователей и статистику
             await fetchUsers();
             await fetchStatistics();
@@ -268,118 +391,9 @@ const UsersLayout: React.FC = () => {
             alert(err.message || 'Ошибка при добавлении пользователя');
             // Ошибка 401 будет перехвачена в apiClient
         } finally {
-            setIsAddingUser(false);
+            setIsAdding(false);
         }
     };
-
-    if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
-    if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
-    if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
-
-    const userStats = [
-        { value: statistics.totalUsers, label: 'Всего пользователей' },
-        { value: statistics.adminCount, label: 'Администраторы' },
-        { value: statistics.commandantCount, label: 'Коменданты' },
-        { value: statistics.educatorCount, label: 'Воспитатели' },
-    ];
-
-    const roleOptions = [
-        { value: 'all', label: 'Все роли' },
-        ...roles.map(role => ({
-            value: role.id,
-            label: role.name || `Роль ${role.id}`
-        }))
-    ];
-
-    const listTabContent = (
-        <>
-            <div className="row g-3 mb-3">
-                <div className="col-md-6">
-                    <InputField
-                        label="Поиск по ФИО"
-                        type="text"
-                        placeholder="Введите ФИО"
-                        value={searchTerm}
-                        onChange={handleSearchChange} />
-                </div>
-                <div className="col-md-3">
-                    <SelectField
-                        label="Роль"
-                        value={selectedRoleId}
-                        onChange={handleRoleChange}
-                        options={roleOptions} />
-                </div>
-                <div className="col-md-1" >
-                    <CancelButton
-                        onClick={handleResetFilters}
-                        label="Сбросить"
-                    />
-                </div>
-            </div>
-
-            <h3 className="mb-3">Список пользователей</h3>
-            <div className={styles.tableResponsive}>
-                <table className={styles.usersTable}>
-                    <thead>
-                        <tr>
-                            <th>ФИО</th>
-                            <th>Логин</th>
-                            <th>Роль</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            filteredUsers.length > 0 ? (
-                                filteredUsers.map(user => (
-                                    <tr key={user.id}>
-                                        <td>{user.surname} {user.name} {user.patronymic}</td>
-                                        <td>{user.login}</td>
-                                        <td>{user.role?.name}</td>
-                                        <td>
-                                            <div className={styles.actionButtons}>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.actionBtnEdit}`}
-                                                    onClick={() => handleEditUser(user)}
-                                                    title="Редактировать"
-                                                >
-                                                    <i className="bi bi-pencil"></i>
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.actionBtnPassword}`}
-                                                    onClick={() => handleChangePassword(user)}
-                                                    title="Изменить пароль"
-                                                >
-                                                    <i className="bi bi-key"></i>
-                                                </button>
-
-                                                {userSession?.id != user.id ? (
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.actionBtnDelete}`}
-                                                        onClick={() => handleDeleteUser(user)}
-                                                        title="Удалить"
-                                                    >
-                                                        <i className="bi bi-trash"></i>
-                                                    </button>
-                                                ) : (<></>)}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={4} className="text-center "> {/* colSpan=4 означает, что ячейка занимает всю ширину таблицы */}
-                                        Пользователи не найдены
-                                    </td>
-                                </tr>
-                            )
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-        </>
-    );
 
     const addTabContent = (
         <div className="p-3">
@@ -393,9 +407,8 @@ const UsersLayout: React.FC = () => {
                             name="surname"
                             value={newUser.surname || ''}
                             onChange={handleAddUserChange}
-                            required
-                            error={addUserErrors.surname}
-                            disabled={isAddingUser}
+                            error={addErrors.surname}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -405,9 +418,8 @@ const UsersLayout: React.FC = () => {
                             name="name"
                             value={newUser.name || ''}
                             onChange={handleAddUserChange}
-                            required
-                            error={addUserErrors.name}
-                            disabled={isAddingUser}
+                            error={addErrors.name}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -417,8 +429,8 @@ const UsersLayout: React.FC = () => {
                             name="patronymic"
                             value={newUser.patronymic || ''}
                             onChange={handleAddUserChange}
-                            error={addUserErrors.patronymic}
-                            disabled={isAddingUser}
+                            error={addErrors.patronymic}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -428,9 +440,8 @@ const UsersLayout: React.FC = () => {
                             name="login"
                             value={newUser.login || ''}
                             onChange={handleAddUserChange}
-                            required
-                            error={addUserErrors.login}
-                            disabled={isAddingUser}
+                            error={addErrors.login}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -440,9 +451,8 @@ const UsersLayout: React.FC = () => {
                             value={newUser.roleId}
                             onChange={handleAddUserChange}
                             options={roleOptions}
-                            required
-                            error={addUserErrors.roleId}
-                            disabled={isAddingUser}
+                            error={addErrors.roleId}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -451,9 +461,8 @@ const UsersLayout: React.FC = () => {
                             name="password"
                             value={newUser.password}
                             onChange={handleAddUserChange}
-                            required
-                            error={addUserErrors.password}
-                            disabled={isAddingUser}
+                            error={addErrors.password}
+                            disabled={isAdding}
                         />
                     </div>
                     <div className="col-md-6">
@@ -463,61 +472,51 @@ const UsersLayout: React.FC = () => {
                             value={confirmPassword}
                             onChange={(e) => {
                                 setConfirmPassword(e.target.value);
-                                if (addUserErrors.confirmPassword) {
-                                    setAddUserErrors(prev => {
+                                if (addErrors.confirmPassword) {
+                                    setAddErrors(prev => {
                                         const newErrors = { ...prev };
                                         delete newErrors.confirmPassword;
                                         return newErrors;
                                     });
                                 }
                             }}
-                            required
-                            error={addUserErrors.confirmPassword}
-                            disabled={isAddingUser}
+                            error={addErrors.confirmPassword}
+                            disabled={isAdding}
                         />
                     </div>
                 </div>
-                <div className="d-flex justify-content-end mt-3">
-                    <button
-                        type="button"
-                        className="btn btn-secondary me-2"
-                        onClick={() => {
-                            setNewUser({
-                                roleId: 0,
-                                surname: '',
-                                name: '',
-                                patronymic: '',
-                                login: '',
-                                password: '',
-                            });
-                            setConfirmPassword('');
-                            setAddUserErrors({});
-                        }}
-                        disabled={isAddingUser}
+                {/* Кнопки действия */}
+                <div className="d-flex justify-content-end mt-4 pt-2">
+                    <ActionButton
+                        variant='dark'
+                        onClick={resetAddForm}
+                        disabled={isAdding}
                     >
-                        Очистить
-                    </button>
-                    <button
-                        type="submit"
-                        className="btn btn-success"
-                        disabled={isAddingUser}
+                        Сбросить
+                    </ActionButton>
+                    <ActionButton
+                        type='submit'
+                        variant='primary'
+                        className="ms-2"
                     >
-                        {isAddingUser ? (
-                            <>
-                                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                Добавление...
-                            </>
-                        ) : (
-                            <>
-                                <i className="bi bi-plus-circle me-1"></i>
-                                Добавить пользователя
-                            </>
-                        )}
-                    </button>
+                        Добавить
+                    </ActionButton>
                 </div>
             </form>
         </div>
     );
+    // #endregion 
+
+    if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
+    if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
+    if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
+
+    const userStats = [
+        { value: statistics.totalUsers, label: 'Всего пользователей' },
+        { value: statistics.adminCount, label: 'Администраторы' },
+        { value: statistics.commandantCount, label: 'Коменданты' },
+        { value: statistics.educatorCount, label: 'Воспитатели' },
+    ]
 
     const tabs = [
         {

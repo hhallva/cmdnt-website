@@ -1,11 +1,18 @@
 import Cookies from 'js-cookie'
-import type { LoginDto, LoginResponseDto } from '../types/auth'
 import type { ApiErrorDto } from '../types/ApiErrorDto'
+
+import type { LoginDto, LoginResponseDto } from '../types/auth'
+
 import type { RoleDto } from '../types/RoleDto'
+
 import type { UserDto } from '../types/UserDto'
 import type { UserStatisticDto } from '../types/UserStatisticDto'
 import type { UpdateUserDto } from '../types/UpdateUserDto'
 import type { PostUserDto } from '../types/PostUserDto'
+
+import type { PostStudentDto, StudentsDto, ContactDto } from '../types/students'
+
+import type { GroupDto } from '../types/groups'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -100,7 +107,6 @@ export const apiClient = {
   },
   //#endregion
 
-
   //#region Пользователи
   getUserStatistics: async (): Promise<UserStatisticDto> => {
     return apiClient.requestWithAuth<UserStatisticDto>('/api/v1/Users/statistic');
@@ -151,4 +157,35 @@ export const apiClient = {
   },
   //#endregion
 
+  //#region Студенты
+  getAllStudents: async (): Promise<StudentsDto[]> => {
+    return apiClient.requestWithAuth<[StudentsDto]>('/api/v1/Students');
+  },
+
+  createStudent: async (data: PostStudentDto): Promise<StudentsDto> => {
+    return apiClient.requestWithAuth<StudentsDto>('/api/v1/Students', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  },
+
+  addStudentContacts: async (id: number, contacts: Omit<ContactDto, 'id'>[]): Promise<ContactDto[]> => {
+    return apiClient.requestWithAuth<ContactDto[]>(`/api/v1/Students/${id}/contacts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(contacts),
+    });
+  },
+  //#endregion
+
+  //#region Группы
+  getAllGroups: async (): Promise<GroupDto[]> => {
+    return apiClient.requestWithAuth<[GroupDto]>('/api/v1/Groups');
+  },
+  //#endregion 
 };

@@ -1,7 +1,6 @@
 ﻿using DataLayer.Data;
 using DataLayer.DTOs;
 using DataLayer.DTOs.Room;
-using DataLayer.DTOs.User;
 using DataLayer.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,7 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace CmdntApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     [Authorize]
     public class RoomsController(AppDbContext context) : ControllerBase
@@ -159,6 +158,6 @@ namespace CmdntApi.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }       
+        }
     }
 }

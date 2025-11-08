@@ -48,14 +48,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
             items.push(
                 { icon: 'bi-people', label: 'Студенты', path: '/dashboard/students' },
                 { icon: 'bi-house-door', label: 'Расселение', path: '/dashboard/settlement' },
-                { icon: 'bi-file-earmark-text', label: 'Отчеты', path: '/dashboard/reports' }
             );
         }
 
         if (userSession.role?.name?.includes('Администратор')) {
             items.push(
                 { icon: 'bi-people-fill', label: 'Пользователи', path: '/dashboard/users' },
-                { icon: 'bi-collection', label: 'Группы', path: '/dashboard/groups' }
+                { icon: 'bi-collection', label: '?Группы?', path: '/dashboard/groups' }
             );
         }
 

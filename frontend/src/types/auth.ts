@@ -1,5 +1,3 @@
-// src/types/auth.ts
-
 import type { RoleDto } from "./RoleDto";
 
 export interface LoginDto {

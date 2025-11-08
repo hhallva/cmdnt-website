@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DataLayer.Models;
+﻿namespace DataLayer.Models;
 
 public partial class Contact
 {

@@ -4,7 +4,7 @@ import styles from './SelectField.module.css';
 
 // Используем Omit, чтобы исключить label и error из стандартных атрибутов select
 interface SelectFieldProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'label' | 'error'> {
-    label: string;
+    label?: string;
     options: { value: string | number; label: string }[];
     error?: string; // Добавляем пропс для ошибки
 }
@@ -12,7 +12,8 @@ interface SelectFieldProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>,
 const SelectField: React.FC<SelectFieldProps> = ({ label, options, error, ...selectProps }) => {
     return (
         <div className={styles.formGroup}>
-            <label className={styles.formLabel}>{label}</label>
+            {label && <label className={styles.formLabel}>{label}</label>}
+
             <select
                 className={`${styles.formSelect} ${error ? styles.isInvalid : ''}`} // Добавляем класс при ошибке
                 {...selectProps}

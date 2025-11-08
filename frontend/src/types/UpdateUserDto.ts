@@ -1,4 +1,3 @@
-// src/types/UpdateUserDto.ts
 export interface UpdateUserDto {
     roleId: number;
     surname: string;

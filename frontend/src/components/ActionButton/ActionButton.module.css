@@ -1,0 +1,115 @@
+/* src/components/ActionButton/ActionButton.module.css */
+
+.actionButton {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0;
+    outline: none;
+}
+
+
+.actionButton.variant-primary {
+    color: #fff;
+    background-color: var(--color-primary);
+    border: var(--color-primary);
+}
+
+.actionButton.variant-primary:hover:not(.disabled) {
+    background-color: #f57c00;
+}
+
+.actionButton.variant-secondary {
+    color: #424242;
+    background-color: #dbdbdb;
+    border-color: #dbdbdb;
+}
+
+.actionButton.variant-secondary:hover:not(.disabled) {
+    background-color: #bdbdbd;
+}
+
+.actionButton.variant-dark {
+    color: #fff;
+    background-color: #6c757d;
+}
+
+.actionButton.variant-dark:hover:not(.disabled) {
+    background-color: #5a6268;
+}
+
+
+.actionButton.variant-danger {
+    color: #fff;
+    background-color: var(--color-danger);
+}
+
+.actionButton.variant-danger:hover:not(.disabled) {
+    background-color: var(--color-danger-hover);
+}
+
+.actionButton.variant-success {
+    color: #fff;
+    background-color: #28a745;
+}
+
+.actionButton.variant-success:hover:not(.disabled) {
+    background-color: #157347;
+}
+
+.actionButton.variant-info {
+    color: #fff;
+    background-color: #0d6efd;
+}
+
+.actionButton.variant-info:hover:not(.disabled) {
+    background-color: #0b59ce;
+}
+
+/* --- Стили для разных размеров --- */
+/* Размер sm (маленький) */
+.actionButton.size-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Размер md (средний, по умолчанию) */
+.actionButton.size-md {
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    /* 16px */
+    /* 6px */
+}
+
+/* Размер lg (большой) */
+.actionButton.size-lg {
+    padding: 0.6rem 1rem;
+    font-size: 1.25rem;
+}
+
+/* --- Состояние Disabled --- */
+.actionButton.disabled {
+    pointer-events: none;
+    /* Запрещаем клики */
+    opacity: 0.65;
+    /* Делаем полупрозрачным */
+    cursor: not-allowed;
+    /* Меняем курсор */
+    /* background-color и border-color обычно не меняются для disabled в Bootstrap,
+     но можно добавить, если нужно */
+}
+
+/* --- Адаптивность --- */
+/* Если нужно адаптировать под мобильные устройства */
+@media (max-width: 768px) {
+
+    /* Можно, например, немного уменьшить padding или font-size для больших кнопок на мобильных */
+    .actionButton {
+        margin-top: 0rem;
+        font-size: small;
+        padding: 0.5rem 1rem;
+    }
+}

@@ -8,7 +8,8 @@
 
 :root {
   --color-primary: #ffa726;
-  --color-danger: #e74c3c;
+  --color-danger: #dc3545;
+  --color-danger-hover: #bb2d3b;
   --color-accent: #f39c12;
   --color-text: #333;
   --color-text-muted: #5a6c7d;
