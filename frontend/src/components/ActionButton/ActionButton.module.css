@@ -60,7 +60,14 @@
     background-color: #157347;
 }
 
+.actionButton.variant-info {
+    color: #fff;
+    background-color: #0d6efd;
+}
 
+.actionButton.variant-info:hover:not(.disabled) {
+    background-color: #0b59ce;
+}
 
 /* --- Стили для разных размеров --- */
 /* Размер sm (маленький) */
