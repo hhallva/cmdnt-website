@@ -44,6 +44,19 @@ namespace CmdntApi.Controllers
             return Ok(student.ToDto());
         }
 
+        [HttpGet("{id}/extended")]
+        public async Task<ActionResult<ExtStudentData>> GetOrigin(int id)
+        {
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+            
+
+
+            return Ok(new ExtStudentData(student.Origin));
+        }
+
         [HttpPost]
         public async Task<ActionResult<StudentDto>> PostStudent(PostStudentDto dto)
         {

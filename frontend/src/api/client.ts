@@ -10,7 +10,7 @@ import type { UserStatisticDto } from '../types/UserStatisticDto'
 import type { UpdateUserDto } from '../types/UpdateUserDto'
 import type { PostUserDto } from '../types/PostUserDto'
 
-import type { PostStudentDto, StudentsDto, ContactDto } from '../types/students'
+import type { PostStudentDto, StudentsDto, ContactDto, ExtStudentData } from '../types/students'
 
 import type { GroupDto } from '../types/groups'
 
@@ -184,6 +184,10 @@ export const apiClient = {
       },
       body: JSON.stringify(contacts),
     });
+  },
+
+  getExtStudentById: async (id: number): Promise<ExtStudentData> => {
+    return apiClient.requestWithAuth<ExtStudentData>(`/api/v1/Students/${id}/extended`);
   },
 
   getStudentContactsById: async (id: number): Promise<ContactDto[]> => {

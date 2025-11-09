@@ -12,6 +12,11 @@ export interface StudentsDto {
     blockNumber: string | null;
 }
 
+export interface ExtStudentData {
+    origin: string | null;
+}
+
+
 export interface PostStudentDto {
     name: string | null;
     surname: string | null;

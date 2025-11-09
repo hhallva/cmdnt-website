@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../../api/client';
-import type { StudentsDto, ContactDto } from '../../../types/students';
+import type { StudentsDto, ContactDto, ExtStudentData } from '../../../types/students';
 import styles from './StudentCard.module.css'; // Создадим файл стилей
 import ActionButton from '../../../components/ActionButton/ActionButton';
 
@@ -13,6 +13,8 @@ const StudentCardLayout: React.FC = () => {
 
     const [student, setStudent] = useState<StudentsDto | null>(null);
     const [contacts, setContacts] = useState<ContactDto[]>([]);
+    const [extStudent, setExtStudent] = useState<ExtStudentData>();
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -28,13 +30,15 @@ const StudentCardLayout: React.FC = () => {
                 setLoading(true);
                 setError(null);
 
-                const [studentResponse, contactsResponse] = await Promise.all([
+                const [studentResponse, contactsResponse, extResponse] = await Promise.all([
                     apiClient.getStudentById(studentIdNum),
-                    apiClient.getStudentContactsById(studentIdNum), // Предполагаем, что метод существует
+                    apiClient.getStudentContactsById(studentIdNum),
+                    apiClient.getExtStudentById(studentIdNum),
                 ]);
 
                 setStudent(studentResponse);
                 setContacts(contactsResponse);
+                setExtStudent(extResponse);
                 console.info(`Получение данных студента с ID: ${studentIdNum} и его контактов`);
             } catch (err: any) {
                 console.error('Ошибка при загрузке данных студента:', err);
@@ -97,7 +101,7 @@ const StudentCardLayout: React.FC = () => {
                             </div>
                             <div className={styles.infoItem}>
                                 <div className={styles.infoLabel}>Откуда приехал</div>
-                                <div className={styles.infoValue}>{student.origin || 'Нет'}</div>
+                                <div className={styles.infoValue}>{extStudent?.origin || 'Нет'}</div>
                             </div>
                         </div>
 
@@ -161,7 +165,7 @@ const StudentCardLayout: React.FC = () => {
                         <h2>{student.surname || ''} {student.name || ''} {student.patronymic || ''}</h2>
                         <p>Группа: {student.group?.name || 'Нет'} | Курс: {student.group?.course || 'Нет'}</p>
                         <p>Дата рождения: {new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(student.birthday))} | Пол: {student.gender ? 'Мужской' : 'Женский'}</p>
-                        <p>Откуда приехал: {student.origin || 'Нет'}</p>
+                        <p>Откуда приехал: {extStudent?.origin || 'Нет'}</p>
                     </div>
                 </div>
                 {/* <div className={`${styles.studentStatus} ${student.isActive ? styles.statusResident : styles.statusEvicted}`}>
