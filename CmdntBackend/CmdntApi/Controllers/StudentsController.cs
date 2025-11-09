@@ -92,9 +92,6 @@ namespace CmdntApi.Controllers
                 .Where(c => c.StudentId == id)
                 .ToListAsync();
 
-            if (contacts.Count == 0)
-                return NotFound(new ApiErrorDto("Контакты не найдены", StatusCodes.Status404NotFound));
-
             return Ok(contacts.Select(c => new ContactDto(c.Comment, c.Phone)));
         }
 

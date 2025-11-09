@@ -185,6 +185,12 @@ export const apiClient = {
       body: JSON.stringify(contacts),
     });
   },
+
+  getStudentContactsById: async (id: number): Promise<ContactDto[]> => {
+    return apiClient.requestWithAuth<[ContactDto]>(`/api/v1/Students/${id}/contacts`);
+  },
+
+
   //#endregion
 
   //#region Группы

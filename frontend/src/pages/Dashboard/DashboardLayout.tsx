@@ -42,7 +42,7 @@ const DashboardLayout: React.FC = () => {
                     <h1>{title}</h1>
                     <div className={styles.userInfo}>
                         <div className={styles.userAvatar}>
-                            {userSession.name?.charAt(0) || ''}{userSession.patronymic?.charAt(0) || ''}
+                            {userSession.name?.charAt(0) || ''}{userSession.surname?.charAt(0) || ''}
                         </div>
                         <span>{userSession.role?.name}</span>
                     </div>
