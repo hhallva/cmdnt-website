@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataLayer.DTOs.Room
+namespace DataLayer.DTOs.Rooms
 {
     public class UpdateCapacityDto
     {

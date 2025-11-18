@@ -1,6 +1,6 @@
 ﻿using DataLayer.Data;
 using DataLayer.DTOs;
-using DataLayer.DTOs.Room;
+using DataLayer.DTOs.Rooms;
 using DataLayer.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,18 +26,11 @@ namespace CmdntApi.Controllers
         {
             var rooms = await _context.Rooms
                 .Include(r => r.Students)
-                .Select(r => new RoomDto
-                {
-                    Id = r.Id,
-                    RoomNumber = (r.FloorNumber * 100 + r.RoomNumber).ToString(),
-                    Capacity = r.Capacity,
-                    CurrentCapacity = r.Students.Count,
-                    GenderType = r.Students.Count == 0 ? null : r.Students.First().Gender
-                }).ToListAsync();
+                .ToListAsync();
 
             if (rooms.Count == 0)
                 return NotFound(new ApiErrorDto("Комнаты не найдены", StatusCodes.Status404NotFound));
-            return Ok(rooms);
+            return Ok(rooms.Select(r => r.ToDto()));
         }
 
         [HttpGet("{id}")]
@@ -56,16 +49,7 @@ namespace CmdntApi.Controllers
             if (room == null)
                 return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
 
-            var response = new RoomDto
-            {
-                Id = room.Id,
-                RoomNumber = (room.FloorNumber * 100 + room.RoomNumber).ToString(),
-                Capacity = room.Capacity,
-                CurrentCapacity = room.Students.Count,
-                GenderType = room.Students.Count == 0 ? null : room.Students.First().Gender
-            };
-
-            return Ok(response);
+            return Ok(room.ToDto());
         }
 
         [HttpPatch("{id}")]
@@ -76,7 +60,7 @@ namespace CmdntApi.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные в запросе.", Type = typeof(ApiErrorDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Комната не найдена.", Type = typeof(ApiErrorDto))]
         [SwaggerResponse(StatusCodes.Status409Conflict, "Конфликт параллельного редактирования.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> PatchPassword(
+        public async Task<IActionResult> PatchCapacity(
             [SwaggerParameter(Description = "Уникальный идентификатор комнаты", Required = true)] int id,
             [SwaggerRequestBody("Новое значение вместимости", Required = true)] UpdateCapacityDto dto)
         {
@@ -124,16 +108,12 @@ namespace CmdntApi.Controllers
             _context.Rooms.Add(room);
             await _context.SaveChangesAsync();
 
-            var roomDto = new RoomDto
-            {
-                Id = room.Id,
-                RoomNumber = (room.FloorNumber * 100 + room.RoomNumber).ToString(),
-                Capacity = room.Capacity,
-                CurrentCapacity = room.Students.Count,
-                GenderType = room.Students.Count == 0 ? null : room.Students.First().Gender
-            };
+            await _context.Rooms
+                .Include(r => r.Students)
+                .FirstOrDefaultAsync(r => r.Id == room.Id);
 
-            return CreatedAtAction(nameof(GetRoom), new { id = room.Id }, roomDto);
+
+            return CreatedAtAction(nameof(GetRoom), new { id = room.Id }, room.ToDto());
         }
 
         [HttpDelete("{id}")]
