@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
 import type { StudentsDto, ContactDto, ExtStudentData } from '../../../types/students';
+import type { RoomDto } from '../../../types/rooms';
 import type { UserSession } from '../../../types/UserSession';
 
 import ActionButton from '../../../components/ActionButton/ActionButton';
@@ -14,18 +15,21 @@ import styles from './StudentCard.module.css';
 const StudentCardLayout: React.FC = () => {
     const { studentId } = useParams<{ studentId: string }>();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('personal');
 
     const [student, setStudent] = useState<StudentsDto | null>(null);
     const [contacts, setContacts] = useState<ContactDto[]>([]);
     const [extStudent, setExtStudent] = useState<ExtStudentData>();
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [room, setRoom] = useState<RoomDto | null>(null);
+    const [roomLoading, setRoomLoading] = useState(false);
+    const [roomError, setRoomError] = useState<string | null>(null);
 
     const userSessionStr = sessionStorage.getItem('userSession');
     const userSession: UserSession = JSON.parse(userSessionStr!);
+
+    const [activeTab, setActiveTab] = useState('personal');
 
     const studentIdNum = Number(studentId);
 
@@ -59,6 +63,32 @@ const StudentCardLayout: React.FC = () => {
 
         fetchStudentData();
     }, [studentIdNum, navigate]);
+
+    useEffect(() => {
+        if (activeTab === 'housing' && student && student.roomId != null) {
+            const fetchRoom = async (roomId: number) => {
+                setRoomLoading(true);
+                setRoomError(null);
+
+                try {
+                    const roomData = await apiClient.getRoomById(roomId);
+                    setRoom(roomData);
+                } catch (err: any) {
+                    console.error('Ошибка при загрузке данных комнаты:', err);
+                    setRoomError(err.message || 'Ошибка при загрузке данных комнаты');
+                    setRoom(null); // Очищаем предыдущие данные
+                } finally {
+                    setRoomLoading(false);
+                }
+            };
+
+            fetchRoom(student.roomId);
+        } else if (activeTab === 'housing' && student && !student.roomId) {
+            setRoom(null);
+            setRoomLoading(false);
+        }
+        // Если вкладка не "housing", не загружаем комнату
+    }, [activeTab, student]);
 
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
@@ -151,8 +181,52 @@ const StudentCardLayout: React.FC = () => {
                         </div>
                     </div>
                 );
-            // case 'housing':
-            //     return <div>Содержимое вкладки "Проживание"</div>;
+            case 'housing':
+                return <div className={styles.infoGrid}>
+                    <div className={styles.infoCard}>
+                        {roomLoading && (
+                            <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
+                                <div className="spinner-border" role="status"><span className="visually-hidden">Загрузка комнаты...</span></div>
+                            </div>
+                        )}
+                        {roomError && (
+                            <div className="alert alert-info text-center" role="alert">
+                                {roomError}
+                            </div>
+                        )}
+                        <h3 className={styles.infoCardTitle}>Текущее проживание</h3>
+                        {!roomLoading && !roomError && room && (
+                            <div className={styles.housingInfo}>
+                                <div className={styles.housingIcon}>
+                                    <i className="bi bi-building"></i>
+                                </div>
+                                <div className={styles.housingDetails}>
+                                    <h4>Блок {room.roomNumber || 'Нет данных'}</h4>
+                                    <p>Вместимость: {room.capacity || 0}</p>
+                                    <p>Этаж {room.floorNumber || 'Нет данных'}</p>
+                                </div>
+
+                            </div>
+                        )}
+
+                        {!roomLoading && !roomError && room && (
+                            <div className={styles.infoItem}>
+                                <h3 className={styles.infoLabel}>Соседи по комнате</h3>
+                                <div className={styles.infoValue}></div>
+
+                            </div>
+                        )}
+                        {/* Если студент не привязан к комнате, но нет ошибки от API */}
+                        {
+                            !roomLoading && !roomError && !room && (
+                                <div className="alert text-center" role="alert">
+                                    Студент не заселен.
+                                </div>
+                            )
+                        }
+                    </div >
+
+                </div >;
             // case 'notes':
             //     return <div>Содержимое вкладки "Заметки"</div>;
             default:
@@ -184,12 +258,12 @@ const StudentCardLayout: React.FC = () => {
                 >
                     Личная информация
                 </div>
-                {/* <div
+                <div
                     className={`${styles.navItemProfile} ${activeTab === 'housing' ? styles.active : ''}`}
                     onClick={() => setActiveTab('housing')}
                 >
                     Проживание
-                </div> */}
+                </div>
                 {/* <div
                     className={`${styles.navItemProfile} ${activeTab === 'notes' ? styles.active : ''}`}
                     onClick={() => setActiveTab('notes')}

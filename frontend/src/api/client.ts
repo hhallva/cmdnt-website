@@ -13,6 +13,7 @@ import type { PostUserDto } from '../types/PostUserDto'
 import type { PostStudentDto, StudentsDto, ContactDto, ExtStudentData } from '../types/students'
 
 import type { GroupDto } from '../types/groups'
+import type { RoomDto } from '../types/rooms'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -193,8 +194,6 @@ export const apiClient = {
   getStudentContactsById: async (id: number): Promise<ContactDto[]> => {
     return apiClient.requestWithAuth<[ContactDto]>(`/api/v1/Students/${id}/contacts`);
   },
-
-
   //#endregion
 
   //#region Группы
@@ -202,4 +201,10 @@ export const apiClient = {
     return apiClient.requestWithAuth<[GroupDto]>('/api/v1/Groups');
   },
   //#endregion 
+
+  //#region Студенты
+  getRoomById: async (id: number): Promise<RoomDto> => {
+    return apiClient.requestWithAuth<RoomDto>(`/api/v1/Rooms/${id}`);
+  },
+  //#endregion
 };

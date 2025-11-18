@@ -168,6 +168,70 @@
     /* display: block; - уже по умолчанию для div */
 }
 
+
+.infoCard {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.infoCardTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.infoItem {
+    margin-bottom: 1rem;
+}
+
+.infoItem:last-child {
+    margin-bottom: 0;
+}
+
+
+.infoLabel {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.infoValue {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.housingInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.housingIcon {
+    font-size: 2rem;
+    color: #ffa726;
+}
+
+.housingDetails h4 {
+    margin: 0 0 0.25rem 0;
+    color: #2c3e50;
+}
+
+.housingDetails p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
 /* --- Кнопки действий --- */
 .actionButtons {
     display: flex;
