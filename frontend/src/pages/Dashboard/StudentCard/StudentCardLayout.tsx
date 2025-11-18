@@ -1,10 +1,15 @@
 // src/pages/Dashboard/Students/StudentCardPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+
 import { apiClient } from '../../../api/client';
 import type { StudentsDto, ContactDto, ExtStudentData } from '../../../types/students';
-import styles from './StudentCard.module.css'; // Создадим файл стилей
+import type { UserSession } from '../../../types/UserSession';
+
 import ActionButton from '../../../components/ActionButton/ActionButton';
+
+import styles from './StudentCard.module.css';
+
 
 const StudentCardLayout: React.FC = () => {
     const { studentId } = useParams<{ studentId: string }>();
@@ -17,6 +22,10 @@ const StudentCardLayout: React.FC = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+
+    const userSessionStr = sessionStorage.getItem('userSession');
+    const userSession: UserSession = JSON.parse(userSessionStr!);
 
     const studentIdNum = Number(studentId);
 
@@ -158,19 +167,13 @@ const StudentCardLayout: React.FC = () => {
                 <div className={styles.studentBasicInfo}>
                     <div className={styles.studentPhoto}>
                         <div className={styles.studentPhotoPlaceholder}>
-                            {student.name?.charAt(0) || '?'}{student.surname?.charAt(0) || '?'}
+                            {student.name?.charAt(0)}{student.surname?.charAt(0)}
                         </div>
                     </div>
                     <div className={styles.studentNameInfo}>
                         <h2>{student.surname || ''} {student.name || ''} {student.patronymic || ''}</h2>
-                        <p>Группа: {student.group?.name || 'Нет'} | Курс: {student.group?.course || 'Нет'}</p>
-                        <p>Дата рождения: {new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(student.birthday))} | Пол: {student.gender ? 'Мужской' : 'Женский'}</p>
-                        <p>Откуда приехал: {extStudent?.origin || 'Нет'}</p>
                     </div>
                 </div>
-                {/* <div className={`${styles.studentStatus} ${student.isActive ? styles.statusResident : styles.statusEvicted}`}>
-                    {student.isActive ? 'Проживает' : 'Выселен'}
-                </div> */}
             </div>
 
             {/* Навигация по вкладкам */}
@@ -186,8 +189,8 @@ const StudentCardLayout: React.FC = () => {
                     onClick={() => setActiveTab('housing')}
                 >
                     Проживание
-                </div>
-                <div
+                </div> */}
+                {/* <div
                     className={`${styles.navItemProfile} ${activeTab === 'notes' ? styles.active : ''}`}
                     onClick={() => setActiveTab('notes')}
                 >
@@ -200,32 +203,27 @@ const StudentCardLayout: React.FC = () => {
                 {renderTabContent()}
             </div>
 
-            {/* Кнопки действий */}
-            <div className={styles.actionButtons}>
-                <ActionButton>
-                    <i className="bi bi-pencil me-1"></i>
-                    Редактировать данные
-                </ActionButton>
-                <ActionButton
-                    variant="dark">
-                    <i className="bi bi-printer me-1"></i>
-                    Распечатать карточку
-                </ActionButton>
-                <ActionButton
-                    variant="dark">
-                    <i className="bi bi-file-earmark-pdf me-1"></i>
-                    Экспорт в PDF
-                </ActionButton>
-                <ActionButton
-                    variant="danger">
-                    <i className="bi bi-box-arrow-right me-1"></i>
-                    Выселить студента
-                </ActionButton>
-                <ActionButton
-                    variant="danger">
-                    Удалить
-                </ActionButton>
-            </div>
+
+            {
+                (userSession && !userSession.role?.name?.toLowerCase().includes('воспитатель')) && (
+                    <div className={styles.actionButtons}>
+                        <ActionButton>
+                            <i className="bi bi-pencil me-1"></i>
+                            Редактировать данные
+                        </ActionButton>
+                        <ActionButton
+                            variant="danger">
+                            <i className="bi bi-box-arrow-right me-1"></i>
+                            Выселить студента
+                        </ActionButton>
+                        <ActionButton
+                            variant="danger">
+                            Удалить
+                        </ActionButton>
+                    </div>
+                )
+            }
+
         </div>
     );
 };
