@@ -26,6 +26,8 @@ const StudentCardLayout: React.FC = () => {
     const [roomLoading, setRoomLoading] = useState(false);
     const [roomError, setRoomError] = useState<string | null>(null);
 
+    const [neighbours, setNeighbours] = useState<StudentsDto[]>([]);
+
     const userSessionStr = sessionStorage.getItem('userSession');
     const userSession: UserSession = JSON.parse(userSessionStr!);
 
@@ -71,8 +73,13 @@ const StudentCardLayout: React.FC = () => {
                 setRoomError(null);
 
                 try {
-                    const roomData = await apiClient.getRoomById(roomId);
-                    setRoom(roomData);
+
+                    const [roomResponse, neighboursResponse] = await Promise.all([
+                        apiClient.getRoomById(roomId),
+                        apiClient.getStudentsByRoomId(roomId),
+                    ]);
+                    setRoom(roomResponse);
+                    setNeighbours(neighboursResponse);
                 } catch (err: any) {
                     console.error('Ошибка при загрузке данных комнаты:', err);
                     setRoomError(err.message || 'Ошибка при загрузке данных комнаты');
@@ -210,12 +217,26 @@ const StudentCardLayout: React.FC = () => {
                         )}
 
                         {!roomLoading && !roomError && room && (
-                            <div className={styles.infoItem}>
+                            < div className={styles.infoItem}>
                                 <h3 className={styles.infoLabel}>Соседи по комнате</h3>
-                                <div className={styles.infoValue}></div>
+
+                                {neighbours.length > 1 ? (
+                                    neighbours
+                                        .filter(neighbour => neighbour.id !== student.id)
+                                        .map((neighbour) => (
+                                            <div className={styles.infoValue}>
+                                                <React.Fragment key={neighbour.id}>
+                                                    {neighbour.surname} {neighbour.name} {neighbour.patronymic} ({neighbour.group.name})
+                                                </React.Fragment>
+                                            </div>
+                                        ))
+                                ) : (
+                                    'Нет соседей'
+                                )}
 
                             </div>
                         )}
+
                         {/* Если студент не привязан к комнате, но нет ошибки от API */}
                         {
                             !roomLoading && !roomError && !room && (

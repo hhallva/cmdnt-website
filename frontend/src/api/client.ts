@@ -206,5 +206,9 @@ export const apiClient = {
   getRoomById: async (id: number): Promise<RoomDto> => {
     return apiClient.requestWithAuth<RoomDto>(`/api/v1/Rooms/${id}`);
   },
+
+  getStudentsByRoomId: async (id: number): Promise<StudentsDto[]> => {
+    return apiClient.requestWithAuth<StudentsDto[]>(`/api/v1/Rooms/${id}/students`);
+  },
   //#endregion
 };

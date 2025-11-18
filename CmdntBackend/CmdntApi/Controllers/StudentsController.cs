@@ -36,7 +36,7 @@ namespace CmdntApi.Controllers
             var student = await _context.Students
                 .Include(s => s.Rooms)
                 .Include(s => s.Group)
-               .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (student == null)
                 return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));

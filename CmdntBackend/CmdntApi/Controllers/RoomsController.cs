@@ -1,6 +1,7 @@
 ﻿using DataLayer.Data;
 using DataLayer.DTOs;
 using DataLayer.DTOs.Rooms;
+using DataLayer.DTOs.Students;
 using DataLayer.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,6 +51,20 @@ namespace CmdntApi.Controllers
                 return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
 
             return Ok(room.ToDto());
+        }
+
+        [HttpGet("{id}/students")]
+        public async Task<ActionResult<List<StudentDto>>> GetStudentsByRoomId(int id)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Students)
+                    .ThenInclude(s => s.Group)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (room == null)
+                return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
+
+            return Ok(room.Students.Select(s => s.ToDto()));
         }
 
         [HttpPatch("{id}")]
