@@ -9,6 +9,7 @@ export interface StudentsDto {
     phone: string | null;
     birthday: string;
     group: GroupDto;
+    roomId: number | null;
     blockNumber: string | null;
 }
 

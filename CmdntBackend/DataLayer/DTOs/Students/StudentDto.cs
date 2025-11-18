@@ -20,6 +20,8 @@ namespace DataLayer.DTOs.Students
 
         public GroupDto Group { get; set; } = null!;
 
+        public int? RoomId { get; set; }
+
         public string? BlockNumber { get; set; }
     }
 }
