@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251012201609_InitialCreate")]
+    [Migration("20251119181120_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -85,7 +85,7 @@ namespace DataLayer.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -262,7 +262,7 @@ namespace DataLayer.Migrations
                     b.HasOne("DataLayer.Models.User", "User")
                         .WithMany("Notes")
                         .HasForeignKey("UserId")
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Note_User");
 
                     b.Navigation("Student");
@@ -297,12 +297,14 @@ namespace DataLayer.Migrations
                     b.HasOne("DataLayer.Models.Room", null)
                         .WithMany()
                         .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Resettlement_Room");
 
                     b.HasOne("DataLayer.Models.Student", null)
                         .WithMany()
                         .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Resettlement_Student");
                 });
