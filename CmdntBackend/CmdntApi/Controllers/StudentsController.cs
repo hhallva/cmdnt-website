@@ -6,6 +6,7 @@ using DataLayer.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace CmdntApi.Controllers
 {
@@ -129,6 +130,31 @@ namespace CmdntApi.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetContacts), new { id }, contacts.Select(c => c.ToDto()));
+        }
+
+        [HttpDelete("{id}")]
+        [SwaggerOperation(
+          Summary = "Удаление данных студента",
+          Description = "Удаляет студента из системы. При этом удаляются все связанные контакты и его заселение.")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Студент успешно удалён.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> DeleteStudent(
+          [SwaggerParameter("id", Description = "Уникальный идентификатор студента")] int id)
+        {
+            var student = await _context.Students
+                .Include(s => s.Contacts)
+                .Include(s => s.Rooms)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (student == null)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            if (student.Contacts.Count != 0)
+                _context.Contacts.RemoveRange(student.Contacts);
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
