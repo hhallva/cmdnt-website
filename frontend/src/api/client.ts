@@ -194,6 +194,12 @@ export const apiClient = {
   getStudentContactsById: async (id: number): Promise<ContactDto[]> => {
     return apiClient.requestWithAuth<[ContactDto]>(`/api/v1/Students/${id}/contacts`);
   },
+
+  deleteStudent: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Students/${id}`, {
+      method: 'DELETE',
+    });
+  },
   //#endregion
 
   //#region Группы

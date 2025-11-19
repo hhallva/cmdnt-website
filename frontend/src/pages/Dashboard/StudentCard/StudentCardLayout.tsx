@@ -97,6 +97,27 @@ const StudentCardLayout: React.FC = () => {
         // Если вкладка не "housing", не загружаем комнату
     }, [activeTab, student]);
 
+
+    const handleDeleteClick = async () => {
+        if (!student?.id) return;
+
+        const confirmed = confirm(
+            'Вы уверены, что хотите удалить студента?\n' +
+            'Все данные о студенте, его контактах и заселении будут безвозвратно удалены.'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await apiClient.deleteStudent(student.id);
+            alert('Студент успешно удалён.');
+            navigate('/dashboard/students');
+        } catch (error: any) {
+            alert(error.message || 'Не удалось удалить студента.');
+        }
+
+    };
+
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
     if (!student) return <div className="alert alert-info m-3" role="alert">Студент не найден.</div>;
@@ -312,7 +333,8 @@ const StudentCardLayout: React.FC = () => {
                             Выселить студента
                         </ActionButton>
                         <ActionButton
-                            variant="danger">
+                            variant="danger"
+                            onClick={handleDeleteClick}>
                             Удалить
                         </ActionButton>
                     </div>
