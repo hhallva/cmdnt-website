@@ -375,7 +375,7 @@ const StudentsLayout: React.FC = () => {
         groupId: null,
         gender: null,
         phone: '',
-        origin: '',
+        origin: null,
     });
 
     const [newContacts, setNewContacts] = useState<{ comment: string; phone: string }[]>([]);
@@ -507,6 +507,9 @@ const StudentsLayout: React.FC = () => {
             errors.origin = 'Поле "Откуда приехал" должно содержать не более 300 символов.';
             isValid = false;
         }
+        if (newStudent.origin && newStudent.origin.length == 0) {
+            newStudent.origin = null
+        }
 
         if (!newStudent.groupId || newStudent.groupId <= 0) {
             errors.groupId = 'Пожалуйста, выберите группу.';
@@ -568,7 +571,7 @@ const StudentsLayout: React.FC = () => {
             groupId: null,
             gender: null,
             phone: '',
-            origin: '',
+            origin: null,
         });
         setNewContacts([])
         setFormErrors({});
