@@ -1,12 +1,10 @@
 // src/hooks/useStudentData.ts
 import { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
-import type { StudentsDto, ContactDto, ExtStudentData } from '../types/students';
+import type { StudentsDto } from '../types/students';
 
 export const useStudentData = (studentId: number) => {
     const [student, setStudent] = useState<StudentsDto | null>(null);
-    const [contacts, setContacts] = useState<ContactDto[]>([]);
-    const [extStudent, setExtStudent] = useState<ExtStudentData>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -28,9 +26,12 @@ export const useStudentData = (studentId: number) => {
                     apiClient.getExtStudentById(studentId),
                 ]);
 
-                setStudent(studentRes);
-                setContacts(contactsRes);
-                setExtStudent(extRes);
+                // Объединяем все данные в один объект
+                setStudent({
+                    ...studentRes,
+                    contacts: contactsRes,
+                    origin: extRes.origin,
+                });
                 console.info(`Получение данных студента с ID: ${studentId}`);
             } catch (err: any) {
                 const msg = err.message || 'Ошибка при загрузке данных студента';
@@ -44,5 +45,5 @@ export const useStudentData = (studentId: number) => {
         fetchStudentData();
     }, [studentId]);
 
-    return { student, contacts, extStudent, loading, error };
+    return { student, loading, error };
 };

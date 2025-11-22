@@ -19,7 +19,7 @@ const StudentCardLayout: React.FC = () => {
     const studentIdNum = Number(studentId);
     const [activeTab, setActiveTab] = useState('personal');
 
-    const { student, contacts, extStudent, loading, error } = useStudentData(studentIdNum);
+    const { student, loading, error } = useStudentData(studentIdNum);
     const { room, neighbours, loading: roomLoading, error: roomError } = useRoomData(
         student?.roomId ?? null,
         activeTab === 'housing'
@@ -69,7 +69,7 @@ const StudentCardLayout: React.FC = () => {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'personal':
-                return <PersonalInfoTab student={student} contacts={contacts} extStudent={extStudent} />;
+                return <PersonalInfoTab student={student} contacts={student.contacts || []} />;
             case 'housing':
                 return (
                     <HousingInfoTab

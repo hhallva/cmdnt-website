@@ -1,7 +1,7 @@
 import type { GroupDto } from "./groups";
 
 export interface StudentsDto {
-    id: number
+    id: number;
     name: string | null;
     surname: string | null;
     patronymic: string | null;
@@ -11,12 +11,9 @@ export interface StudentsDto {
     group: GroupDto;
     roomId: number | null;
     blockNumber: string | null;
+    origin?: string | null;
+    contacts?: ContactDto[];
 }
-
-export interface ExtStudentData {
-    origin: string | null;
-}
-
 
 export interface PostStudentDto {
     name: string | null;

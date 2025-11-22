@@ -1,16 +1,15 @@
 // src/pages/Dashboard/Students/components/PersonalInfoTab.tsx
 import React from 'react';
-import type { StudentsDto, ContactDto, ExtStudentData } from '../../../../types/students';
+import type { StudentsDto, ContactDto } from '../../../../types/students';
 import { formatLongDate, calculateAge } from '../../../../utils/date';
 import styles from '../StudentCard.module.css';
 
 interface PersonalInfoTabProps {
     student: StudentsDto;
     contacts: ContactDto[];
-    extStudent?: ExtStudentData;
 }
 
-const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ student, contacts, extStudent }) => {
+const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ student, contacts }) => {
     const studentAge = calculateAge(student.birthday);
 
     return (
@@ -37,7 +36,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ student, contacts, ex
                 </div>
                 <div className={styles.infoItem}>
                     <div className={styles.infoLabel}>Откуда приехал</div>
-                    <div className={styles.infoValue}>{extStudent?.origin || 'Нет'}</div>
+                    <div className={styles.infoValue}>{student?.origin || 'Нет'}</div>
                 </div>
             </div>
 
