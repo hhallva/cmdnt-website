@@ -128,15 +128,28 @@ const StudentCardLayout: React.FC = () => {
 
             {/* Кнопки действий */}
             {!isEducator && (
-                <div className={styles.actionButtons}>
-                    <ActionButton>
-                        <i className="bi bi-pencil me-1"></i>
-                        Редактировать данные
-                    </ActionButton>
-                    <ActionButton variant="danger">
-                        <i className="bi bi-box-arrow-right me-1"></i>
-                        Выселить студента
-                    </ActionButton>
+                <div className={styles.actionButtons} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        {activeTab === 'personal' && (
+                            <ActionButton >
+                                <i className="bi bi-pencil me-1"></i>
+                                Редактировать данные
+                            </ActionButton>
+                        )}
+                        {activeTab === 'housing' && (
+                            student.roomId ? (
+                                <ActionButton variant="danger">
+                                    <i className="bi bi-box-arrow-right me-1"></i>
+                                    Выселить студента
+                                </ActionButton>
+                            ) : (
+                                <ActionButton variant="success">
+                                    <i className="bi bi-house-door me-1"></i>
+                                    Заселить студента
+                                </ActionButton>
+                            )
+                        )}
+                    </div>
                     <ActionButton variant="danger" onClick={handleDeleteClick}>
                         Удалить
                     </ActionButton>
