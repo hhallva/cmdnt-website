@@ -18,6 +18,10 @@ namespace CmdntApi.Controllers
         private readonly AppDbContext _context = context;
 
         [HttpGet]
+        [SwaggerOperation(
+            Summary = "Получение списка всех студентов",
+            Description = "Возвращает полный список студентов, включая данные об их учебной группе и закреплённых комнатах.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Список студентов успешно получен.", Type = typeof(IEnumerable<StudentDto>))]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudents()
         {
             var students = await _context.Students
@@ -25,15 +29,23 @@ namespace CmdntApi.Controllers
                 .Include(s => s.Group)
                 .ToListAsync();
 
-            if (students.Count == 0)
-                return NotFound(new ApiErrorDto("Пользователи не найдены", StatusCodes.Status404NotFound));
-
             return Ok(students.Select(s => s.ToDto()));
+
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<StudentDto>> GetStudent(int id)
+        [SwaggerOperation(
+            Summary = "Получение данных студента по ID",
+            Description = "Возвращает информацию о студенте, включая данные об учебной группе и список комнат, в которых он состоит.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно найден.", Type = typeof(StudentDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Неверный идентификатор студента.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент с указанным ID не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<StudentDto>> GetStudent(
+            [SwaggerParameter("Уникальный идентификатор студента", Required = true)] int id)
         {
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Неверный идентификатор студента", StatusCodes.Status400BadRequest));
+
             var student = await _context.Students
                 .Include(s => s.Rooms)
                 .Include(s => s.Group)
@@ -96,6 +108,11 @@ namespace CmdntApi.Controllers
         }
 
         [HttpGet("{id}/contacts")]
+        [SwaggerOperation(
+            Summary = "Получение контактной информации студента",
+            Description = "Возвращает все контакты (телефон и комментарий), привязанные к студенту по его идентификатору.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Контакты успешно получены.", Type = typeof(List<ContactDto>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент с указанным ID не найден.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<List<ContactDto>>> GetContacts(int id)
         {
             var studentExists = await _context.Students.AnyAsync(s => s.Id == id);

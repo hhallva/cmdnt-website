@@ -54,7 +54,13 @@ namespace CmdntApi.Controllers
         }
 
         [HttpGet("{id}/students")]
-        public async Task<ActionResult<List<StudentDto>>> GetStudentsByRoomId(int id)
+        [SwaggerOperation(
+            Summary = "Получение списка студентов по ID комнаты",
+            Description = "Возвращает список студентов, заселённых в указанную комнату. Включает информацию о группе каждого студента.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Список студентов успешно получен.", Type = typeof(IEnumerable<StudentDto>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Комната с указанным ID не найдена.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<List<StudentDto>>> GetStudentsByRoomId(
+            [SwaggerParameter(Description = "Уникальный идентификатор комнаты", Required = true)] int id)
         {
             var room = await _context.Rooms
                 .Include(r => r.Students)

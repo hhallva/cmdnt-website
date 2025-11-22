@@ -73,8 +73,6 @@ namespace CmdntApi.Controllers
                     }
                 }).ToListAsync();
 
-            if (users.Count == 0)
-                return NotFound(new ApiErrorDto("Пользователи не найдены", StatusCodes.Status404NotFound));
             return Ok(users);
         }
 
