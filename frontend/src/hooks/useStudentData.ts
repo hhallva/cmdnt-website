@@ -1,5 +1,5 @@
 // src/hooks/useStudentData.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import type { StudentsDto } from '../types/students';
 
@@ -7,6 +7,7 @@ export const useStudentData = (studentId: number) => {
     const [student, setStudent] = useState<StudentsDto | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         if (isNaN(studentId) || studentId <= 0) {
@@ -43,7 +44,11 @@ export const useStudentData = (studentId: number) => {
         };
 
         fetchStudentData();
-    }, [studentId]);
+    }, [studentId, reloadKey]);
 
-    return { student, loading, error };
+    const refetch = useCallback(() => {
+        setReloadKey(prev => prev + 1);
+    }, []);
+
+    return { student, loading, error, refetch };
 };

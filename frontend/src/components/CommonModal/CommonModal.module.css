@@ -37,14 +37,17 @@
 .closeButton {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 2rem;
+    line-height: 1;
     cursor: pointer;
-    color: #888;
-    transition: color 0.2s;
+    color: #555;
+    transition: color 0.2s, transform 0.2s;
+    padding: 0.15rem 0.35rem;
 }
 
 .closeButton:hover {
-    color: #333;
+    color: #000;
+    transform: scale(1.05);
 }
 
 .modalBody {

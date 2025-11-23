@@ -10,7 +10,7 @@ import type { UserStatisticDto } from '../types/UserStatisticDto'
 import type { UpdateUserDto } from '../types/UpdateUserDto'
 import type { PostUserDto } from '../types/PostUserDto'
 
-import type { PostStudentDto, StudentsDto, ContactDto } from '../types/students'
+import type { PostStudentDto, StudentsDto, ContactDto, UpdateStudentPayload } from '../types/students'
 
 import type { GroupDto } from '../types/groups'
 import type { RoomDto } from '../types/rooms'
@@ -185,6 +185,16 @@ export const apiClient = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
+    });
+  },
+
+  updateStudent: async (id: number, payload: UpdateStudentPayload): Promise<StudentsDto> => {
+    return apiClient.requestWithAuth<StudentsDto>(`/api/v1/Students/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
   },
 

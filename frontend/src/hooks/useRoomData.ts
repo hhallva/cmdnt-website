@@ -1,5 +1,5 @@
 // src/hooks/useRoomData.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import type { StudentsDto } from '../types/students';
 import type { RoomDto } from '../types/rooms';
@@ -9,11 +9,13 @@ export const useRoomData = (roomId: number | null, enabled: boolean) => {
     const [neighbours, setNeighbours] = useState<StudentsDto[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         if (!enabled || roomId === null) {
             setRoom(null);
             setNeighbours([]);
+            setLoading(false);
             return;
         }
 
@@ -39,7 +41,11 @@ export const useRoomData = (roomId: number | null, enabled: boolean) => {
         };
 
         fetchRoomData();
-    }, [roomId, enabled]);
+    }, [roomId, enabled, reloadKey]);
 
-    return { room, neighbours, loading, error };
+    const refetch = useCallback(() => {
+        setReloadKey(prev => prev + 1);
+    }, []);
+
+    return { room, neighbours, loading, error, refetch };
 };

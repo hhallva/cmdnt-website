@@ -5,7 +5,7 @@ export interface StudentsDto {
     name: string | null;
     surname: string | null;
     patronymic: string | null;
-    gender: boolean;
+    gender: boolean | null;
     phone: string | null;
     birthday: string;
     group: GroupDto;
@@ -29,5 +29,10 @@ export interface PostStudentDto {
 export interface ContactDto {
     comment: string;
     phone: string;
+}
+
+export interface UpdateStudentPayload {
+    student: StudentsDto;
+    contacts: ContactDto[];
 }
 

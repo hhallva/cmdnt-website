@@ -1,5 +1,5 @@
 // src/pages/Dashboard/Students/StudentCardLayout.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
@@ -12,15 +12,35 @@ import PersonalInfoTab from './components/PersonalInfoTab';
 import HousingInfoTab from './components/HousingInfoTab';
 
 import styles from './StudentCard.module.css';
+import EditStudentModal from '../../../components/EditStudentModal/EditStudentModal';
+
+const STORAGE_DEFAULT_TAB: 'personal' | 'housing' = 'personal';
+const getStoredTab = (key: string) => {
+    if (typeof window === 'undefined') return STORAGE_DEFAULT_TAB;
+    const saved = sessionStorage.getItem(key);
+    return saved === 'housing' ? 'housing' : STORAGE_DEFAULT_TAB;
+};
 
 const StudentCardLayout: React.FC = () => {
     const { studentId } = useParams<{ studentId: string }>();
     const navigate = useNavigate();
     const studentIdNum = Number(studentId);
-    const [activeTab, setActiveTab] = useState('personal');
+    const tabStorageKey = studentId ? `student-card-active-tab-${studentId}` : 'student-card-active-tab';
 
-    const { student, loading, error } = useStudentData(studentIdNum);
-    const { room, neighbours, loading: roomLoading, error: roomError } = useRoomData(
+    const [activeTab, setActiveTab] = useState<'personal' | 'housing'>(() => getStoredTab(tabStorageKey));
+    const [editModalOpen, setEditModalOpen] = useState(false);
+
+    useEffect(() => {
+        setActiveTab(getStoredTab(tabStorageKey));
+    }, [tabStorageKey]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        sessionStorage.setItem(tabStorageKey, activeTab);
+    }, [activeTab, tabStorageKey]);
+
+    const { student, loading, error, refetch } = useStudentData(studentIdNum);
+    const { room, neighbours, loading: roomLoading, error: roomError, refetch: refetchRoomData } = useRoomData(
         student?.roomId ?? null,
         activeTab === 'housing'
     );
@@ -75,10 +95,8 @@ const StudentCardLayout: React.FC = () => {
         try {
             await apiClient.evictStudent(student.id);
             alert('Студент успешно выселен.');
-            // Обновляем данные студента после выселения
-            // Можно вызвать повторное получение данных или обновить состояние вручную
-            // Здесь для простоты просто перезагрузим страницу
-            window.location.reload();
+            refetch();
+            refetchRoomData();
 
         } catch (err: any) {
             alert(err.message || 'Не удалось выселить студента.');
@@ -152,7 +170,7 @@ const StudentCardLayout: React.FC = () => {
                 <div className={styles.actionButtons} style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         {activeTab === 'personal' && (
-                            <ActionButton >
+                            <ActionButton onClick={() => setEditModalOpen(true)}>
                                 <i className="bi bi-pencil me-1"></i>
                                 Редактировать данные
                             </ActionButton>
@@ -175,6 +193,18 @@ const StudentCardLayout: React.FC = () => {
                         Удалить
                     </ActionButton>
                 </div>
+            )}
+            {/* Модальное окно редактирования */}
+            {editModalOpen && student && (
+                <EditStudentModal
+                    isOpen={editModalOpen}
+                    onClose={() => setEditModalOpen(false)}
+                    student={student}
+                    onSave={() => {
+                        refetch();
+                        setEditModalOpen(false);
+                    }}
+                    contacts={student.contacts || []} />
             )}
         </div>
     );
