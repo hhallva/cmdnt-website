@@ -173,5 +173,82 @@ namespace CmdntApi.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("{id}/assign-room/{roomId}")]
+        [SwaggerOperation(
+            Summary = "Привязка студента к комнате",
+            Description = "Привязывает студента к указанной комнате, проверяя соответствие пола студента, других жильцов и вместимость комнаты.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно привязан к комнате.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные, студент уже привязан к комнате или комната переполнена.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент или комната не найдены.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> AssignRoom(
+            [SwaggerParameter("ID студента", Required = true)] int id,
+            [SwaggerParameter("ID комнаты", Required = true)] int roomId)
+        {
+            if (id <= 0 || roomId <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор студента или комнаты", StatusCodes.Status400BadRequest));
+
+            var student = await _context.Students
+                .Include(s => s.Rooms)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            if (student.Rooms.Any())
+                return BadRequest(new ApiErrorDto("Студент уже привязан к комнате", StatusCodes.Status400BadRequest));
+
+            var room = await _context.Rooms
+                .Include(r => r.Students)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room == null)
+                return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
+
+            if (room.Students.Count >= room.Capacity)
+                return BadRequest(new ApiErrorDto("Комната переполнена", StatusCodes.Status400BadRequest));
+
+            var hasGenderConflict = room.Students.Any(s => s.Gender != student.Gender);
+            if (hasGenderConflict)
+                return BadRequest(new ApiErrorDto("Студент не может быть заселен в комнату с жильцами другого пола", StatusCodes.Status400BadRequest));
+
+            room.Students.Add(student);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Студент успешно привязан к комнате" });
+        }
+
+        [HttpPost("{id}/evict-room")]
+        [SwaggerOperation(
+            Summary = "Выселение студента из комнаты",
+            Description = "Выселяет студента из всех комнат, в которых он проживает. В бизнес-логике студент может жить только в одной комнате.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно выселен из комнаты.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> EvictRoom(
+            [SwaggerParameter("ID студента", Required = true)] int id)
+        {
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
+
+            var student = await _context.Students
+                .Include(s => s.Rooms)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            if (student.Rooms.Count != 0)
+            {
+                foreach (var room in student.Rooms.ToList())
+                {
+                    room.Students.Remove(student);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new { Message = "Студент успешно выселен из комнаты" });
+        }
+
+
     }
 }
