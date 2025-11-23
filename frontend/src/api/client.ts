@@ -159,6 +159,17 @@ export const apiClient = {
   //#endregion
 
   //#region Студенты
+
+  /** Выселить студента из комнаты */
+  evictStudent: async (studentId: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Students/${studentId}/evict-room`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+
   getAllStudents: async (): Promise<StudentsDto[]> => {
     return apiClient.requestWithAuth<[StudentsDto]>('/api/v1/Students');
   },
@@ -208,7 +219,7 @@ export const apiClient = {
   },
   //#endregion 
 
-  //#region Студенты
+  //#region Коммнаты
   getRoomById: async (id: number): Promise<RoomDto> => {
     return apiClient.requestWithAuth<RoomDto>(`/api/v1/Rooms/${id}`);
   },

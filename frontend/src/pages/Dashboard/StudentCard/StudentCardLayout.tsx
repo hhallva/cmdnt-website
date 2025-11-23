@@ -65,6 +65,27 @@ const StudentCardLayout: React.FC = () => {
         }
     };
 
+    const handleEvictClick = async () => {
+        if (!student?.id) return;
+        const confirmed = confirm(
+            'Вы уверены, что хотите выселить студента?\n'
+        );
+        if (!confirmed) return;
+
+        try {
+            await apiClient.evictStudent(student.id);
+            alert('Студент успешно выселен.');
+            // Обновляем данные студента после выселения
+            // Можно вызвать повторное получение данных или обновить состояние вручную
+            // Здесь для простоты просто перезагрузим страницу
+            window.location.reload();
+
+        } catch (err: any) {
+            alert(err.message || 'Не удалось выселить студента.');
+        }
+    };
+
+
     // Рендер вкладок
     const renderTabContent = () => {
         switch (activeTab) {
@@ -138,7 +159,7 @@ const StudentCardLayout: React.FC = () => {
                         )}
                         {activeTab === 'housing' && (
                             student.roomId ? (
-                                <ActionButton variant="danger">
+                                <ActionButton variant="danger" onClick={handleEvictClick}>
                                     <i className="bi bi-box-arrow-right me-1"></i>
                                     Выселить студента
                                 </ActionButton>
