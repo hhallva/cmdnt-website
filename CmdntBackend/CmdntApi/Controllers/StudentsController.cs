@@ -107,6 +107,74 @@ namespace CmdntApi.Controllers
             return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, student.ToDto());
         }
 
+        [HttpPut("{id}")]
+        [SwaggerOperation(
+            Summary = "Обновление данных студента",
+            Description = "Позволяет обновить основные данные студента и его контактную информацию.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Данные студента успешно обновлены.", Type = typeof(StudentDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные запроса.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<StudentDto>> PutStudent(
+            [SwaggerParameter("ID студента", Required = true)] int id,
+            [FromBody] UpdateStudentDto updateDto)
+        {
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
+
+            if (updateDto?.Student == null)
+                return BadRequest(new ApiErrorDto("Данные студента не переданы", StatusCodes.Status400BadRequest));
+
+            if (updateDto.Student.Id != 0 && updateDto.Student.Id != id)
+                return BadRequest(new ApiErrorDto("ID студента в теле запроса не совпадает с путевым параметром", StatusCodes.Status400BadRequest));
+
+            var student = await _context.Students
+                .Include(s => s.Contacts)
+                .Include(s => s.Rooms)
+                .Include(s => s.Group)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            if (updateDto.Student.Group == null || updateDto.Student.Group.Id <= 0)
+                return BadRequest(new ApiErrorDto("Некорректная группа студента", StatusCodes.Status400BadRequest));
+
+            var groupExists = await _context.Groups.AnyAsync(g => g.Id == updateDto.Student.Group.Id);
+            if (!groupExists)
+                return NotFound(new ApiErrorDto("Указанная группа не найдена", StatusCodes.Status404NotFound));
+
+            student.Surname = updateDto.Student.Surname;
+            student.Name = updateDto.Student.Name;
+            student.Patronymic = updateDto.Student.Patronymic;
+            student.Gender = updateDto.Student.Gender;
+            student.Phone = updateDto.Student.Phone;
+            student.Birthday = updateDto.Student.Birthday;
+            student.GroupId = updateDto.Student.Group.Id;
+
+            if (updateDto.Contacts != null)
+            {
+                if (student.Contacts.Any())
+                    _context.Contacts.RemoveRange(student.Contacts);
+
+                var newContacts = updateDto.Contacts.Select(c => new Contact
+                {
+                    StudentId = student.Id,
+                    Comment = c.Comment,
+                    Phone = c.Phone
+                }).ToList();
+
+                if (newContacts.Count > 0)
+                    _context.Contacts.AddRange(newContacts);
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _context.Entry(student).Reference(s => s.Group).LoadAsync();
+            await _context.Entry(student).Collection(s => s.Rooms).LoadAsync();
+
+            return Ok(student.ToDto());
+        }
+
         [HttpGet("{id}/contacts")]
         [SwaggerOperation(
             Summary = "Получение контактной информации студента",
