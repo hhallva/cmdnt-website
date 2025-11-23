@@ -23,18 +23,19 @@ const PasswordField: React.FC<PasswordFieldProps> = ({ label, error, ...inputPro
                 error={error}
                 {...inputProps}
             >
+                <button
+                    type="button"
+                    className={styles.toggleButton}
+                    onClick={togglePasswordVisibility}
+                    disabled={inputProps.disabled}
+                    tabIndex={inputProps.disabled ? -1 : undefined}
+                    aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                >
+                    {showPassword ?
+                        (<i className="bi bi-eye-slash"></i>) :
+                        (<i className="bi bi-eye"></i>)}
+                </button>
             </InputField>
-            <button
-                type="button"
-                className={styles.toggleButton}
-                onClick={togglePasswordVisibility}
-                disabled={inputProps.disabled}
-                tabIndex={inputProps.disabled ? -1 : undefined}
-            >
-                {showPassword ?
-                    (<i className="bi bi-eye-slash"></i>) :
-                    (<i className="bi bi-eye"></i>)}
-            </button>
         </div>
     );
 };

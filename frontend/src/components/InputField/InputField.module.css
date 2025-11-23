@@ -103,3 +103,12 @@
         font-size: small;
     }
 }
+
+.inputWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.inputWrapperHasAddon .formControl {
+    padding-right: 3rem;
+}
