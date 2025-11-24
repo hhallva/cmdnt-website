@@ -6,9 +6,16 @@ interface CommonModalProps {
     isOpen: boolean;
     onClose: () => void;
     children: React.ReactNode;
+    minWidth?: number | string;
+    minHeight?: number | string;
 }
 
-const CommonModal: React.FC<CommonModalProps> = ({ title, isOpen, onClose, children }) => {
+const toCssSize = (value?: number | string) => {
+    if (value === undefined) return undefined;
+    return typeof value === 'number' ? `${value}px` : value;
+};
+
+const CommonModal: React.FC<CommonModalProps> = ({ title, isOpen, onClose, children, minWidth, minHeight }) => {
     React.useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -21,14 +28,20 @@ const CommonModal: React.FC<CommonModalProps> = ({ title, isOpen, onClose, child
     }, [isOpen]);
 
     if (!isOpen) return null;
+
+    const contentStyle = {
+        '--modal-min-width': toCssSize(minWidth),
+        '--modal-min-height': toCssSize(minHeight),
+    } as React.CSSProperties;
+
     return (
         <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
+            <div className={styles.modalContent} style={contentStyle}>
                 <div className={styles.modalHeader}>
                     {title && <h3 className={styles.modalTitle}>{title}</h3>}
                     <button className={styles.closeButton} onClick={onClose}>&times;</button>
                 </div>
-                <div className={styles.modalBody} style={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden' }}>{children}</div>
+                <div className={styles.modalBody}>{children}</div>
             </div>
         </div>
     );

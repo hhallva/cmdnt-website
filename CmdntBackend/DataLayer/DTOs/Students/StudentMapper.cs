@@ -29,7 +29,8 @@ namespace DataLayer.DTOs.Students
                                : null,
                 BlockNumber = student.Rooms.Count != 0
                                ? $"{student.Rooms.First().FloorNumber}{student.Rooms.First().RoomNumber:D2}"
-                               : null
+                               : null,
+                Origin = student.Origin
             };
         }
     }

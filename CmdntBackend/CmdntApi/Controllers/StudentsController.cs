@@ -150,6 +150,7 @@ namespace CmdntApi.Controllers
             student.Phone = updateDto.Student.Phone;
             student.Birthday = updateDto.Student.Birthday;
             student.GroupId = updateDto.Student.Group.Id;
+            student.Origin = updateDto.Student.Origin;
 
             if (updateDto.Contacts != null)
             {

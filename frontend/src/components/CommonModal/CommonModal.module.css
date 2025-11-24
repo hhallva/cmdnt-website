@@ -16,9 +16,16 @@
     border-radius: 8px;
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
     padding: 24px;
-    min-width: 320px;
+    min-width: min(var(--modal-min-width, 480px), 90vw);
+    width: min(720px, 90vw);
     max-width: 90vw;
+    min-height: var(--modal-min-height, 320px);
+    max-height: 90vh;
     position: relative;
+    resize: both;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .modalHeader {
@@ -52,4 +59,34 @@
 
 .modalBody {
     width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .modalOverlay {
+        align-items: flex-start;
+        padding: 16px;
+    }
+
+    .modalContent {
+        width: 100%;
+        min-width: auto;
+        max-width: none;
+        height: auto;
+        min-height: 0;
+        max-height: calc(100vh - 32px);
+        resize: none;
+        padding: 20px;
+    }
+
+    .modalBody {
+        max-height: none;
+        overflow-y: visible;
+    }
 }

@@ -1,0 +1,154 @@
+.notesSection {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.notesToolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.notesHint {
+    font-size: 14px;
+    color: #81818e;
+}
+
+.noteModalForm {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.noteTextarea {
+    width: 100%;
+    min-height: 150px;
+    border: 1px solid #eef0f3;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 14px;
+    resize: none;
+    flex: 1;
+    transition: border-color 0.2s ease;
+}
+
+.noteTextarea:focus {
+    outline: none;
+    border-color: #1b84ff;
+    box-shadow: 0 0 0 2px rgba(27, 132, 255, 0.1);
+}
+
+.noteTextareaError {
+    border-color: #ff4d4f;
+}
+
+.validationMessage {
+    font-size: 13px;
+    color: #ff4d4f;
+    margin-top: 8px;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.notesList {
+    background: #fff;
+    border: 1px solid #eef0f3;
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.noteItem {
+    padding: 16px;
+    border-bottom: 1px solid #f1f3f5;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #eef0f3;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.noteItem:last-child {
+    border-bottom: none;
+}
+
+.noteHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.noteAuthor {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.noteDate {
+    color: #81818e;
+    font-size: 13px;
+}
+
+.noteContent {
+    color: #495057;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    margin: 0;
+}
+
+.deleteButton {
+    border: none;
+    background: transparent;
+    color: #9da4b0;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    transition: color 0.2s ease;
+}
+
+.deleteButton:hover {
+    color: #dc3545;
+}
+
+.emptyState {
+    border: 1px dashed #ced4da;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    background: #fff;
+    color: #6c757d;
+}
+
+.emptyState i {
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #ffa726;
+}
+
+@media (max-width: 768px) {
+    .notesToolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .modalActions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .modalActions button {
+        width: 100%;
+    }
+}

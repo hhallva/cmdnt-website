@@ -5,7 +5,7 @@ import styles from './ActionButton.module.css'; // Создадим стили �
 interface ActionButtonProps {
     onClick?: () => void;
     children: React.ReactNode;
-    variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark' | 'outline-primary' | 'outline-secondary'; // Примеры вариантов
+    variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'transparent' | 'info' | 'light' | 'dark' | 'outline-primary' | 'transparent-primary' | 'outline-secondary'; // Примеры вариантов
     size?: 'sm' | 'md' | 'lg';
     disabled?: boolean;
     ariaLabel?: string;

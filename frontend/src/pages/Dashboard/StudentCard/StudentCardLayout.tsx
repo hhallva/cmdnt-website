@@ -10,15 +10,25 @@ import type { UserSession } from '../../../types/UserSession';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import PersonalInfoTab from './components/PersonalInfoTab';
 import HousingInfoTab from './components/HousingInfoTab';
+import NotesTab from './components/NotesTab';
 
 import styles from './StudentCard.module.css';
-import EditStudentModal from '../../../components/EditStudentModal/EditStudentModal';
+import EditStudentModal from './components/EditStudentModal/EditStudentModal';
 
-const STORAGE_DEFAULT_TAB: 'personal' | 'housing' = 'personal';
-const getStoredTab = (key: string) => {
+type StudentTabKey = 'personal' | 'housing' | 'notes';
+
+const STORAGE_DEFAULT_TAB: StudentTabKey = 'personal';
+const getStoredTab = (key: string): StudentTabKey => {
     if (typeof window === 'undefined') return STORAGE_DEFAULT_TAB;
     const saved = sessionStorage.getItem(key);
-    return saved === 'housing' ? 'housing' : STORAGE_DEFAULT_TAB;
+    return saved === 'housing' || saved === 'notes' ? saved : STORAGE_DEFAULT_TAB;
+};
+
+const buildFullName = (...parts: Array<string | null | undefined>) => {
+    return parts
+        .map(part => part?.trim())
+        .filter((part): part is string => Boolean(part && part.length))
+        .join(' ');
 };
 
 const StudentCardLayout: React.FC = () => {
@@ -27,7 +37,7 @@ const StudentCardLayout: React.FC = () => {
     const studentIdNum = Number(studentId);
     const tabStorageKey = studentId ? `student-card-active-tab-${studentId}` : 'student-card-active-tab';
 
-    const [activeTab, setActiveTab] = useState<'personal' | 'housing'>(() => getStoredTab(tabStorageKey));
+    const [activeTab, setActiveTab] = useState<StudentTabKey>(() => getStoredTab(tabStorageKey));
     const [editModalOpen, setEditModalOpen] = useState(false);
 
     useEffect(() => {
@@ -66,6 +76,9 @@ const StudentCardLayout: React.FC = () => {
     }
     if (error) return <div className="alert alert-danger m-3">{error}</div>;
     if (!student) return <div className="alert alert-info m-3">Студент не найден.</div>;
+
+    const studentFullName = buildFullName(student.surname, student.name, student.patronymic);
+    const currentUserFullName = buildFullName(userSession?.surname, userSession?.name, userSession?.patronymic) || userSession?.name || undefined;
 
     // Удаление студента
     const handleDeleteClick = async () => {
@@ -119,6 +132,14 @@ const StudentCardLayout: React.FC = () => {
                         error={roomError}
                     />
                 );
+            case 'notes':
+                return (
+                    <NotesTab
+                        studentId={student.id}
+                        studentName={studentFullName}
+                        currentUserName={currentUserFullName}
+                    />
+                );
             default:
                 return null;
         }
@@ -160,13 +181,19 @@ const StudentCardLayout: React.FC = () => {
                 >
                     Проживание
                 </div>
+                <div
+                    className={`${styles.navItemProfile} ${activeTab === 'notes' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('notes')}
+                >
+                    Заметки
+                </div>
             </div>
 
             {/* Контент */}
             <div className={styles.tabContent}>{renderTabContent()}</div>
 
             {/* Кнопки действий */}
-            {!isEducator && (
+            {!isEducator && (activeTab === 'personal' || activeTab === 'housing') && (
                 <div className={styles.actionButtons} style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         {activeTab === 'personal' && (
@@ -189,11 +216,14 @@ const StudentCardLayout: React.FC = () => {
                             )
                         )}
                     </div>
-                    <ActionButton variant="danger" onClick={handleDeleteClick}>
-                        Удалить
-                    </ActionButton>
+                    {activeTab === 'personal' && (
+                        <ActionButton variant="danger" onClick={handleDeleteClick}>
+                            Удалить студента
+                        </ActionButton>
+                    )}
                 </div>
             )}
+
             {/* Модальное окно редактирования */}
             {editModalOpen && student && (
                 <EditStudentModal

@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { StudentsDto, ContactDto } from '../../types/students';
-import type { GroupDto } from '../../types/groups';
+import type { StudentsDto, ContactDto } from '../../../../../types/students';
+import type { GroupDto } from '../../../../../types/groups';
 
-import { apiClient } from '../../api/client';
+import { apiClient } from '../../../../../api/client';
 
-import InputField from '../InputField/InputField';
-import SelectField from '../SelectField/SelectField';
-import ActionButton from '../ActionButton/ActionButton';
-import CommonModal from '../CommonModal/CommonModal';
+import InputField from '../../../../../components/InputField/InputField';
+import SelectField from '../../../../../components/SelectField/SelectField';
+import ActionButton from '../../../../../components/ActionButton/ActionButton';
+import CommonModal from '../../../../../components/CommonModal/CommonModal';
+import styles from './EditStudentModal.module.css';
 
 interface EditStudentModalProps {
     isOpen: boolean;
@@ -263,155 +264,171 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
     };
 
     return (
-        <CommonModal isOpen={isOpen} onClose={onClose} title="Редактировать данные студента">
-            <form onSubmit={handleSubmit} style={{ maxWidth: '1100px' }}>
+        <CommonModal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Редактировать данные студента"
+            minWidth={900}
+            minHeight={520}
+        >
+            <form className={styles.modalForm} onSubmit={handleSubmit}>
                 {(error || formErrors.form) && (
-                    <div className="alert alert-danger">{formErrors.form || error}</div>
+                    <div className={`alert alert-danger ${styles.alertMessage}`}>
+                        {formErrors.form || error}
+                    </div>
                 )}
-                <div className="row g-3 mt-2">
-                    <div className="col-md-4">
-                        <InputField
-                            label="Фамилия"
-                            type="text"
-                            name="surname"
-                            value={formData.surname || ''}
-                            onChange={handleChange}
-                            error={formErrors.surname}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Имя"
-                            type="text"
-                            name="name"
-                            value={formData.name || ''}
-                            onChange={handleChange}
-                            error={formErrors.name}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Отчество"
-                            type="text"
-                            name="patronymic"
-                            value={formData.patronymic || ''}
-                            onChange={handleChange}
-                            error={formErrors.patronymic}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Дата рождения"
-                            type="date"
-                            name="birthday"
-                            value={formData.birthday || ''}
-                            onChange={handleChange}
-                            error={formErrors.birthday}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <SelectField
-                            label="Пол"
-                            name="gender"
-                            value={formData.gender === true ? 'true' : formData.gender === false ? 'false' : ''}
-                            onChange={handleChange}
-                            options={genderOptions}
-                            error={formErrors.gender}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Откуда приехал"
-                            type="text"
-                            name="origin"
-                            value={formData.origin || ''}
-                            onChange={handleChange}
-                            error={formErrors.origin}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <SelectField
-                            label="Группа"
-                            name="groupId"
-                            value={formData.group?.id ?? ''}
-                            onChange={handleChange}
-                            options={groupOptions}
-                            error={formErrors.groupId}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Контактный телефон"
-                            type="tel"
-                            name="phone"
-                            value={formData.phone || ''}
-                            onChange={handleChange}
-                            error={formErrors.phone}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="additional-contacts-section mt-4 pt-2">
-                        <h4 className="h6 mb-2 pb-2 border-bottom">Дополнительные контакты</h4>
+                <div className={styles.formBody}>
+                    <div className="row g-3 mt-2">
+                        <div className="col-md-4">
+                            <InputField
+                                label="Фамилия"
+                                type="text"
+                                name="surname"
+                                value={formData.surname || ''}
+                                onChange={handleChange}
+                                error={formErrors.surname}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Имя"
+                                type="text"
+                                name="name"
+                                value={formData.name || ''}
+                                onChange={handleChange}
+                                error={formErrors.name}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Отчество"
+                                type="text"
+                                name="patronymic"
+                                value={formData.patronymic || ''}
+                                onChange={handleChange}
+                                error={formErrors.patronymic}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Дата рождения"
+                                type="date"
+                                name="birthday"
+                                value={
+                                    formData.birthday
+                                        ? formData.birthday.includes('.')
+                                            ? formData.birthday.split('.').reverse().join('-')
+                                            : formData.birthday.slice(0, 10)
+                                        : ''
+                                }
+                                onChange={handleChange}
+                                error={formErrors.birthday}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <SelectField
+                                label="Пол"
+                                name="gender"
+                                value={formData.gender === true ? 'true' : formData.gender === false ? 'false' : ''}
+                                onChange={handleChange}
+                                options={genderOptions}
+                                error={formErrors.gender}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Откуда приехал"
+                                type="text"
+                                name="origin"
+                                value={formData.origin || ''}
+                                onChange={handleChange}
+                                error={formErrors.origin}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <SelectField
+                                label="Группа"
+                                name="groupId"
+                                value={formData.group?.id ?? ''}
+                                onChange={handleChange}
+                                options={groupOptions}
+                                error={formErrors.groupId}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Контактный телефон"
+                                type="tel"
+                                name="phone"
+                                value={formData.phone || ''}
+                                onChange={handleChange}
+                                error={formErrors.phone}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="additional-contacts-section mt-4 pt-2">
+                            <h4 className="h6 mb-2 pb-2 border-bottom">Дополнительные контакты</h4>
 
-                        {contactsList.length > 0 && (
-                            <div className="contact-fields-container">
-                                {contactsList.map((contact, index) => (
-                                    <div key={index} className="row g-2 mb-2 contact-field-row">
-                                        <div className="col-md-5">
-                                            <InputField
-                                                label="Комментарий"
-                                                type="text"
-                                                value={contact.comment}
-                                                onChange={e => handleContactChange(index, 'comment', e.target.value)}
-                                                error={formErrors.contacts?.[index]?.comment}
-                                                disabled={loading}
-                                            />
+                            {contactsList.length > 0 && (
+                                <div className="contact-fields-container">
+                                    {contactsList.map((contact, index) => (
+                                        <div key={index} className="row g-2 mb-2 contact-field-row">
+                                            <div className="col-md-5">
+                                                <InputField
+                                                    label="Комментарий"
+                                                    type="text"
+                                                    value={contact.comment}
+                                                    onChange={e => handleContactChange(index, 'comment', e.target.value)}
+                                                    error={formErrors.contacts?.[index]?.comment}
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div className="col-md-6">
+                                                <InputField
+                                                    label="Телефон"
+                                                    type="tel"
+                                                    value={contact.phone}
+                                                    onChange={e => handleContactChange(index, 'phone', e.target.value)}
+                                                    error={formErrors.contacts?.[index]?.phone}
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div className="col-md-1 d-flex align-items-end">
+                                                <ActionButton
+                                                    type="button"
+                                                    variant='danger'
+                                                    onClick={() => handleRemoveContactField(index)}
+                                                    disabled={loading}
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </ActionButton>
+                                            </div>
                                         </div>
-                                        <div className="col-md-6">
-                                            <InputField
-                                                label="Телефон"
-                                                type="tel"
-                                                value={contact.phone}
-                                                onChange={e => handleContactChange(index, 'phone', e.target.value)}
-                                                error={formErrors.contacts?.[index]?.phone}
-                                                disabled={loading}
-                                            />
-                                        </div>
-                                        <div className="col-md-1 d-flex align-items-end">
-                                            <ActionButton
-                                                type="button"
-                                                variant='danger'
-                                                onClick={() => handleRemoveContactField(index)}
-                                                disabled={loading}
-                                            >
-                                                <i className="bi bi-trash"></i>
-                                            </ActionButton>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
 
-                        {contactsList.length < 5 && (
-                            <ActionButton
-                                type="button"
-                                size='md'
-                                onClick={handleAddContactField}
-                                disabled={loading}>
-                                <i className="bi bi-plus-circle me-1"></i>
-                                Добавить контакт
-                            </ActionButton>
-                        )}
+                            {contactsList.length < 5 && (
+                                <ActionButton
+                                    type="button"
+                                    size='md'
+                                    onClick={handleAddContactField}
+                                    disabled={loading}>
+                                    <i className="bi bi-plus-circle me-1"></i>
+                                    Добавить контакт
+                                </ActionButton>
+                            )}
+                        </div>
                     </div>
                 </div>
-                <div className="d-flex justify-content-end mt-4 pt-2">
+                <div className={styles.formFooter}>
                     <ActionButton
                         variant='dark'
                         onClick={() => {
@@ -427,7 +444,6 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                     <ActionButton
                         type='submit'
                         variant='primary'
-                        className="ms-2"
                         disabled={loading}
                     >
                         {loading ? 'Сохранение…' : 'Сохранить'}

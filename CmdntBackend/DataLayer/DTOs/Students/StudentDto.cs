@@ -23,5 +23,7 @@ namespace DataLayer.DTOs.Students
         public int? RoomId { get; set; }
 
         public string? BlockNumber { get; set; }
+
+        public string? Origin { get; set; }
     }
 }
