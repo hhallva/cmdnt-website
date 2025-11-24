@@ -16,8 +16,8 @@ import InputField from '../../../components/InputField/InputField';
 import PasswordField from '../../../components/PasswordField/PasswordField';
 import SelectField from '../../../components/SelectField/SelectField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
-import ChangePasswordModal from '../../../components/ChangePasswordModal/ChangePasswordModal';
-import EditUserModal from '../../../components/EditUserModal/EditUserModal';
+import ChangePasswordModal from './components/ChangePasswordModal/ChangePasswordModal';
+import EditUserModal from './components/EditUserModal/EditUserModal';
 
 import styles from './User.module.css'
 
