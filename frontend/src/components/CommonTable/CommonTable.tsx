@@ -1,31 +1,22 @@
-// src/components/CommonTable/CommonTable.tsx
 import React, { type ReactNode } from 'react';
-import styles from './CommonTable.module.css'; // Создадим стили позже
+import styles from './CommonTable.module.css';
 
-// Тип для определения колонки
-// `key` - ключ в объекте данных (например, 'name', 'group.name')
-// `title` - заголовок колонки
-// `render` - (опционально) функция для кастомного рендеринга ячейки
 interface ColumnDefinition<T> {
     key: keyof T | string;
-    title: ReactNode; // Может быть строкой или JSX
-    sortable?: boolean; // Можно ли сортировать по этой колонке
+    title: ReactNode;
+    sortable?: boolean;
     render?: (item: T) => ReactNode;
     className?: string;
 }
 
-// Тип для определения действия
-// `render` - функция, возвращающая ReactNode (например, кнопку) для каждой строки
 interface ActionDefinition<T> {
     render: (item: T) => React.ReactNode;
 }
 
-// Новый тип для конфигурации сортировки
 interface SortConfig {
     key: string;
     direction: 'asc' | 'desc';
 }
-
 
 interface CommonTableProps<T> {
     title?: string;
@@ -35,12 +26,11 @@ interface CommonTableProps<T> {
     emptyMessage?: string;
     className?: string;
     totalCount?: number;
-    enableSorting?: boolean; // Включена ли сортировка в принципе
-    onSortRequest?: (key: string) => void; // Callback для запроса сортировки
-    sortConfig?: SortConfig | null; // Текущая конфигурация сортировки
+    enableSorting?: boolean;
+    onSortRequest?: (key: string) => void;
+    sortConfig?: SortConfig | null;
 }
 
-// Универсальный компонент таблицы
 const CommonTable = <T extends Record<string, any>>({
     title,
     data,
@@ -49,98 +39,80 @@ const CommonTable = <T extends Record<string, any>>({
     emptyMessage = 'Данные не найдены',
     className = '',
     totalCount,
-    // Новые пропсы
     enableSorting = false,
     onSortRequest,
     sortConfig,
 }: CommonTableProps<T>) => {
+    // Универсальный резолвер значения по ключу или dot-path (group.name)
+    const getValueByPath = (obj: T, path: string | keyof T) =>
+        typeof path === 'string'
+            ? path in obj
+                ? (obj as T)[path]
+                : path.split('.').reduce((acc, part) => acc?.[part], obj as any)
+            : obj[path];
 
-    // --- Вспомогательная функция для получения значения по ключу ---
-    const getValueByPath = (obj: T, path: string | keyof T): any => {
-        if (typeof path === 'string' && path in obj) {
-            return obj[path as keyof T];
-        }
-        if (typeof path === 'string') {
-            return path.split('.').reduce((acc, part) => acc && acc[part], obj as any);
-        }
-        return obj[path];
-    };
-
-    // --- Рендер заголовка колонки с возможностью сортировки ---
+    // Возвращает заголовок колонки с иконкой сортировки при необходимости
     const renderColumnTitle = (column: ColumnDefinition<T>) => {
-        // Если сортировка выключена или колонка не сортируемая, просто возвращаем title
-        if (!enableSorting || !column.sortable) {
-            return column.title;
-        }
+        if (!enableSorting || !column.sortable) return column.title;
+        const isActive = sortConfig?.key === column.key;
+        const icon = !isActive
+            ? 'bi-arrow-down-up'
+            : sortConfig?.direction === 'asc'
+                ? 'bi-sort-alpha-down'
+                : 'bi-sort-alpha-up';
 
         return (
             <div
-                onClick={() => onSortRequest && onSortRequest(column.key as string)}
-                style={{
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                }}
+                onClick={() => onSortRequest?.(column.key as string)}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
             >
                 <span>{column.title}</span>
-                <span style={{ opacity: sortConfig?.key === column.key ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
-                    {sortConfig?.key === column.key ? (
-                        sortConfig.direction === 'asc' ? (
-                            <i className="bi bi-sort-alpha-down" style={{ color: '#0d6efd' }}></i>
-                        ) : (
-                            <i className="bi bi-sort-alpha-up" style={{ color: '#0d6efd' }}></i>
-                        )
-                    ) : (
-                        <i className="bi bi-arrow-down-up"></i> // Иконка по умолчанию
-                    )}
-                </span>
+                <i className={`bi ${icon}`} style={{ color: isActive ? '#0d6efd' : '#686868', opacity: isActive ? 1 : 0.5, transition: 'opacity 0.2s ease' }}></i>
             </div>
         );
     };
 
+    // Флаг, нужно ли рисовать столбец действий
+    const hasActions = Boolean(actions?.length);
+
     return (
         <div className={`${styles.tableWrapper} ${className}`}>
-            {(title || (totalCount !== undefined && data.length > 0)) && (
+            {(title || (totalCount !== undefined && data.length)) && (
                 <div className={styles.tableHeader}>
+                    {/* Заголовок таблицы */}
                     {title && <h3 className={styles.tableTitle}>{title}</h3>}
+                    {/* Информация о количестве записей */}
                     {totalCount !== undefined && data.length > 0 && (
-                        <div className={styles.recordCount}>
-                            Показано {data.length} из {totalCount}
-                        </div>
+                        <div className={styles.recordCount}>Показано {data.length} из {totalCount}</div>
                     )}
                 </div>
             )}
             <div className={styles.tableResponsive}>
                 <table className={styles.table}>
                     <thead>
+                        {/*Шапка таблицы*/}
                         <tr>
-                            {/* Рендерим заголовки колонок с учетом сортировки */}
                             {columns.map((column, index) => (
-                                <th key={index} className={column.className}>
-                                    {renderColumnTitle(column)}
-                                </th>
+                                <th key={index} className={column.className}>{renderColumnTitle(column)}</th>
                             ))}
-                            {actions && actions.length > 0 && <th>Действия</th>}
+                            {hasActions && <th>Действия</th>}
                         </tr>
                     </thead>
                     <tbody>
-                        {data.length > 0 ? (
+                        {/*Данные таблицы*/}
+                        {data.length ? (
                             data.map((item, rowIndex) => (
                                 <tr key={rowIndex}>
                                     {columns.map((column, colIndex) => (
                                         <td key={colIndex} className={column.className}>
-                                            {column.render ? column.render(item) : (getValueByPath(item, column.key) ?? 'Нет')}
+                                            {column.render ? column.render(item) : getValueByPath(item, column.key) ?? 'Нет'}
                                         </td>
                                     ))}
-                                    {actions && actions.length > 0 && (
+                                    {hasActions && (
                                         <td>
                                             <div className={styles.actionButtons}>
-                                                {actions.map((action, actionIndex) => (
-                                                    <React.Fragment key={actionIndex}>
-                                                        {action.render(item)}
-                                                    </React.Fragment>
+                                                {actions!.map((action, actionIndex) => (
+                                                    <React.Fragment key={actionIndex}>{action.render(item)}</React.Fragment>
                                                 ))}
                                             </div>
                                         </td>
@@ -149,9 +121,8 @@ const CommonTable = <T extends Record<string, any>>({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center">
-                                    {emptyMessage}
-                                </td>
+                                {/*Plaseholder при отсутсвии данных*/}
+                                <td colSpan={columns.length + (hasActions ? 1 : 0)} className="text-center">{emptyMessage}</td>
                             </tr>
                         )}
                     </tbody>
