@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataLayer.DTOs.User
+namespace DataLayer.DTOs.Users
 {
     public class UpdatePasswordDto
     {

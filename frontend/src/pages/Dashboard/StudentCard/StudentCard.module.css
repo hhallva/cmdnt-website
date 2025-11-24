@@ -22,7 +22,15 @@
 .studentBasicInfo {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 2rem;
+}
+
+.studentNameInfo {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .studentPhoto {
@@ -53,6 +61,10 @@
     color: white;
     font-size: 3rem;
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    text-align: center;
+    line-height: 1;
 }
 
 .studentNameInfo h2 {
@@ -260,6 +272,12 @@
     .studentBasicInfo {
         flex-direction: column;
         gap: 1rem;
+        width: 100%;
+        align-items: center;
+        text-align: center;
+    }
+
+    .studentNameInfo {
         width: 100%;
     }
 

@@ -14,6 +14,7 @@ import type { PostStudentDto, StudentsDto, ContactDto, UpdateStudentPayload } fr
 
 import type { GroupDto } from '../types/groups'
 import type { RoomDto } from '../types/rooms'
+import type { NoteDto, CreateNoteDto } from '../types/notes'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -160,16 +161,7 @@ export const apiClient = {
 
   //#region Студенты
 
-  /** Выселить студента из комнаты */
-  evictStudent: async (studentId: number): Promise<void> => {
-    await apiClient.requestWithAuth(`/api/v1/Students/${studentId}/evict-room`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  },
-
+  //#region Получение студентов
   getAllStudents: async (): Promise<StudentsDto[]> => {
     return apiClient.requestWithAuth<[StudentsDto]>('/api/v1/Students');
   },
@@ -178,6 +170,13 @@ export const apiClient = {
     return apiClient.requestWithAuth<StudentsDto>(`/api/v1/Students/${id}`);
   },
 
+
+  getExtStudentById: async (id: number): Promise<{ origin: string | null }> => {
+    return apiClient.requestWithAuth<{ origin: string | null }>(`/api/v1/Students/${id}/extended`);
+  },
+  //#endregion
+
+  //#region Создание, обновление и удаление студентов
   createStudent: async (data: PostStudentDto): Promise<StudentsDto> => {
     return apiClient.requestWithAuth<StudentsDto>('/api/v1/Students', {
       method: 'POST',
@@ -198,6 +197,29 @@ export const apiClient = {
     });
   },
 
+  deleteStudent: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Students/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  //#endregion
+
+  //#region Работа с комнатами студентов
+  evictStudent: async (studentId: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Students/${studentId}/evict-room`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+  //#endregion
+
+  //#region Контакты студентов
+  getStudentContactsById: async (id: number): Promise<ContactDto[]> => {
+    return apiClient.requestWithAuth<[ContactDto]>(`/api/v1/Students/${id}/contacts`);
+  },
+
   addStudentContacts: async (id: number, contacts: Omit<ContactDto, 'id'>[]): Promise<ContactDto[]> => {
     return apiClient.requestWithAuth<ContactDto[]>(`/api/v1/Students/${id}/contacts`, {
       method: 'POST',
@@ -207,21 +229,31 @@ export const apiClient = {
       body: JSON.stringify(contacts),
     });
   },
+  //#endregion
 
-  getExtStudentById: async (id: number): Promise<{ origin: string | null }> => {
-    return apiClient.requestWithAuth<{ origin: string | null }>(`/api/v1/Students/${id}/extended`);
+  //#region Работа с заметками студентов
+  getStudentNotesById: async (id: number): Promise<NoteDto[]> => {
+    return apiClient.requestWithAuth<NoteDto[]>(`/api/v1/Notes/student/${id}`);
   },
 
-  getStudentContactsById: async (id: number): Promise<ContactDto[]> => {
-    return apiClient.requestWithAuth<[ContactDto]>(`/api/v1/Students/${id}/contacts`);
+  createStudentNote: async (payload: CreateNoteDto): Promise<NoteDto> => {
+    return apiClient.requestWithAuth<NoteDto>('/api/v1/Notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
   },
 
-  deleteStudent: async (id: number): Promise<void> => {
-    await apiClient.requestWithAuth(`/api/v1/Students/${id}`, {
+  deleteNote: async (noteId: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Notes/${noteId}`, {
       method: 'DELETE',
     });
   },
-  //#endregion
+  //#endregion 
+
+  //#endregion 
 
   //#region Группы
   getAllGroups: async (): Promise<GroupDto[]> => {

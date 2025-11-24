@@ -1,4 +1,4 @@
-﻿namespace DataLayer.DTOs.User
+﻿namespace DataLayer.DTOs.Users
 {
     public class UserDto
     {

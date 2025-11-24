@@ -70,7 +70,7 @@
 
 @media (max-width: 600px) {
     .modalOverlay {
-        align-items: flex-start;
+        align-items: flex-center;
         padding: 16px;
     }
 

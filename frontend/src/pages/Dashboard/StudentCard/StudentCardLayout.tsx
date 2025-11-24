@@ -10,7 +10,7 @@ import type { UserSession } from '../../../types/UserSession';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import PersonalInfoTab from './components/PersonalInfoTab';
 import HousingInfoTab from './components/HousingInfoTab';
-import NotesTab from './components/NotesTab';
+import NotesTab from './components/NotesTab/NotesTab';
 
 import styles from './StudentCard.module.css';
 import EditStudentModal from './components/EditStudentModal/EditStudentModal';
@@ -29,6 +29,14 @@ const buildFullName = (...parts: Array<string | null | undefined>) => {
         .map(part => part?.trim())
         .filter((part): part is string => Boolean(part && part.length))
         .join(' ');
+};
+
+const buildInitials = (...parts: Array<string | null | undefined>) => {
+    const letters = parts
+        .map(part => part?.trim().charAt(0))
+        .filter((letter): letter is string => Boolean(letter))
+        .map(letter => letter.toUpperCase());
+    return letters.length ? letters.join('') : '?';
 };
 
 const StudentCardLayout: React.FC = () => {
@@ -78,6 +86,7 @@ const StudentCardLayout: React.FC = () => {
     if (!student) return <div className="alert alert-info m-3">Студент не найден.</div>;
 
     const studentFullName = buildFullName(student.surname, student.name, student.patronymic);
+    const studentInitials = buildInitials(student.surname, student.name);
     const currentUserFullName = buildFullName(userSession?.surname, userSession?.name, userSession?.patronymic) || userSession?.name || undefined;
 
     // Удаление студента
@@ -116,7 +125,6 @@ const StudentCardLayout: React.FC = () => {
         }
     };
 
-
     // Рендер вкладок
     const renderTabContent = () => {
         switch (activeTab) {
@@ -138,6 +146,8 @@ const StudentCardLayout: React.FC = () => {
                         studentId={student.id}
                         studentName={studentFullName}
                         currentUserName={currentUserFullName}
+                        currentUserId={userSession?.id ?? null}
+                        currentUserRoleName={userSession?.role?.name ?? null}
                     />
                 );
             default:
@@ -154,15 +164,10 @@ const StudentCardLayout: React.FC = () => {
             <div className={styles.profileHeader}>
                 <div className={styles.studentBasicInfo}>
                     <div className={styles.studentPhoto}>
-                        <div className={styles.studentPhotoPlaceholder}>
-                            {student.name?.charAt(0) || '?'}
-                            {student.surname?.charAt(0) || '?'}
-                        </div>
+                        <div className={styles.studentPhotoPlaceholder}>{studentInitials}</div>
                     </div>
                     <div className={styles.studentNameInfo}>
-                        <h2>
-                            {student.surname || ''} {student.name || ''} {student.patronymic || ''}
-                        </h2>
+                        <h2>{studentFullName || '—'}</h2>
                     </div>
                 </div>
             </div>
