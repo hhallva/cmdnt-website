@@ -3,6 +3,7 @@ import { apiClient } from '../../../../../api/client';
 import type { UserDto } from '../../../../../types/UserDto';
 import PasswordField from '../../../../../components/PasswordField/PasswordField';
 import CommonModal from '../../../../../components/CommonModal/CommonModal';
+import ActionButton from '../../../../../components/ActionButton/ActionButton';
 
 export interface ChangePasswordModalProps {
     user: UserDto;
@@ -91,10 +92,19 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
                 {error && <div className="alert alert-danger mb-3">{error}</div>}
 
                 <div className="d-flex justify-content-end gap-2 pt-2">
-                    <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
+                    <ActionButton
+                        size='md'
+                        disabled={loading}
+                        onClick={onClose}
+                        variant='secondary'
+                        type="button">
                         Отмена
-                    </button>
-                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                    </ActionButton>
+
+                    <ActionButton
+                        size='md'
+                        type="submit"
+                        disabled={loading}>
                         {loading ? (
                             <>
                                 <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
@@ -103,7 +113,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
                         ) : (
                             'Сохранить пароль'
                         )}
-                    </button>
+                    </ActionButton>
                 </div>
             </form>
         </CommonModal>

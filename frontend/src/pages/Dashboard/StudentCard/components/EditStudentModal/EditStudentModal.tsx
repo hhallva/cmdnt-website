@@ -377,10 +377,10 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                             <h4 className="h6 mb-2 pb-2 border-bottom">Дополнительные контакты</h4>
 
                             {contactsList.length > 0 && (
-                                <div className="contact-fields-container">
+                                <div className={styles.contactFieldsContainer}>
                                     {contactsList.map((contact, index) => (
-                                        <div key={index} className="row g-2 mb-2 contact-field-row">
-                                            <div className="col-md-5">
+                                        <div key={index} className={styles.contactRow}>
+                                            <div>
                                                 <InputField
                                                     label="Комментарий"
                                                     type="text"
@@ -390,7 +390,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                                                     disabled={loading}
                                                 />
                                             </div>
-                                            <div className="col-md-6">
+                                            <div>
                                                 <InputField
                                                     label="Телефон"
                                                     type="tel"
@@ -400,8 +400,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                                                     disabled={loading}
                                                 />
                                             </div>
-                                            <div className="col-md-1 d-flex align-items-end">
+                                            <div className={styles.contactActions}>
                                                 <ActionButton
+                                                    size='sm'
                                                     type="button"
                                                     variant='danger'
                                                     onClick={() => handleRemoveContactField(index)}
@@ -417,6 +418,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
 
                             {contactsList.length < 5 && (
                                 <ActionButton
+                                    className={styles.contactAddButton}
                                     type="button"
                                     size='md'
                                     onClick={handleAddContactField}
@@ -430,7 +432,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                 </div>
                 <div className={styles.formFooter}>
                     <ActionButton
-                        variant='dark'
+                        size='md'
+                        className={styles.footerButton}
+                        variant='secondary'
                         onClick={() => {
                             setFormData(student);
                             setContacts(contacts || []);
@@ -442,6 +446,8 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                         Сбросить
                     </ActionButton>
                     <ActionButton
+                        size='md'
+                        className={styles.footerButton}
                         type='submit'
                         variant='primary'
                         disabled={loading}

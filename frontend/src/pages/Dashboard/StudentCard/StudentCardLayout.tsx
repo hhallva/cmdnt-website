@@ -36,7 +36,7 @@ const buildInitials = (...parts: Array<string | null | undefined>) => {
         .map(part => part?.trim().charAt(0))
         .filter((letter): letter is string => Boolean(letter))
         .map(letter => letter.toUpperCase());
-    return letters.length ? letters.join('') : '?';
+    return letters.length ? letters.join('') : '';
 };
 
 const StudentCardLayout: React.FC = () => {
@@ -195,26 +195,35 @@ const StudentCardLayout: React.FC = () => {
             </div>
 
             {/* Контент */}
-            <div className={styles.tabContent}>{renderTabContent()}</div>
+            {renderTabContent()}
 
             {/* Кнопки действий */}
             {!isEducator && (activeTab === 'personal' || activeTab === 'housing') && (
-                <div className={styles.actionButtons} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', gap: '10px' }}>
+                <div className={`${styles.actionButtons} ${styles.actionButtonsBar}`}>
+                    <div className={styles.actionButtonsGroup}>
                         {activeTab === 'personal' && (
-                            <ActionButton onClick={() => setEditModalOpen(true)}>
+                            <ActionButton
+                                className={styles.actionButtonFullWidth}
+                                size='md'
+                                onClick={() => setEditModalOpen(true)}>
                                 <i className="bi bi-pencil me-1"></i>
                                 Редактировать данные
                             </ActionButton>
                         )}
                         {activeTab === 'housing' && (
                             student.roomId ? (
-                                <ActionButton variant="danger" onClick={handleEvictClick}>
+                                <ActionButton
+                                    className={styles.actionButtonFullWidth}
+                                    size='md'
+                                    variant="danger"
+                                    onClick={handleEvictClick}>
                                     <i className="bi bi-box-arrow-right me-1"></i>
                                     Выселить студента
                                 </ActionButton>
                             ) : (
-                                <ActionButton variant="success">
+                                <ActionButton
+                                    className={styles.actionButtonFullWidth}
+                                    size='md'>
                                     <i className="bi bi-house-door me-1"></i>
                                     Заселить студента
                                 </ActionButton>
@@ -222,7 +231,10 @@ const StudentCardLayout: React.FC = () => {
                         )}
                     </div>
                     {activeTab === 'personal' && (
-                        <ActionButton variant="danger" onClick={handleDeleteClick}>
+                        <ActionButton
+                            className={styles.actionButtonFullWidth}
+                            size='md'
+                            variant="danger" onClick={handleDeleteClick}>
                             Удалить студента
                         </ActionButton>
                     )}

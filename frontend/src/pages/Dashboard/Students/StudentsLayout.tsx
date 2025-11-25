@@ -298,11 +298,11 @@ const StudentsLayout: React.FC = () => {
                         aria-expanded={isAdvancedFilterOpen}
                         aria-controls="advancedFilters"
                     >
-                        <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} me-1`}></i>
-                        {isAdvancedFilterOpen ? 'Скрыть фильтры' : 'Расширенные фильтры'}
+                        Расширенные фильтры
+                        <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} ms-2`}></i>
                     </ActionButton>
                     <ActionButton
-                        variant='dark'
+                        variant='secondary'
                         onClick={resetFiltersAndSorts}
                     >
                         Сбросить
@@ -789,7 +789,7 @@ const StudentsLayout: React.FC = () => {
                 </div>
                 <div className="d-flex justify-content-end mt-4 pt-2">
                     <ActionButton
-                        variant='dark'
+                        variant='secondary'
                         onClick={resetAddForm}
                         disabled={isAdding}
                     >

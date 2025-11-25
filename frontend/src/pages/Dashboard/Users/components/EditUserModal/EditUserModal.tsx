@@ -6,6 +6,7 @@ import type { RoleDto } from '../../../../../types/RoleDto';
 import InputField from '../../../../../components/InputField/InputField';
 import SelectField from '../../../../../components/SelectField/SelectField';
 import CommonModal from '../../../../../components/CommonModal/CommonModal';
+import ActionButton from '../../../../../components/ActionButton/ActionButton';
 
 interface FormErrors {
     roleId?: string | null;
@@ -184,10 +185,19 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, roles, onClose, onS
                 {errors.form && <div className="alert alert-danger mb-3">{errors.form}</div>}
 
                 <div className="d-flex justify-content-end gap-2 pt-2">
-                    <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
+                    <ActionButton
+                        size='md'
+                        disabled={loading}
+                        onClick={onClose}
+                        variant='secondary'
+                        type="button">
                         Отмена
-                    </button>
-                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                    </ActionButton>
+
+                    <ActionButton
+                        size='md'
+                        type="submit"
+                        disabled={loading}>
                         {loading ? (
                             <>
                                 <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
@@ -196,10 +206,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, roles, onClose, onS
                         ) : (
                             'Сохранить'
                         )}
-                    </button>
+                    </ActionButton>
                 </div>
             </form>
-        </CommonModal>
+        </CommonModal >
     );
 };
 

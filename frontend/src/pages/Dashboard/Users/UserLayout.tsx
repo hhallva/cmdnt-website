@@ -256,7 +256,7 @@ const UsersLayout: React.FC = () => {
                 </div>
                 <div className="col-md-2 " >
                     <ActionButton
-                        variant='dark'
+                        variant='secondary'
                         onClick={handleResetFilters}
                     >
                         Сбросить
@@ -488,7 +488,7 @@ const UsersLayout: React.FC = () => {
                 {/* Кнопки действия */}
                 <div className="d-flex justify-content-end mt-4 pt-2">
                     <ActionButton
-                        variant='dark'
+                        variant='secondary'
                         onClick={resetAddForm}
                         disabled={isAdding}
                     >

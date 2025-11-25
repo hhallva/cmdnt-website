@@ -29,3 +29,66 @@
     margin-top: 8px;
     flex-wrap: wrap;
 }
+
+.contactFieldsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 1rem;
+}
+
+.contactRow {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(200px, 1fr) auto;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.contactActions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.contactAddButton {
+    align-self: flex-start;
+}
+
+.formFooter {
+    justify-content: flex-end;
+}
+
+.footerButton {
+    min-width: 160px;
+}
+
+@media (max-width: 768px) {
+    .formBody {
+        padding-right: 0;
+    }
+
+    .formFieldsGrid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .contactRow {
+        grid-template-columns: 1fr;
+    }
+
+    .contactActions {
+        justify-content: flex-start;
+    }
+
+    .contactAddButton {
+        width: 100%;
+    }
+
+    .formFooter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .footerButton {
+        width: 100%;
+    }
+}

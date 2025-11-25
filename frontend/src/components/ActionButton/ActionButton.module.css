@@ -5,10 +5,10 @@
     --btn-white: #ffffff;
     --btn-primary: #ffa726;
     --btn-primary-hover: #f57c00;
-    --btn-secondary: #dbdbdb;
-    --btn-secondary-hover: #bdbdbd;
-    --btn-dark: #6c757d;
-    --btn-dark-hover: #5a6268;
+    --btn-secondary: #E7EDF5;
+    --btn-secondary-hover: #d9dfe8;
+    --btn-dark: #9ea2a8;
+    --btn-dark-hover: #6e7075;
     --btn-danger: var(--color-danger);
     --btn-danger-hover: var(--color-danger-hover);
     --btn-success: #28a745;
@@ -78,7 +78,7 @@
 }
 
 .actionButton.variant-dark {
-    color: var(--btn-white);
+    color: #424242;
     background-color: var(--btn-dark);
 }
 
