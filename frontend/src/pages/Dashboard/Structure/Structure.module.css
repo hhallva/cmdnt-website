@@ -1,0 +1,425 @@
+.structureWrapper {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.topRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.helperText {
+    margin: 0;
+    color: #667085;
+    max-width: 600px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.statCard {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.statLabel {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.statNumber {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #fb8c00;
+}
+
+.searchSection {
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.searchControls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.searchInputWrapper {
+    flex: 1 1 320px;
+    min-width: 240px;
+}
+
+.searchButtons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-self: stretch;
+}
+
+.advancedFiltersPanel {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+.filtersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+.resetButton {
+    align-self: end;
+    height: 50px;
+    justify-self: flex;
+    font-size: 1rem;
+}
+
+.emptyState {
+    border: 1px dashed #cbd5f5;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.emptyState i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.floorSection {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.floorHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.floorTitle {
+    margin: 0;
+    font-size: 1.5rem;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 700;
+    color: #3B4356;
+}
+
+@media (max-width: 768px) {
+
+    .resetButton {
+        align-self: end;
+        height: fit-content;
+        justify-self: flex;
+        font-size: 1rem;
+    }
+
+    .floorTitle {
+        font-size: 1rem;
+    }
+}
+
+.floorSubtitle {
+    margin: 0;
+    color: #6b7280;
+}
+
+.floorBadge {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+}
+
+.blocksGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.blockCard {
+    background: #fff;
+    border: 2px solid #ffffff;
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.blockCardOccupied {
+    border-color: #fb8c00;
+}
+
+.blockCard:hover {
+    transform: translateY(-6px);
+    box-shadow: none;
+    border-color: #d6d6d6;
+}
+
+.blockHeader {
+    display: flex;
+    justify-content: start;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.blockNumber {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--btn-primary);
+}
+
+.blockNumberBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 0.85rem 1.7rem;
+    border-radius: 12px;
+    border: 2px solid var(--btn-primary);
+}
+
+.blockMetaColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+}
+
+.blockMeta {
+    margin: 0.15rem 0 0;
+    color: #6b7280;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.blockMetaLabel {
+    color: #6b7280;
+}
+
+.blockMetaValue {
+    color: #111827;
+    font-weight: 600;
+}
+
+.blockMetaSeparator,
+.blockMetaCapacity {
+    color: #6b7280;
+}
+
+.blockCapacity {
+    margin: 0;
+    color: #475467;
+    font-weight: 500;
+}
+
+.blockOccupants {
+    margin: 0;
+    min-height: 42px;
+    line-height: 1.4;
+    align-content: center;
+}
+
+.moreOccupants {
+    color: #fb8c00;
+    font-weight: 600;
+}
+
+.blockActions {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    margin-top: auto;
+}
+
+.blockActionBtn {
+    width: 100%;
+}
+
+.statusBadge {
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.statusOccupied {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.statusFree {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.statusPartial {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.modalContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.modalInfoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.infoLabel {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.infoValue {
+    margin: 0.2rem 0 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.studentsList {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.studentRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    align-items: center;
+}
+
+.studentInfo {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.studentAvatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #fb8c00;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.studentName {
+    margin: 0;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.studentMeta {
+    margin: 0;
+    color: #475467;
+    font-size: 0.85rem;
+}
+
+.freeSlot {
+    border: 1px dashed #94a3b8;
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+    color: #475467;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .topRow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .searchControls {
+        flex-direction: auto;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0.75rem;
+    }
+
+    .searchButtons {
+        width: 100%;
+        justify-content: flex-start;
+        align-self: stretch;
+    }
+
+    .searchInputWrapper {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .filtersGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .floorHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .studentRow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .blockCard {
+        border-radius: 12px;
+    }
+}

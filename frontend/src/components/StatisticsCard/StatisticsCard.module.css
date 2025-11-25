@@ -1,8 +1,6 @@
 .statisticsCardContainer {
-    background: white;
     border-radius: 10px;
-    padding: 1rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0rem;
     display: block;
     margin-bottom: 1rem;
 }
@@ -21,7 +19,7 @@
 }
 
 .statCard {
-    background: #f8f9fa;
+    background: white;
     border-radius: 10px;
     padding: 1rem;
     text-align: center;
@@ -35,7 +33,7 @@
 }
 
 .statLabel {
-    color: #6c757d;
+    color: black;
     font-size: 0.9rem;
 }
 

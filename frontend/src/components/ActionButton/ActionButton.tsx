@@ -3,7 +3,7 @@ import React from 'react';
 import styles from './ActionButton.module.css'; // Создадим стили позже
 
 interface ActionButtonProps {
-    onClick?: () => void;
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
     children: React.ReactNode;
     variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'transparent' | 'info' | 'light' | 'dark' | 'outline-primary' | 'transparent-primary' | 'outline-secondary'; // Примеры вариантов
     size?: 'sm' | 'md' | 'lg';

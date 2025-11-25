@@ -303,7 +303,7 @@ const StudentsLayout: React.FC = () => {
                         aria-expanded={isAdvancedFilterOpen}
                         aria-controls="advancedFilters"
                     >
-                        Расширенные фильтры
+                        Фильтры
                         <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} ms-2`}></i>
                     </ActionButton>
                     <ActionButton

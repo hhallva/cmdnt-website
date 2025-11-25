@@ -15,6 +15,7 @@ import type { PostStudentDto, StudentsDto, ContactDto, UpdateStudentPayload } fr
 import type { GroupDto } from '../types/groups'
 import type { RoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
+import type { StructureStatisticDto } from '../types/structures'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -78,10 +79,6 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const apiClient = {
-
-  //#region 
-  //#endregion
-
   //#region Авторизация
   singIn: async (credentials: LoginDto) => {
     return request<LoginResponseDto>('/api/v1/SignIn', {
@@ -163,7 +160,7 @@ export const apiClient = {
 
   //#region Получение студентов
   getAllStudents: async (): Promise<StudentsDto[]> => {
-    return apiClient.requestWithAuth<[StudentsDto]>('/api/v1/Students');
+    return apiClient.requestWithAuth<StudentsDto[]>('/api/v1/Students');
   },
 
   getStudentById: async (id: number): Promise<StudentsDto> => {
@@ -257,11 +254,15 @@ export const apiClient = {
 
   //#region Группы
   getAllGroups: async (): Promise<GroupDto[]> => {
-    return apiClient.requestWithAuth<[GroupDto]>('/api/v1/Groups');
+    return apiClient.requestWithAuth<GroupDto[]>('/api/v1/Groups');
   },
   //#endregion 
 
   //#region Коммнаты
+  getAllRooms: async (): Promise<RoomDto[]> => {
+    return apiClient.requestWithAuth<RoomDto[]>('/api/v1/Rooms');
+  },
+
   getRoomById: async (id: number): Promise<RoomDto> => {
     return apiClient.requestWithAuth<RoomDto>(`/api/v1/Rooms/${id}`);
   },
@@ -269,5 +270,13 @@ export const apiClient = {
   getStudentsByRoomId: async (id: number): Promise<StudentsDto[]> => {
     return apiClient.requestWithAuth<StudentsDto[]>(`/api/v1/Rooms/${id}/students`);
   },
+  //#endregion
+
+  //#region Структура
+  getStructureStatistics: async (): Promise<StructureStatisticDto> => {
+    return apiClient.requestWithAuth<StructureStatisticDto>('/api/v1/Structure/statistic');
+  },
+
+
   //#endregion
 };

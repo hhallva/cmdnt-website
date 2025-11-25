@@ -2,7 +2,7 @@
 .container {
     display: flex;
     min-height: 100vh;
-    background: white;
+    background: #f4f7fb;
     color: #333;
 }
 
@@ -130,16 +130,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: white;
-    padding: 1rem 2rem;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
 }
 
 .header h1 {
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 1.5rem;
+    font-weight: bold;
     color: #2c3e50;
     margin: 0;
 }
@@ -261,12 +259,8 @@
         margin-left: 0;
     }
 
-    .header {
-        padding: 1rem;
-    }
-
     .header h1 {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
     .userInfo span {

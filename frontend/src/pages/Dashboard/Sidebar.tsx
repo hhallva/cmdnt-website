@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
         const items = [];
 
         items.push(
-            { icon: 'bi-layout-wtf', label: 'Структура общежития', path: '/dashboard/structure', },
+            { icon: 'bi-layout-wtf', label: 'Общежитие', path: '/dashboard/accomodation', },
             { icon: 'bi-people', label: 'Студенты', path: '/dashboard/students' },
         );
 

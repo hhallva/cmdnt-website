@@ -1,0 +1,27 @@
+[
+    {
+        "floor": 1,
+        "total": 10,
+        "free": 3,
+        "blocks": [
+            {
+                "number": "101",
+                "capacity": 2,
+                "currentOccupancy": 2,
+                "rooms": [
+                    {
+                        "students": [
+                            "Петров П. П.",
+                            "Иванов И. И."
+                        ]
+                    },
+                    {
+                        "students": [
+                            "Сидоров С. С."
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
