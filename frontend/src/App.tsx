@@ -7,28 +7,39 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
 import NotFoundLayout from './pages/NotFound/NotFoundLayout';
 
+// Основной массив маршрутов приложения  
 export const routes = [
   {
+    // Корневой маршрут - страница входа
     path: "/", element: <LoginPage />,
   },
   {
+    // Маршрут панели управления с защитой доступа
     path: "/dashboard",
     element: (
       <ProtectedRoute>
         <DashboardLayout />
       </ProtectedRoute>
     ),
+    // Мета-данные для маршрута
     handle: { title: 'Панель управления' },
+    // Вложенные маршруты внутри дашборда
     children: [
+      // Раздел структуры общежития (требуется роль educator)
       { path: "structure", element: <></>, handle: { title: 'Структура общежития', requiredRole: 'educator' } },
-      { path: "students", element: <StudentsLayout />, handle: { title: 'Студенты', requiredRole: 'commandant' } },
-      { path: "students/:studentId", element: <StudentCardLayout />, handle: { title: 'Карточка студента' } },
+      { path: "students", element: <StudentsLayout />, handle: { title: 'Студенты', requiredRole: 'educator' } },
+      { path: "students/:studentId", element: <StudentCardLayout />, handle: { title: 'Карточка студента', requiredRole: 'educator' } },
+
+      // Раздел студентов (требуется роль commandant)
       { path: "settlement", element: <></>, handle: { title: 'Расселение', requiredRole: 'commandant' } },
+
+      // Раздел пользователей (требуется роль admin)
       { path: "users", element: <UsersLayout />, handle: { title: 'Пользователи', requiredRole: 'admin' } },
-      { path: "groups", element: <></>, handle: { title: '?Группы?', requiredRole: 'admin' } },
-      // Редирект с /dashboard на первый раздел, если нужно
+
+      // Маршрут по умолчанию для /dashboard - редирект на структуру
       { index: true, element: <Navigate to="structure" replace /> },
     ],
   },
+  // Маршрут для обработки несуществующих страниц (404)
   { path: "*", element: <NotFoundLayout /> },
 ];

@@ -1,6 +1,7 @@
 ﻿using DataLayer.Data;
 using DataLayer.DTOs;
 using DataLayer.DTOs.Contacts;
+using DataLayer.DTOs.Notes;
 using DataLayer.DTOs.Students;
 using DataLayer.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,10 +18,9 @@ namespace CmdntApi.Controllers
     {
         private readonly AppDbContext _context = context;
 
+        #region Получение студентов
         [HttpGet]
-        [SwaggerOperation(
-            Summary = "Получение списка всех студентов",
-            Description = "Возвращает полный список студентов, включая данные об их учебной группе и закреплённых комнатах.")]
+        [SwaggerOperation(Summary = "Получение списка всех студентов", Description = "Возвращает полный список студентов, включая данные об их учебной группе и закреплённых комнатах.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Список студентов успешно получен.", Type = typeof(IEnumerable<StudentDto>))]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudents()
         {
@@ -34,14 +34,11 @@ namespace CmdntApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [SwaggerOperation(
-            Summary = "Получение данных студента по ID",
-            Description = "Возвращает информацию о студенте, включая данные об учебной группе и список комнат, в которых он состоит.")]
+        [SwaggerOperation(Summary = "Получение данных студента по ID", Description = "Возвращает информацию о студенте, включая данные об учебной группе и список комнат, в которых он состоит.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно найден.", Type = typeof(StudentDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Неверный идентификатор студента.", Type = typeof(ApiErrorDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент с указанным ID не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<StudentDto>> GetStudent(
-            [SwaggerParameter("Уникальный идентификатор студента", Required = true)] int id)
+        public async Task<ActionResult<StudentDto>> GetStudent([SwaggerParameter("Уникальный идентификатор студента", Required = true)] int id)
         {
             if (id <= 0)
                 return BadRequest(new ApiErrorDto("Неверный идентификатор студента", StatusCodes.Status400BadRequest));
@@ -58,19 +55,27 @@ namespace CmdntApi.Controllers
         }
 
         [HttpGet("{id}/extended")]
-        public async Task<ActionResult<ExtStudentData>> GetOrigin(int id)
+        [SwaggerOperation(Summary = "Получение расширенных сведений о студенте", Description = "Возвращает объект с дополнительной информацией, которая не входит в основной DTO студента (например, происхождение абитуриента).")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Данные успешно получены.", Type = typeof(ExtStudentData))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<ExtStudentData>> GetExtended(int id)
         {
             var student = await _context.Students.FirstOrDefaultAsync(s => s.Id == id);
 
             if (student == null)
                 return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
-            
-
 
             return Ok(new ExtStudentData(student.Origin));
         }
 
+        #endregion
+
+        #region Создание, обновление и удаление студентов
         [HttpPost]
+        [SwaggerOperation(Summary = "Создание нового студента", Description = "Создаёт карточку студента вместе с принадлежностью к учебной группе.")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Студент успешно создан.", Type = typeof(StudentDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные студента.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Указанная учебная группа не найдена.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<StudentDto>> PostStudent(PostStudentDto dto)
         {
             var group = await _context.Groups
@@ -108,15 +113,11 @@ namespace CmdntApi.Controllers
         }
 
         [HttpPut("{id}")]
-        [SwaggerOperation(
-            Summary = "Обновление данных студента",
-            Description = "Позволяет обновить основные данные студента и его контактную информацию.")]
+        [SwaggerOperation(Summary = "Обновление данных студента", Description = "Позволяет обновить основные данные студента и его контактную информацию.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Данные студента успешно обновлены.", Type = typeof(StudentDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные запроса.", Type = typeof(ApiErrorDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<StudentDto>> PutStudent(
-            [SwaggerParameter("ID студента", Required = true)] int id,
-            [FromBody] UpdateStudentDto updateDto)
+        public async Task<ActionResult<StudentDto>> PutStudent([SwaggerParameter("ID студента", Required = true)] int id, [FromBody] UpdateStudentDto updateDto)
         {
             if (id <= 0)
                 return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
@@ -154,7 +155,7 @@ namespace CmdntApi.Controllers
 
             if (updateDto.Contacts != null)
             {
-                if (student.Contacts.Any())
+                if (student.Contacts.Count != 0)
                     _context.Contacts.RemoveRange(student.Contacts);
 
                 var newContacts = updateDto.Contacts.Select(c => new Contact
@@ -176,10 +177,34 @@ namespace CmdntApi.Controllers
             return Ok(student.ToDto());
         }
 
+        [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Удаление данных студента", Description = "Удаляет студента из системы. При этом удаляются все связанные контакты и его заселение.")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Студент успешно удалён.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> DeleteStudent(
+         [SwaggerParameter("id", Description = "Уникальный идентификатор студента")] int id)
+        {
+            var student = await _context.Students
+                .Include(s => s.Contacts)
+                .Include(s => s.Rooms)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (student == null)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            if (student.Contacts.Count != 0)
+                _context.Contacts.RemoveRange(student.Contacts);
+
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        #endregion
+
+        #region Работа с контактной информацией студентов
         [HttpGet("{id}/contacts")]
-        [SwaggerOperation(
-            Summary = "Получение контактной информации студента",
-            Description = "Возвращает все контакты (телефон и комментарий), привязанные к студенту по его идентификатору.")]
+        [SwaggerOperation(Summary = "Получение контактной информации студента", Description = "Возвращает все контакты (телефон и комментарий), привязанные к студенту по его идентификатору.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Контакты успешно получены.", Type = typeof(List<ContactDto>))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент с указанным ID не найден.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<List<ContactDto>>> GetContacts(int id)
@@ -196,6 +221,10 @@ namespace CmdntApi.Controllers
         }
 
         [HttpPost("{id}/contacts")]
+        [SwaggerOperation(Summary = "Добавление контактной информации студента", Description = "Позволяет создать или заменить список контактов, связанных со студентом.")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Контакты успешно добавлены.", Type = typeof(IEnumerable<ContactDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Неверно заполнен список контактов.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<List<ContactDto>>> PostContact(int id, List<ContactDto> dtos)
         {
             if (!ModelState.IsValid)
@@ -217,42 +246,15 @@ namespace CmdntApi.Controllers
 
             return CreatedAtAction(nameof(GetContacts), new { id }, contacts.Select(c => c.ToDto()));
         }
+        #endregion
 
-        [HttpDelete("{id}")]
-        [SwaggerOperation(
-          Summary = "Удаление данных студента",
-          Description = "Удаляет студента из системы. При этом удаляются все связанные контакты и его заселение.")]
-        [SwaggerResponse(StatusCodes.Status204NoContent, "Студент успешно удалён.")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> DeleteStudent(
-          [SwaggerParameter("id", Description = "Уникальный идентификатор студента")] int id)
-        {
-            var student = await _context.Students
-                .Include(s => s.Contacts)
-                .Include(s => s.Rooms)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if (student == null)
-                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
-
-            if (student.Contacts.Count != 0)
-                _context.Contacts.RemoveRange(student.Contacts);
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
+        #region Работа с комнатами студентов
         [HttpPost("{id}/assign-room/{roomId}")]
-        [SwaggerOperation(
-            Summary = "Привязка студента к комнате",
-            Description = "Привязывает студента к указанной комнате, проверяя соответствие пола студента, других жильцов и вместимость комнаты.")]
+        [SwaggerOperation(Summary = "Привязка студента к комнате", Description = "Привязывает студента к указанной комнате, проверяя соответствие пола студента, других жильцов и вместимость комнаты.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно привязан к комнате.")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные, студент уже привязан к комнате или комната переполнена.", Type = typeof(ApiErrorDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент или комната не найдены.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> AssignRoom(
-            [SwaggerParameter("ID студента", Required = true)] int id,
-            [SwaggerParameter("ID комнаты", Required = true)] int roomId)
+        public async Task<IActionResult> AssignRoom([SwaggerParameter("ID студента", Required = true)] int id, [SwaggerParameter("ID комнаты", Required = true)] int roomId)
         {
             if (id <= 0 || roomId <= 0)
                 return BadRequest(new ApiErrorDto("Некорректный идентификатор студента или комнаты", StatusCodes.Status400BadRequest));
@@ -288,13 +290,10 @@ namespace CmdntApi.Controllers
         }
 
         [HttpPost("{id}/evict-room")]
-        [SwaggerOperation(
-            Summary = "Выселение студента из комнаты",
-            Description = "Выселяет студента из всех комнат, в которых он проживает. В бизнес-логике студент может жить только в одной комнате.")]
+        [SwaggerOperation(Summary = "Выселение студента из комнаты", Description = "Выселяет студента из всех комнат, в которых он проживает. В бизнес-логике студент может жить только в одной комнате.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно выселен из комнаты.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> EvictRoom(
-            [SwaggerParameter("ID студента", Required = true)] int id)
+        public async Task<IActionResult> EvictRoom([SwaggerParameter("ID студента", Required = true)] int id)
         {
             if (id <= 0)
                 return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
@@ -317,7 +316,7 @@ namespace CmdntApi.Controllers
 
             return Ok(new { Message = "Студент успешно выселен из комнаты" });
         }
-
+        #endregion
 
     }
 }

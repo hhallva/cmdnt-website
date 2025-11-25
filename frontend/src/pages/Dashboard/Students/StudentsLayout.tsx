@@ -6,6 +6,7 @@ import { apiClient } from '../../../api/client';
 
 import type { StudentsDto, PostStudentDto, ContactDto } from '../../../types/students';
 import type { GroupDto } from '../../../types/groups';
+import type { UserSession } from '../../../types/UserSession';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import CommonTable from '../../../components/CommonTable/CommonTable'
@@ -23,6 +24,10 @@ const StudentsLayout: React.FC = () => {
     const [students, setStudents] = useState<StudentsDto[]>([]);
     const [groups, setGroups] = useState<GroupDto[]>([]);
     const navigate = useNavigate();
+
+    const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
+    const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
+    const isEducator = userSession?.role?.name?.toLowerCase().includes('воспитатель');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -310,13 +315,15 @@ const StudentsLayout: React.FC = () => {
                 </div>
                 {/* Правая часть - кнопка экспорта */}
                 <div>
-                    <ActionButton
-                        variant='success'
-                        onClick={handleExportToExcel}
-                    >
-                        <i className="bi bi-file-earmark-spreadsheet me-1"></i>
-                        Экспорт в Excel
-                    </ActionButton>
+                    {!isEducator && (
+                        <ActionButton
+                            variant='success'
+                            onClick={handleExportToExcel}
+                        >
+                            <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                            Экспорт в Excel
+                        </ActionButton>
+                    )}
                 </div>
             </div>
 
@@ -808,21 +815,28 @@ const StudentsLayout: React.FC = () => {
     );
     //#endregion
 
+    const tabs = useMemo(() => {
+        const baseTabs = [
+            {
+                id: 'list',
+                title: 'Список студентов',
+                content: listTabContent,
+            },
+        ];
+
+        if (!isEducator) {
+            baseTabs.push({
+                id: 'add',
+                title: 'Добавить студента',
+                content: addTabContent,
+            });
+        }
+
+        return baseTabs;
+    }, [addTabContent, isEducator, listTabContent]);
+
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
-
-    const tabs = [
-        {
-            id: 'list',
-            title: 'Список студентов',
-            content: listTabContent,
-        },
-        {
-            id: 'add',
-            title: 'Добавить студента',
-            content: addTabContent,
-        },
-    ];
 
     return (
         <>

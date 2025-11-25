@@ -42,11 +42,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
 
         items.push(
             { icon: 'bi-layout-wtf', label: 'Структура общежития', path: '/dashboard/structure', },
+            { icon: 'bi-people', label: 'Студенты', path: '/dashboard/students' },
         );
 
         if (!userSession.role?.name?.includes('Воспитатель')) {
             items.push(
-                { icon: 'bi-people', label: 'Студенты', path: '/dashboard/students' },
                 { icon: 'bi-house-door', label: 'Расселение', path: '/dashboard/settlement' },
             );
         }
@@ -54,7 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
         if (userSession.role?.name?.includes('Администратор')) {
             items.push(
                 { icon: 'bi-people-fill', label: 'Пользователи', path: '/dashboard/users' },
-                { icon: 'bi-collection', label: '?Группы?', path: '/dashboard/groups' }
             );
         }
 
