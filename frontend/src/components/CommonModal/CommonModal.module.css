@@ -19,7 +19,7 @@
     min-width: min(var(--modal-min-width, 480px), 90vw);
     width: min(720px, 90vw);
     max-width: 90vw;
-    min-height: var(--modal-min-height, 320px);
+    min-height: min(var(--modal-min-height, 320px), 90vh);
     max-height: 90vh;
     position: relative;
     resize: both;

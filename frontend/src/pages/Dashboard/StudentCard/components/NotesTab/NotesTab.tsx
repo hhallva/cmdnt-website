@@ -136,11 +136,14 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
         ? 'Загрузка заметок...'
         : notes.length > 0
             ? `Всего заметок: ${notes.length}`
-            : 'У студента пока нет заметок';
+            : '';
 
     return (
         <section className={styles.notesSection}>
-            <div className={styles.notesToolbar}>
+            <div
+                className={styles.notesToolbar}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}
+            >
                 <span className={styles.notesHint}>{notesHintText}</span>
                 <ActionButton
                     variant='primary'
@@ -168,7 +171,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
             ) : notes.length === 0 ? (
                 <div className={styles.emptyState}>
                     <i className="bi bi-journal-text" />
-                    <p>У студента пока нет заметок. Добавьте первую, чтобы сохранить важную информацию.</p>
+                    <p>У студента пока нет заметок.</p>
                 </div>
             ) : (
                 <div className={styles.notesListWrapper}>
