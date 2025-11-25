@@ -24,8 +24,9 @@
 
 .statsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
     gap: 1rem;
+    justify-content: start;
 }
 
 .statCard {
@@ -38,6 +39,8 @@
 }
 
 .statLabel {
+    width: 100%;
+    max-width: 320px;
     font-size: 0.9rem;
     color: #64748b;
 }
@@ -166,7 +169,7 @@
 .blocksGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
+    gap: 32px;
 }
 
 .blockCard {

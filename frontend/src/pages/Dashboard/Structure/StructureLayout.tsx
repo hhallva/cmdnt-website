@@ -14,11 +14,27 @@ import styles from './Structure.module.css';
 type RoomWithOccupants = RoomDto & { occupants: StudentsDto[] };
 type RoomStatus = 'occupied' | 'free' | 'partial';
 
-const getStatus = (room: RoomWithOccupants): RoomStatus => {
-    if (room.currentCapacity === 0) {
+type BlockWithRooms = {
+    blockNumber: string;
+    floorNumber: number;
+    rooms: RoomWithOccupants[];
+    capacity: number;
+    currentCapacity: number;
+    genderType: RoomWithOccupants['genderType'];
+};
+
+type FloorWithBlocks = {
+    floor: number;
+    blocks: BlockWithRooms[];
+    total: number;
+    free: number;
+};
+
+const getStatus = (currentCapacity: number, capacity: number): RoomStatus => {
+    if (currentCapacity === 0) {
         return 'free';
     }
-    if (room.currentCapacity >= room.capacity) {
+    if (currentCapacity >= capacity) {
         return 'occupied';
     }
     return 'partial';
@@ -37,11 +53,31 @@ const formatShortName = (student: StudentsDto): string => {
     return [surname, initials].filter(Boolean).join(' ').trim() || `Студент ${student.id}`;
 };
 
-const getGenderLabel = (room: RoomWithOccupants): string => {
-    if (room.genderType === null) {
+const getGenderLabel = (entity: { genderType: RoomWithOccupants['genderType'] }): string => {
+    if (entity.genderType === null) {
         return '-';
     }
-    return room.genderType ? 'Мужской' : 'Женский';
+    return entity.genderType ? 'Мужской' : 'Женский';
+};
+
+const deriveGenderTypeFromOccupants = (rooms: RoomWithOccupants[]): RoomWithOccupants['genderType'] => {
+    const genders = rooms
+        .flatMap(room => room.occupants)
+        .map(student => student.gender)
+        .filter((gender): gender is boolean => gender !== null);
+
+    if (genders.length === 0) {
+        return null;
+    }
+
+    const hasMaleStudents = genders.some(gender => gender === true);
+    const hasFemaleStudents = genders.some(gender => gender === false);
+
+    if (hasMaleStudents && hasFemaleStudents) {
+        return null;
+    }
+
+    return hasMaleStudents ? true : false;
 };
 
 const StructureLayout: React.FC = () => {
@@ -51,7 +87,7 @@ const StructureLayout: React.FC = () => {
     const [selectedStudentId, setSelectedStudentId] = useState<'all' | number>('all');
     const [selectedFloor, setSelectedFloor] = useState<'all' | number>('all');
     const [selectedRoomId, setSelectedRoomId] = useState<'all' | number>('all');
-    const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
+    const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState<string | null>(null);
@@ -108,10 +144,6 @@ const StructureLayout: React.FC = () => {
             .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber));
     }, [rooms, students]);
 
-    const activeRoom = useMemo(() => {
-        return activeRoomId ? roomsWithOccupants.find(room => room.id === activeRoomId) ?? null : null;
-    }, [activeRoomId, roomsWithOccupants]);
-
     const floorOptions = useMemo(() => {
         const floorsSet = new Set<number>();
         roomsWithOccupants.forEach(room => floorsSet.add(room.floorNumber));
@@ -144,46 +176,95 @@ const StructureLayout: React.FC = () => {
         return [{ value: 'all', label: 'Все студенты' }, ...uniqueStudents];
     }, [students]);
 
+    const getBlockKey = (floorNumber: number, blockNumber: string) => `${floorNumber}-${blockNumber}`;
+
     const filteredRooms = useMemo(() => {
+        const selectedRoom = selectedRoomId === 'all'
+            ? null
+            : roomsWithOccupants.find(room => room.id === selectedRoomId) ?? null;
+        const targetBlockKey = selectedRoom ? getBlockKey(selectedRoom.floorNumber, selectedRoom.roomNumber) : null;
+
         return roomsWithOccupants.filter(room => {
             if (selectedFloor !== 'all' && room.floorNumber !== selectedFloor) {
-                return false;
-            }
-            if (selectedRoomId !== 'all' && room.id !== selectedRoomId) {
                 return false;
             }
             if (selectedStudentId !== 'all' && !room.occupants.some(student => student.id === selectedStudentId)) {
                 return false;
             }
+
+            if (targetBlockKey) {
+                return getBlockKey(room.floorNumber, room.roomNumber) === targetBlockKey;
+            }
+
+            if (selectedRoomId !== 'all') {
+                return room.id === selectedRoomId;
+            }
+
             return true;
         });
     }, [roomsWithOccupants, selectedFloor, selectedRoomId, selectedStudentId]);
 
-    const floors = useMemo(() => {
-        const floorMap = new Map<number, RoomWithOccupants[]>();
+    const floors = useMemo<FloorWithBlocks[]>(() => {
+        const floorMap = new Map<number, Map<string, BlockWithRooms>>();
+
         filteredRooms.forEach(room => {
             if (!floorMap.has(room.floorNumber)) {
-                floorMap.set(room.floorNumber, []);
+                floorMap.set(room.floorNumber, new Map());
             }
-            floorMap.get(room.floorNumber)!.push(room);
+
+            const blocksMap = floorMap.get(room.floorNumber)!;
+            const blockNumber = room.roomNumber;
+
+            if (!blocksMap.has(blockNumber)) {
+                blocksMap.set(blockNumber, {
+                    blockNumber,
+                    floorNumber: room.floorNumber,
+                    rooms: [],
+                    capacity: 0,
+                    currentCapacity: 0,
+                    genderType: room.genderType,
+                });
+            }
+
+            const block = blocksMap.get(blockNumber)!;
+            block.rooms.push(room);
+            block.capacity += room.capacity;
+            block.currentCapacity += room.currentCapacity;
+            block.genderType = deriveGenderTypeFromOccupants(block.rooms);
         });
 
         return Array.from(floorMap.entries())
             .sort((a, b) => a[0] - b[0])
-            .map(([floor, roomsOnFloor]) => {
-                const sortedRooms = roomsOnFloor.sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber));
-                const total = sortedRooms.reduce((acc, room) => acc + room.capacity, 0);
-                const free = sortedRooms.reduce((acc, room) => acc + Math.max(room.capacity - room.currentCapacity, 0), 0);
-                return { floor, rooms: sortedRooms, total, free };
+            .map(([floor, blocksMap]) => {
+                const blocks = Array.from(blocksMap.values())
+                    .sort((a, b) => a.blockNumber.localeCompare(b.blockNumber, 'ru'));
+                const total = blocks.reduce((acc, block) => acc + block.capacity, 0);
+                const free = blocks.reduce((acc, block) => acc + Math.max(block.capacity - block.currentCapacity, 0), 0);
+                return { floor, blocks, total, free };
             });
     }, [filteredRooms]);
 
-    const openRoomModal = (roomId: number) => {
-        setActiveRoomId(roomId);
+    const activeBlock = useMemo(() => {
+        if (!activeBlockKey) {
+            return null;
+        }
+
+        for (const floor of floors) {
+            const found = floor.blocks.find(block => getBlockKey(block.floorNumber, block.blockNumber) === activeBlockKey);
+            if (found) {
+                return found;
+            }
+        }
+
+        return null;
+    }, [activeBlockKey, floors]);
+
+    const openBlockModal = (block: BlockWithRooms) => {
+        setActiveBlockKey(getBlockKey(block.floorNumber, block.blockNumber));
     };
 
-    const closeRoomModal = () => {
-        setActiveRoomId(null);
+    const closeBlockModal = () => {
+        setActiveBlockKey(null);
     };
 
     const resetFilters = () => {
@@ -285,27 +366,29 @@ const StructureLayout: React.FC = () => {
                             </div>
                         </div>
                         <div className={styles.blocksGrid}>
-                            {floor.rooms.map(room => {
-                                const occupantsPreview = room.occupants.map(formatShortName).filter(Boolean);
+                            {floor.blocks.map(block => {
+                                const blockOccupants = block.rooms.flatMap(room => room.occupants);
+                                const occupantsPreview = blockOccupants.map(formatShortName).filter(Boolean);
                                 const remaining = Math.max(occupantsPreview.length - 3, 0);
+                                const blockStatus = getStatus(block.currentCapacity, block.capacity);
                                 return (
                                     <article
-                                        key={room.id}
-                                        className={`${styles.blockCard} ${getStatus(room) === 'occupied' ? styles.blockCardOccupied : ''}`}
-                                        onClick={() => openRoomModal(room.id)}
+                                        key={`${block.floorNumber}-${block.blockNumber}`}
+                                        className={`${styles.blockCard} ${blockStatus === 'occupied' ? styles.blockCardOccupied : ''}`}
+                                        onClick={() => openBlockModal(block)}
                                     >
                                         <div className={styles.blockHeader}>
                                             <p className={styles.blockNumber}>
-                                                <span className={styles.blockNumberBadge}>{room.roomNumber}</span>
+                                                <span className={styles.blockNumberBadge}>{block.blockNumber}</span>
                                             </p>
                                             <div className={styles.blockMetaColumn}>
                                                 <p className={styles.blockMeta}>
                                                     <span className={styles.blockMetaLabel}>Тип</span>
-                                                    <span className={styles.blockMetaValue}>{getGenderLabel(room)}</span>
+                                                    <span className={styles.blockMetaValue}>{getGenderLabel(block)}</span>
                                                 </p>
                                                 <p className={styles.blockMeta}>
                                                     <span className={styles.blockMetaLabel}>Заселено</span>
-                                                    <span className={styles.blockMetaValue}>{room.currentCapacity}/{room.capacity}</span>
+                                                    <span className={styles.blockMetaValue}>{block.currentCapacity}/{block.capacity}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -320,7 +403,7 @@ const StructureLayout: React.FC = () => {
                                                 className={styles.blockActionBtn}
                                                 onClick={(event) => {
                                                     event.stopPropagation();
-                                                    openRoomModal(room.id);
+                                                    openBlockModal(block);
                                                 }}
                                             >
                                                 Подробнее
@@ -335,68 +418,87 @@ const StructureLayout: React.FC = () => {
             </div>
 
             <CommonModal
-                title={activeRoom ? `Блок ${activeRoom.roomNumber}` : ''}
-                isOpen={Boolean(activeRoom)}
-                onClose={closeRoomModal}
+                title={activeBlock ? `Блок ${activeBlock.blockNumber}` : ''}
+                isOpen={Boolean(activeBlock)}
+                onClose={closeBlockModal}
                 minWidth={720}
             >
-                {activeRoom && (
+                {activeBlock && (
                     <div className={styles.modalContentWrapper}>
                         <div className={styles.modalInfoGrid}>
                             <div>
                                 <p className={styles.infoLabel}>Этаж</p>
-                                <p className={styles.infoValue}>{activeRoom.floorNumber}</p>
+                                <p className={styles.infoValue}>{activeBlock.floorNumber}</p>
                             </div>
                             <div>
                                 <p className={styles.infoLabel}>Тип блока</p>
-                                <p className={styles.infoValue}>{getGenderLabel(activeRoom)}</p>
+                                <p className={styles.infoValue}>{getGenderLabel(activeBlock)}</p>
                             </div>
                             <div>
-                                <p className={styles.infoLabel}>Количество мест</p>
-                                <p className={styles.infoValue}>{activeRoom.capacity}</p>
+                                <p className={styles.infoLabel}>Комнат в блоке</p>
+                                <p className={styles.infoValue}>{activeBlock.rooms.length}</p>
+                            </div>
+                            <div>
+                                <p className={styles.infoLabel}>Всего мест</p>
+                                <p className={styles.infoValue}>{activeBlock.capacity}</p>
                             </div>
                             <div>
                                 <p className={styles.infoLabel}>Заселено</p>
                                 <p className={styles.infoValue}>
-                                    {activeRoom.currentCapacity}/{activeRoom.capacity}
+                                    {activeBlock.currentCapacity}/{activeBlock.capacity}
+                                </p>
+                            </div>
+                            <div>
+                                <p className={styles.infoLabel}>Свободно</p>
+                                <p className={styles.infoValue}>
+                                    {Math.max(activeBlock.capacity - activeBlock.currentCapacity, 0)}
                                 </p>
                             </div>
                         </div>
 
-                        <div className={styles.studentsList}>
-                            <h4>Жильцы блока</h4>
-                            {activeRoom.occupants.length === 0 && (
-                                <div className={styles.freeSlot}>В блоке нет проживающих. Доступно {activeRoom.capacity} мест.</div>
-                            )}
-                            {activeRoom.occupants.map(student => (
-                                <div key={student.id} className={styles.studentRow}>
-                                    <div className={styles.studentInfo}>
-                                        <div className={styles.studentAvatar}>{getInitials(student)}</div>
-                                        <div>
-                                            <p className={styles.studentName}>{formatShortName(student)}</p>
-                                            <p className={styles.studentMeta}>
-                                                Группа: {student.group?.name ?? '—'} · {student.group?.course ?? '—'} курс
-                                            </p>
-                                            {student.phone && (
-                                                <p className={styles.studentMeta}>Телефон: {student.phone}</p>
-                                            )}
+                        {activeBlock.rooms.map(room => (
+                            <div key={room.id} className={styles.blockRoomSection}>
+                                <div className={styles.blockRoomHeader}>
+                                    <p className={styles.blockRoomTitle}>Комната {room.roomNumber}</p>
+                                    <span className={styles.blockRoomCapacity}>
+                                        Заселено {room.currentCapacity}/{room.capacity}
+                                    </span>
+                                </div>
+                                <div className={styles.studentsList}>
+                                    {room.occupants.length === 0 && (
+                                        <div className={styles.freeSlot}>В комнате нет проживающих. Доступно {room.capacity} мест.</div>
+                                    )}
+                                    {room.occupants.map(student => (
+                                        <div key={student.id} className={styles.studentRow}>
+                                            <div className={styles.studentInfo}>
+                                                <div className={styles.studentAvatar}>{getInitials(student)}</div>
+                                                <div>
+                                                    <p className={styles.studentName}>{formatShortName(student)}</p>
+                                                    <p className={styles.studentMeta}>
+                                                        Группа: {student.group?.name ?? '—'} · {student.group?.course ?? '—'} курс
+                                                    </p>
+                                                    {student.phone && (
+                                                        <p className={styles.studentMeta}>Телефон: {student.phone}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <ActionButton
+                                                variant='transparent-primary'
+                                                size='sm'
+                                                onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                                            >
+                                                Карточка
+                                            </ActionButton>
                                         </div>
-                                    </div>
-                                    <ActionButton
-                                        variant='transparent-primary'
-                                        size='sm'
-                                        onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                                    >
-                                        Карточка
-                                    </ActionButton>
+                                    ))}
+                                    {Math.max(room.capacity - room.currentCapacity, 0) > 0 && (
+                                        <div className={styles.freeSlot}>
+                                            Свободных мест: {Math.max(room.capacity - room.currentCapacity, 0)}
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
-                            {Math.max(activeRoom.capacity - activeRoom.currentCapacity, 0) > 0 && (
-                                <div className={styles.freeSlot}>
-                                    Свободных мест: {Math.max(activeRoom.capacity - activeRoom.currentCapacity, 0)}
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </CommonModal>

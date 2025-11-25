@@ -15,7 +15,7 @@
 
 .statsGrid {
     display: grid;
-    gap: 1rem;
+    gap: 32px;
 }
 
 .statCard {
