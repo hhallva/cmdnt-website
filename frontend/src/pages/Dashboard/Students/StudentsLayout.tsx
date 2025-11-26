@@ -284,7 +284,7 @@ const StudentsLayout: React.FC = () => {
         XLSX.writeFile(wb, `Список_студентов_${new Date().toISOString().slice(0, 10)}.xlsx`);
     };
 
-    const listTabContent = (
+    const listTabHeader = (
         <>
             <div className="d-flex justify-content-between align-items-start mb-3"> {/* align-items-start для выравнивания по верхнему краю, если фильтры раскроются */}
                 <div className="d-flex gap-2 flex-wrap"> {/* Контейнер для левой группы элементов */}
@@ -358,18 +358,21 @@ const StudentsLayout: React.FC = () => {
                     </div>
                 </div>
             )}
-            <CommonTable
-                title="Список студентов"
-                data={processedStudents}
-                totalCount={students.length}
-                columns={columns}
-                actions={actions}
-                enableSorting={true}
-                onSortRequest={requestSort}
-                sortConfig={sortConfig}
-                emptyMessage="Студенты не найдены"
-            />
         </>
+    );
+
+    const listTabContent = (
+        <CommonTable
+            title="Список студентов"
+            data={processedStudents}
+            totalCount={students.length}
+            columns={columns}
+            actions={actions}
+            enableSorting={true}
+            onSortRequest={requestSort}
+            sortConfig={sortConfig}
+            emptyMessage="Студенты не найдены"
+        />
     );
     //#endregion
 
@@ -816,10 +819,11 @@ const StudentsLayout: React.FC = () => {
     //#endregion
 
     const tabs = useMemo(() => {
-        const baseTabs = [
+        const baseTabs: Array<{ id: string; title: string; headerContent?: React.ReactNode; content: React.ReactNode }> = [
             {
                 id: 'list',
-                title: 'Список студентов',
+                title: 'Список',
+                headerContent: listTabHeader,
                 content: listTabContent,
             },
         ];
@@ -827,13 +831,13 @@ const StudentsLayout: React.FC = () => {
         if (!isEducator) {
             baseTabs.push({
                 id: 'add',
-                title: 'Добавить студента',
+                title: 'Новый студент',
                 content: addTabContent,
             });
         }
 
         return baseTabs;
-    }, [addTabContent, isEducator, listTabContent]);
+    }, [addTabContent, isEducator, listTabContent, listTabHeader]);
 
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;

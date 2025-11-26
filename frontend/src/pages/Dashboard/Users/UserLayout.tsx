@@ -238,42 +238,41 @@ const UsersLayout: React.FC = () => {
     ];
     // #endregion  
 
-    const listTabContent = (
-        <>
-            <div className="row g-3 mb-3">
-                <div className="col-md-6">
-                    <InputField
-                        type="text"
-                        placeholder="Поиск по ФИО..."
-                        value={searchTerm}
-                        onChange={handleSearchChange} />
-                </div>
-                <div className="col-md-3">
-                    <SelectField
-                        value={selectedRoleId}
-                        onChange={handleRoleChange}
-                        options={roleOptions} />
-                </div>
-                <div className="col-md-2 " >
-                    <ActionButton
-                        variant='secondary'
-                        onClick={handleResetFilters}
-                    >
-                        Сбросить
-                    </ActionButton>
-                </div>
+    const listTabHeader = (
+        <div className="row g-3">
+            <div className="col-md-6">
+                <InputField
+                    type="text"
+                    placeholder="Поиск по ФИО..."
+                    value={searchTerm}
+                    onChange={handleSearchChange} />
             </div>
+            <div className="col-md-3">
+                <SelectField
+                    value={selectedRoleId}
+                    onChange={handleRoleChange}
+                    options={roleOptions} />
+            </div>
+            <div className="col-md-2" >
+                <ActionButton
+                    variant='secondary'
+                    onClick={handleResetFilters}
+                >
+                    Сбросить
+                </ActionButton>
+            </div>
+        </div>
+    );
 
-            <CommonTable
-                title="Список пользователей"
-                data={filteredUsers}
-                totalCount={users.length}
-                columns={columns}
-                actions={actions}
-                emptyMessage="Пользователи не найдены"
-            />
-
-        </>
+    const listTabContent = (
+        <CommonTable
+            title="Список пользователей"
+            data={filteredUsers}
+            totalCount={users.length}
+            columns={columns}
+            actions={actions}
+            emptyMessage="Пользователи не найдены"
+        />
     );
 
     //#endregion 
@@ -522,6 +521,7 @@ const UsersLayout: React.FC = () => {
         {
             id: 'list',
             title: 'Список пользователей',
+            headerContent: listTabHeader,
             content: listTabContent,
         },
         {
