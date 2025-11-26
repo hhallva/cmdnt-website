@@ -1,48 +1,114 @@
-@media (max-width: 768px) {
+ .searchControls {
+     align-items: stretch;
+ }
 
-    .table th,
-    .table td {
-        padding: 0.6rem;
-        /* Уменьшаем отступы */
-        font-size: 0.85rem;
-        /* Уменьшаем размер шрифта */
-    }
+ .searchInputWrapper {
+     min-width: 320px;
+     flex: 1 1 320px;
+ }
 
-    .table th {
-        font-size: 0.8rem;
-        /* Ещё меньше для заголовков */
-    }
+ .modilButton {
+     min-width: 160px;
+     font-size: 1rem;
+ }
 
-    .actionBtn {
-        padding: 0.4rem 0.6rem;
-        /* Уменьшаем кнопки */
-        font-size: 0.75rem;
-    }
+ .tableContainer {
+     padding: 1rem;
+     background: #ffffff;
+     border-radius: 10px;
+     margin-bottom: 1rem;
+ }
 
-    /* Можно скрыть менее важные столбцы на средних экранах, если нужно */
-    /* .lessImportantColumn { display: none; } */
-}
+ .filtersGrid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+     gap: 1rem;
+     align-items: start;
+ }
 
-/* Для мобильных телефонов (портретная ориентация) */
-@media (max-width: 576px) {
+ .advancedFiltersPanel {
+     border-top: 1px solid #e9ecef;
+     margin-top: 1rem;
+     padding-top: 1rem;
+ }
 
-    .table th,
-    .table td {
-        padding: 0.5rem;
-        font-size: 0.8rem;
-    }
+ .advancedFiltersPanel :global(.col-md-3) {
+     flex: 1 1 100%;
+ }
 
-    .table th {
-        font-size: 0.75rem;
-    }
+ @media (max-width: 768px) {
+     .searchControls {
+         gap: 0.75rem;
+     }
 
-    .table {
-        min-width: 500px;
-    }
+     .searchInputWrapper {
+         width: 100%;
+         min-width: 0;
+     }
 
-    .actionBtn {
-        padding: 0.35rem 0.5rem;
-        font-size: 0.7rem;
-    }
+     .modilButton {
+         align-self: end;
+         height: fit-content;
+         justify-self: flex;
+         font-size: 1rem;
+         width: 100%;
+     }
 
-}
+     .advancedFiltersPanel {
+         padding-top: 0.75rem;
+         margin-top: 0.5rem;
+     }
+
+     .advancedFiltersPanel :global(.row) {
+         row-gap: 0.75rem;
+     }
+ }
+
+ @media (max-width: 768px) {
+
+     .table th,
+     .table td {
+         padding: 0.6rem;
+         /* Уменьшаем отступы */
+         font-size: 0.85rem;
+         /* Уменьшаем размер шрифта */
+     }
+
+     .table th {
+         font-size: 0.8rem;
+         /* Ещё меньше для заголовков */
+     }
+
+     .actionBtn {
+         padding: 0.4rem 0.6rem;
+         /* Уменьшаем кнопки */
+         font-size: 0.75rem;
+     }
+
+     /* Можно скрыть менее важные столбцы на средних экранах, если нужно */
+     /* .lessImportantColumn { display: none; } */
+ }
+
+ /* Для мобильных телефонов (портретная ориентация) */
+ @media (max-width: 576px) {
+
+     .table th,
+     .table td {
+         padding: 0.5rem;
+         font-size: 0.8rem;
+     }
+
+     .table th {
+         font-size: 0.75rem;
+     }
+
+     .table {
+         min-width: 500px;
+     }
+
+     .actionBtn {
+         padding: 0.35rem 0.5rem;
+         font-size: 0.7rem;
+     }
+
+ }

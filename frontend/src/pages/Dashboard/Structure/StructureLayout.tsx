@@ -91,12 +91,6 @@ const StructureLayout: React.FC = () => {
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState<string | null>(null);
-    const [isMobileViewport, setIsMobileViewport] = useState(() => {
-        if (typeof window === 'undefined') {
-            return false;
-        }
-        return window.innerWidth <= 768;
-    });
 
     const loadStructureStats = useCallback(async () => {
         setStatsLoading(true);
@@ -117,23 +111,6 @@ const StructureLayout: React.FC = () => {
         void loadStructureStats();
     }, [loadStructureStats]);
 
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        const mediaQuery = window.matchMedia('(max-width: 768px)');
-        const handleViewportChange = (event: MediaQueryListEvent | MediaQueryList) => {
-            setIsMobileViewport(event.matches);
-        };
-
-        handleViewportChange(mediaQuery);
-        mediaQuery.addEventListener('change', handleViewportChange);
-
-        return () => {
-            mediaQuery.removeEventListener('change', handleViewportChange);
-        };
-    }, []);
 
     const roomsWithOccupants = useMemo<RoomWithOccupants[]>(() => {
         return rooms
@@ -341,7 +318,7 @@ const StructureLayout: React.FC = () => {
                     />
                     <ActionButton
                         variant='secondary'
-                        size={isMobileViewport ? 'md' : 'md'}
+                        size='md'
                         onClick={resetFilters}
                         className={styles.resetButton}
                     >

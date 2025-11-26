@@ -245,20 +245,11 @@ const StudentsLayout: React.FC = () => {
         },
     ];
 
-    const actions = [
-        {
-            render: (student: StudentsDto) => (
-                <ActionButton
-                    variant='info'
-                    size='md'
-                    className={`${styles.actionBtn} ${styles.actionBtnMore}`}
-                    onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                >
-                    Подробнее
-                </ActionButton>
-            ),
-        },
-    ];
+    const rowAction = {
+        icon: 'bi-arrows-angle-expand',
+        title: 'Открыть карточку студента',
+        onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
+    };
     // #endregion
 
     const handleExportToExcel = () => {
@@ -286,9 +277,9 @@ const StudentsLayout: React.FC = () => {
 
     const listTabHeader = (
         <>
-            <div className="d-flex justify-content-between align-items-start mb-3"> {/* align-items-start для выравнивания по верхнему краю, если фильтры раскроются */}
-                <div className="d-flex gap-2 flex-wrap"> {/* Контейнер для левой группы элементов */}
-                    <div style={{ minWidth: '350px' }}> {/* Ограничиваем ширину поля поиска, чтобы оно не сжималось слишком сильно */}
+            <div className=" justify-content-between align-items-start mb-3 flex-wrap gap-3 gap-md-0">
+                <div className={`d-flex gap-2 flex-wrap ${styles.searchControls}`}>
+                    <div className={styles.searchInputWrapper}>
                         <InputField
                             label=""
                             type="text"
@@ -299,62 +290,47 @@ const StudentsLayout: React.FC = () => {
                     </div>
                     <ActionButton
                         variant='secondary'
+                        size='md'
                         onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
                         aria-expanded={isAdvancedFilterOpen}
                         aria-controls="advancedFilters"
+                        className={styles.modilButton}
                     >
                         Фильтры
                         <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} ms-2`}></i>
                     </ActionButton>
                     <ActionButton
                         variant='secondary'
+                        size='md'
                         onClick={resetFiltersAndSorts}
+                        className={styles.modilButton}
                     >
                         Сбросить
                     </ActionButton>
                 </div>
-                {/* Правая часть - кнопка экспорта */}
-                <div>
-                    {!isEducator && (
-                        <ActionButton
-                            variant='success'
-                            onClick={handleExportToExcel}
-                        >
-                            <i className="bi bi-file-earmark-spreadsheet me-1"></i>
-                            Экспорт в Excel
-                        </ActionButton>
-                    )}
-                </div>
             </div>
-
             {/* Расширенные фильтры - теперь вне основного контейнера, но под ним */}
             {isAdvancedFilterOpen && (
                 <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
-                    <div className="row g-3">
-                        <div className="col-md-3">
-                            <SelectField
-                                label="Группа"
-                                value={selectedGroupId}
-                                onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                options={groupOptions}
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <SelectField
-                                label="Курс"
-                                value={selectedCourse}
-                                onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                options={courseOptions}
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <SelectField
-                                label="Пол"
-                                value={selectedGender}
-                                onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
-                                options={genderOptions}
-                            />
-                        </div>
+                    <div className={styles.filtersGrid}>
+                        <SelectField
+                            label="Группа"
+                            value={selectedGroupId}
+                            onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                            options={groupOptions}
+                        />
+                        <SelectField
+                            label="Курс"
+                            value={selectedCourse}
+                            onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                            options={courseOptions}
+                        />
+                        <SelectField
+                            label="Пол"
+                            value={selectedGender}
+                            onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
+                            options={genderOptions}
+                        />
                     </div>
                 </div>
             )}
@@ -362,17 +338,34 @@ const StudentsLayout: React.FC = () => {
     );
 
     const listTabContent = (
-        <CommonTable
-            title="Список студентов"
-            data={processedStudents}
-            totalCount={students.length}
-            columns={columns}
-            actions={actions}
-            enableSorting={true}
-            onSortRequest={requestSort}
-            sortConfig={sortConfig}
-            emptyMessage="Студенты не найдены"
-        />
+        <>
+            <div className={styles.tableContainer}>
+                {!isEducator && (
+                    <ActionButton
+                        size='md'
+                        variant='primary'
+                        onClick={handleExportToExcel}
+                        className={styles.fullWidthMobileButton}
+                    >
+                        <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                        Экспорт в Excel
+                    </ActionButton>
+                )}
+            </div>
+            <CommonTable
+                data={processedStudents}
+                totalCount={students.length}
+                columns={columns}
+                rowAction={rowAction}
+                enableSorting={true}
+                onSortRequest={requestSort}
+                sortConfig={sortConfig}
+                emptyMessage="Студенты не найдены"
+            />
+        </>
+
+
+
     );
     //#endregion
 
