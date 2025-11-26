@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './CommonModal.module.css';
 
 interface CommonModalProps {
-    title?: string;
+    title?: React.ReactNode;
     isOpen: boolean;
     onClose: () => void;
     children: React.ReactNode;
@@ -38,7 +38,11 @@ const CommonModal: React.FC<CommonModalProps> = ({ title, isOpen, onClose, child
         <div className={styles.modalOverlay}>
             <div className={styles.modalContent} style={contentStyle}>
                 <div className={styles.modalHeader}>
-                    {title && <h3 className={styles.modalTitle}>{title}</h3>}
+                    {title && (
+                        <div className={styles.modalTitle}>
+                            {typeof title === 'string' ? <span>{title}</span> : title}
+                        </div>
+                    )}
                     <button className={styles.closeButton} onClick={onClose}>&times;</button>
                 </div>
                 <div className={styles.modalBody}>{children}</div>

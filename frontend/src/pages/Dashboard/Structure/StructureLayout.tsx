@@ -418,87 +418,83 @@ const StructureLayout: React.FC = () => {
             </div>
 
             <CommonModal
-                title={activeBlock ? `Блок ${activeBlock.blockNumber}` : ''}
+                title={activeBlock && (
+                    <div className={styles.blockHeader}>
+                        <p className={styles.blockNumber}>
+                            <span className={styles.blockNumberBadge}>{activeBlock.blockNumber}</span>
+                        </p>
+                        <div className={styles.blockMetaColumn}>
+                            <p className={styles.blockMeta}>
+                                <span className={styles.blockMetaLabel}>Тип</span>
+                                <span className={styles.blockMetaValue}>{getGenderLabel(activeBlock)}</span>
+                            </p>
+                            <p className={styles.blockMeta}>
+                                <span className={styles.blockMetaLabel}>Этаж</span>
+                                <span className={styles.blockMetaValue}>{activeBlock.floorNumber}</span>
+                            </p>
+                        </div>
+                        <div className={styles.blockMetaColumn}>
+                            <p className={styles.blockMeta}>
+                                <span className={styles.blockMetaLabel}>Статус</span>
+                                <span className={styles.blockMetaValue}>{getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'occupied' ? 'Занят' : getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'free' ? 'Свободен' : 'Частично занят'}</span>
+                            </p>
+                            <p className={styles.blockMeta}>
+                                <span className={styles.blockMetaLabel}>Заселено</span>
+                                <span className={styles.blockMetaValue}>{activeBlock.currentCapacity}/{activeBlock.capacity}</span>
+                            </p>
+
+                        </div>
+                    </div>
+                )}
                 isOpen={Boolean(activeBlock)}
                 onClose={closeBlockModal}
                 minWidth={720}
             >
                 {activeBlock && (
                     <div className={styles.modalContentWrapper}>
-                        <div className={styles.modalInfoGrid}>
-                            <div>
-                                <p className={styles.infoLabel}>Этаж</p>
-                                <p className={styles.infoValue}>{activeBlock.floorNumber}</p>
-                            </div>
-                            <div>
-                                <p className={styles.infoLabel}>Тип блока</p>
-                                <p className={styles.infoValue}>{getGenderLabel(activeBlock)}</p>
-                            </div>
-                            <div>
-                                <p className={styles.infoLabel}>Комнат в блоке</p>
-                                <p className={styles.infoValue}>{activeBlock.rooms.length}</p>
-                            </div>
-                            <div>
-                                <p className={styles.infoLabel}>Всего мест</p>
-                                <p className={styles.infoValue}>{activeBlock.capacity}</p>
-                            </div>
-                            <div>
-                                <p className={styles.infoLabel}>Заселено</p>
-                                <p className={styles.infoValue}>
-                                    {activeBlock.currentCapacity}/{activeBlock.capacity}
-                                </p>
-                            </div>
-                            <div>
-                                <p className={styles.infoLabel}>Свободно</p>
-                                <p className={styles.infoValue}>
-                                    {Math.max(activeBlock.capacity - activeBlock.currentCapacity, 0)}
-                                </p>
-                            </div>
-                        </div>
-
-                        {activeBlock.rooms.map(room => (
-                            <div key={room.id} className={styles.blockRoomSection}>
-                                <div className={styles.blockRoomHeader}>
-                                    <p className={styles.blockRoomTitle}>Комната {room.roomNumber}</p>
-                                    <span className={styles.blockRoomCapacity}>
-                                        Заселено {room.currentCapacity}/{room.capacity}
-                                    </span>
-                                </div>
-                                <div className={styles.studentsList}>
-                                    {room.occupants.length === 0 && (
-                                        <div className={styles.freeSlot}>В комнате нет проживающих. Доступно {room.capacity} мест.</div>
-                                    )}
-                                    {room.occupants.map(student => (
-                                        <div key={student.id} className={styles.studentRow}>
-                                            <div className={styles.studentInfo}>
-                                                <div className={styles.studentAvatar}>{getInitials(student)}</div>
-                                                <div>
-                                                    <p className={styles.studentName}>{formatShortName(student)}</p>
-                                                    <p className={styles.studentMeta}>
-                                                        Группа: {student.group?.name ?? '—'} · {student.group?.course ?? '—'} курс
-                                                    </p>
-                                                    {student.phone && (
-                                                        <p className={styles.studentMeta}>Телефон: {student.phone}</p>
-                                                    )}
+                        {activeBlock.rooms.map((room, roomIndex) => {
+                            const freeSlotsCount = Math.max(room.capacity - room.currentCapacity, 0);
+                            return (
+                                <div key={room.id} className={styles.blockRoomSection}>
+                                    <div className={styles.blockRoomHeader}>
+                                        <p className={styles.blockRoomTitle}>Комната {roomIndex + 1}</p>
+                                    </div>
+                                    <div className={styles.studentsList}>
+                                        {room.occupants.map(student => (
+                                            <div key={student.id} className={styles.studentRow}>
+                                                <div className={styles.studentInfo}>
+                                                    <div className={styles.studentAvatar}>{getInitials(student)}</div>
+                                                    <div>
+                                                        <p className={styles.studentName}>{formatShortName(student)}</p>
+                                                        <p className={styles.studentMeta}>
+                                                            {student.group?.name ?? '—'} · {student.group?.course ?? '—'} курс
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <ActionButton
+                                                    variant='secondary'
+                                                    size='sm'
+                                                    className={styles.studentCardButton}
+                                                    onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                                                >
+                                                    Карточка
+                                                </ActionButton>
+                                            </div>
+                                        ))}
+                                        {freeSlotsCount > 0 && Array.from({ length: freeSlotsCount }).map((_, slotIndex) => (
+                                            <div key={`${room.id}-free-${slotIndex}`} className={`${styles.studentRow} ${styles.freeSlotCard}`}>
+                                                <div className={styles.studentInfo}>
+                                                    <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>+</div>
+                                                    <div>
+                                                        <p className={styles.studentName}>Свободное место</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <ActionButton
-                                                variant='transparent-primary'
-                                                size='sm'
-                                                onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                                            >
-                                                Карточка
-                                            </ActionButton>
-                                        </div>
-                                    ))}
-                                    {Math.max(room.capacity - room.currentCapacity, 0) > 0 && (
-                                        <div className={styles.freeSlot}>
-                                            Свободных мест: {Math.max(room.capacity - room.currentCapacity, 0)}
-                                        </div>
-                                    )}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </CommonModal>

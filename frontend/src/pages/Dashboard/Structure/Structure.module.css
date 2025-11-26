@@ -199,6 +199,7 @@
     justify-content: start;
     gap: 0.75rem;
     align-items: flex-start;
+    flex-wrap: wrap;
 }
 
 .blockNumber {
@@ -233,15 +234,18 @@
     align-items: baseline;
     gap: 0.35rem;
     flex-wrap: wrap;
+    font-size: 1rem;
 }
 
 .blockMetaLabel {
     color: #6b7280;
+    font-size: 1rem;
 }
 
 .blockMetaValue {
     color: #111827;
     font-weight: 600;
+    font-size: 1rem;
 }
 
 .blockMetaSeparator,
@@ -306,6 +310,28 @@
     gap: 1.25rem;
 }
 
+.blockRoomSection {
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.blockRoomHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.blockRoomTitle {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
 .modalInfoGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -326,9 +352,9 @@
 }
 
 .studentsList {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 1rem;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -343,19 +369,22 @@
     border-radius: 10px;
     border: 1px solid #e2e8f0;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .studentInfo {
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    flex: 1;
+    min-width: 0;
 }
 
 .studentAvatar {
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: #fb8c00;
+    background: var(--btn-primary);
     color: #fff;
     display: flex;
     align-items: center;
@@ -375,13 +404,25 @@
     font-size: 0.85rem;
 }
 
-.freeSlot {
-    border: 1px dashed #94a3b8;
-    border-radius: 10px;
-    padding: 0.75rem;
-    text-align: center;
-    color: #475467;
-    font-style: italic;
+.freeSlotCard {
+    background: #fff7ed;
+    border-color: #fdba74;
+    border-style: dashed;
+}
+
+.freeSlotCard p {
+    color: var(--btn-primary);
+    font-weight: 500;
+}
+
+.freeSlotAvatar {
+    background: #fed7aa;
+    color: var(--btn-primary);
+}
+
+.studentCardButton {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 @media (max-width: 768px) {
@@ -417,7 +458,28 @@
         align-items: flex-start;
     }
 
+    .blockHeader {
+        flex-direction: row;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .blockMetaColumn {
+        width: auto;
+    }
+
+    .blockNumberBadge {
+        width: auto;
+        justify-content: center;
+    }
+
     .studentRow {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .blockRoomHeader {
         flex-direction: column;
         align-items: flex-start;
     }
