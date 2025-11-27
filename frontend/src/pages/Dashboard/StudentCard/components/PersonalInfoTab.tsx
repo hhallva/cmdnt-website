@@ -15,65 +15,56 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ student, contacts }) 
     return (
         <div className={styles.infoGrid}>
             <div className={styles.infoCard}>
-                <h3 className={styles.infoCardTitle}>Основная информация</h3>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Фамилия Имя Отчество</div>
-                    <div className={styles.infoValue}>
-                        {student.surname || 'Нет'} {student.name || 'Нет'} {student.patronymic || ''}
-                    </div>
+                <h3 className={styles.mobileCardTitle}>Основное</h3>
+                <div className={styles.blockMeta}>
+                    <div className={styles.blockMetaLabel}>Дата рождения</div>
+                    <div className={styles.blockMetaValue}>{formatLongDate(student.birthday)}</div>
                 </div>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Дата рождения</div>
-                    <div className={styles.infoValue}>{formatLongDate(student.birthday)}</div>
+                <div className={styles.blockMeta}>
+                    <div className={styles.blockMetaLabel}>Возраст</div>
+                    <div className={styles.blockMetaValue}>{studentAge !== null ? `${studentAge} лет` : 'Нет данных'}</div>
                 </div>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Возраст</div>
-                    <div className={styles.infoValue}>{studentAge !== null ? `${studentAge} лет` : 'Нет данных'}</div>
+                <div className={styles.blockMeta}>
+                    <div className={styles.blockMetaLabel}>Пол</div>
+                    <div className={styles.blockMetaValue}>{student.gender ? 'Мужской' : 'Женский'}</div>
                 </div>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Пол</div>
-                    <div className={styles.infoValue}>{student.gender ? 'Мужской' : 'Женский'}</div>
-                </div>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Откуда приехал</div>
-                    <div className={styles.infoValue}>{student?.origin || 'Нет'}</div>
+                <div className={styles.blockMeta}>
+                    <div className={styles.blockMetaLabel}>Населенный пункт</div>
+                    <div className={styles.blockMetaValue}>{student?.origin || 'Нет'}</div>
                 </div>
             </div>
 
             <div className={styles.infoCard}>
-                <h3 className={styles.infoCardTitle}>Учебная информация</h3>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Группа</div>
-                    <div className={styles.infoValue}>{student.group?.name || 'Нет'}</div>
+                <h3 className={styles.mobileCardTitle}>Обучение</h3>
+                <div className={styles.blockMeta}>
+                    <div className={styles.blockMetaLabel}>Группа</div>
+                    <div className={styles.blockMetaValue}>{student.group?.name || 'Нет'}</div>
                 </div>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Курс</div>
-                    <div className={styles.infoValue}>{student.group?.course || 'Нет'}</div>
+                <div className={styles.blockMeta}>
+                    <div className={styles.blockMetaLabel}>Курс</div>
+                    <div className={styles.blockMetaValue}>{student.group?.course || 'Нет'}</div>
                 </div>
             </div>
 
             <div className={styles.infoCard}>
-                <h3 className={styles.infoCardTitle}>Контактная информация</h3>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Телефон</div>
-                    <div className={styles.infoValue}>{student.phone || 'Нет'}</div>
+                <h3 className={styles.mobileCardTitle}>Контактны</h3>
+                <div className={styles.blockMeta}>
+                    <div className={styles.blockMetaLabel}>Телефон</div>
+                    <div className={styles.blockMetaValue}>{student.phone || 'Нет'}</div>
                 </div>
-                <div className={styles.infoItem}>
-                    <div className={styles.infoLabel}>Контакты</div>
-                    {contacts.length > 0 ? (
-                        contacts.map((contact, index) => (
-                            <div key={index} className={styles.infoItem}>
-                                <div className={styles.infoValue}>
-                                    {contact.comment || 'Без комментария'} <br /> {contact.phone}
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className={styles.infoValue}>Нет дополнительных контактов</div>
-                    )}
-                </div>
+                <div className={styles.mobileCardTitle + ' mt-2'}>Дополнительно</div>
+                {contacts.length > 0 ? (
+                    contacts.map((contact, index) => (
+                        <div key={index} className={styles.blockMeta}>
+                            <div className={styles.blockMetaLabel}>{contact.comment || ''}</div>
+                            <div className={styles.blockMetaValue}>{contact.phone}</div>
+                        </div>
+                    ))
+                ) : (
+                    <div className={styles.infoValue}>Нет дополнительных контактов</div>
+                )}
             </div>
-        </div>
+        </div >
     );
 };
 

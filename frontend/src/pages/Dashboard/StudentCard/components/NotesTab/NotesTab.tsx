@@ -139,22 +139,26 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
             : '';
 
     return (
+
         <section className={styles.notesSection}>
-            <div
-                className={styles.notesToolbar}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}
-            >
-                <span className={styles.notesHint}>{notesHintText}</span>
-                <ActionButton
-                    variant='primary'
-                    size='md'
-                    onClick={handleOpenModal}
-                    disabled={isLoading}
-                    className={styles.notesToolbarButton}
+            <div className={styles.formSection}>
+
+
+                <div
+                    className={styles.notesToolbar}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}
                 >
-                    <i className="bi bi-plus-circle me-1" />
-                    Добавить
-                </ActionButton>
+                    <span className={styles.notesHint}>{notesHintText}</span>
+                    <ActionButton
+                        variant='primary'
+                        size='md'
+                        onClick={handleOpenModal}
+                        disabled={isLoading}
+                        className={styles.notesToolbarButton}
+                    >
+                        Добавить
+                    </ActionButton>
+                </div>
             </div>
 
             {loadError && (

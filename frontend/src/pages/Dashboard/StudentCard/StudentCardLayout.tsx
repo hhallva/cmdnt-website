@@ -85,7 +85,7 @@ const StudentCardLayout: React.FC = () => {
     if (error) return <div className="alert alert-danger m-3">{error}</div>;
     if (!student) return <div className="alert alert-info m-3">Студент не найден.</div>;
 
-    const studentFullName = buildFullName(student.surname, student.name, student.patronymic);
+    const studentFullName = buildFullName(student.name, student.patronymic);
     const studentInitials = buildInitials(student.surname, student.name);
     const currentUserFullName = buildFullName(userSession?.surname, userSession?.name, userSession?.patronymic) || userSession?.name || undefined;
 
@@ -159,101 +159,109 @@ const StudentCardLayout: React.FC = () => {
     const isEducator = userSession?.role?.name?.toLowerCase().includes('воспитатель');
 
     return (
-        <div className={styles.studentProfile}>
-            {/* Заголовок */}
-            <div className={styles.profileHeader}>
-                <div className={styles.studentBasicInfo}>
-                    <div className={styles.studentPhoto}>
-                        <div className={styles.studentPhotoPlaceholder}>{studentInitials}</div>
-                    </div>
-                    <div className={styles.studentNameInfo}>
-                        <h2>{studentFullName || '—'}</h2>
+        <>
+            <div className={styles.formSection}>
+                {/* Заголовок */}
+                <div className={styles.profileHeader}>
+                    <div className={styles.studentBasicInfo}>
+                        <div className={styles.studentPhoto}>
+                            <div className={styles.studentPhotoPlaceholder}>{studentInitials}</div>
+                        </div>
+                        <div className={styles.studentNameInfo}>
+                            <h2>{student.surname} <br />{studentFullName || '—'}</h2>
+                        </div>
                     </div>
                 </div>
+
+                {/* Вкладки */}
+                <div className={styles.profileNavigation}>
+                    <div className={`${styles.navItemProfile} ${activeTab === 'personal' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('personal')}>
+                        Личная информация
+                    </div>
+                    <div className={`${styles.navItemProfile} ${activeTab === 'housing' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('housing')}>
+                        Проживание
+                    </div>
+                    <div className={`${styles.navItemProfile} ${activeTab === 'notes' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('notes')}>
+                        Заметки
+                    </div>
+                </div>
+
+            </div >
+
+            <div className='mt-4'>
+                {/* Контент */}
+                {renderTabContent()}
             </div>
 
-            {/* Вкладки */}
-            <div className={styles.profileNavigation}>
-                <div
-                    className={`${styles.navItemProfile} ${activeTab === 'personal' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('personal')}
-                >
-                    Личная информация
-                </div>
-                <div
-                    className={`${styles.navItemProfile} ${activeTab === 'housing' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('housing')}
-                >
-                    Проживание
-                </div>
-                <div
-                    className={`${styles.navItemProfile} ${activeTab === 'notes' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('notes')}
-                >
-                    Заметки
-                </div>
-            </div>
-
-            {/* Контент */}
-            {renderTabContent()}
 
             {/* Кнопки действий */}
-            {!isEducator && (activeTab === 'personal' || activeTab === 'housing') && (
-                <div className={`${styles.actionButtons} ${styles.actionButtonsBar}`}>
-                    <div className={styles.actionButtonsGroup}>
-                        {activeTab === 'personal' && (
-                            <ActionButton
-                                className={styles.actionButtonFullWidth}
-                                size='md'
-                                onClick={() => setEditModalOpen(true)}>
-                                <i className="bi bi-pencil me-1"></i>
-                                Редактировать данные
-                            </ActionButton>
-                        )}
-                        {activeTab === 'housing' && (
-                            student.roomId ? (
+
+            {
+                !isEducator && (activeTab === 'personal' || activeTab === 'housing') && (
+                    <div className={styles.formSection}>
+                        <div className={`$ ${styles.actionButtonsBar}`}>
+                            <div className={styles.actionButtonsGroup}>
+                                {activeTab === 'personal' && (
+                                    <ActionButton
+                                        className={styles.actionButtonFullWidth}
+                                        size='md'
+                                        variant="danger" onClick={handleDeleteClick}>
+                                        Удалить студента
+                                    </ActionButton>
+                                )}
+                            </div>
+                            {activeTab === 'housing' && (
+                                student.roomId ? (
+                                    <ActionButton
+                                        className={styles.actionButtonFullWidth}
+                                        size='md'
+                                        variant="danger"
+                                        onClick={handleEvictClick}>
+                                        Выселить
+                                    </ActionButton>
+                                ) : (
+                                    <ActionButton
+                                        variant="primary"
+                                        className={styles.actionButtonFullWidth}
+                                        size='md'>
+                                        Заселить
+                                    </ActionButton>
+                                )
+                            )}
+                            {activeTab === 'personal' && (
                                 <ActionButton
                                     className={styles.actionButtonFullWidth}
                                     size='md'
-                                    variant="danger"
-                                    onClick={handleEvictClick}>
-                                    <i className="bi bi-box-arrow-right me-1"></i>
-                                    Выселить студента
+                                    onClick={() => setEditModalOpen(true)}>
+                                    <i className="bi bi-pencil me-1"></i>
+                                    Редактировать данные
                                 </ActionButton>
-                            ) : (
-                                <ActionButton
-                                    className={styles.actionButtonFullWidth}
-                                    size='md'>
-                                    <i className="bi bi-house-door me-1"></i>
-                                    Заселить студента
-                                </ActionButton>
-                            )
-                        )}
-                    </div>
-                    {activeTab === 'personal' && (
-                        <ActionButton
-                            className={styles.actionButtonFullWidth}
-                            size='md'
-                            variant="danger" onClick={handleDeleteClick}>
-                            Удалить студента
-                        </ActionButton>
-                    )}
-                </div>
-            )}
+                            )}
+
+                        </div>
+                    </div >
+                )
+            }
 
             {/* Модальное окно редактирования */}
-            {editModalOpen && student && (
-                <EditStudentModal
-                    isOpen={editModalOpen}
-                    onClose={() => setEditModalOpen(false)}
-                    student={student}
-                    onSave={() => {
-                        refetch();
-                        setEditModalOpen(false);
-                    }}
-                    contacts={student.contacts || []} />
-            )}
-        </div>
+            {
+                editModalOpen && student && (
+                    <EditStudentModal
+                        isOpen={editModalOpen}
+                        onClose={() => setEditModalOpen(false)}
+                        student={student}
+                        onSave={() => {
+                            refetch();
+                            setEditModalOpen(false);
+                        }}
+                        contacts={student.contacts || []} />
+                )
+            }
+
+        </>
     );
 };
 

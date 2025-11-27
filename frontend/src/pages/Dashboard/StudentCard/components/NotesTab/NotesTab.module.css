@@ -4,6 +4,13 @@
     gap: 16px;
 }
 
+.formSection {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+
 .notesToolbar {
     display: flex;
     justify-content: space-between;
@@ -94,10 +101,8 @@
 
 .noteItem {
     padding: 16px;
-    border-bottom: 1px solid #f1f3f5;
-    background: #f8f9fa;
+    background: white;
     border-radius: 10px;
-    border: 1px solid #eef0f3;
     display: flex;
     flex-direction: column;
     gap: 6px;

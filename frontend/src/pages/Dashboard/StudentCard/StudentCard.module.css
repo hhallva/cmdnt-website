@@ -9,6 +9,43 @@
     /* display: block; - уже по умолчанию */
 }
 
+.blockMetaColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+}
+
+.blockMeta {
+    margin: 0.15rem 0 0;
+    color: #6b7280;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 1rem;
+}
+
+
+.mobileCardTitle {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #111827;
+    margin-bottom: 0.75rem;
+}
+
+.blockMetaLabel {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.blockMetaValue {
+    color: #111827;
+    font-weight: medium;
+    font-size: 0.9rem;
+}
+
 /* --- Заголовок карточки --- */
 .profileHeader {
     display: flex;
@@ -16,7 +53,6 @@
     align-items: flex-start;
     margin-bottom: 1rem;
     padding-bottom: 1.5rem;
-    border-bottom: 2px solid #e9ecef;
 }
 
 .studentBasicInfo {
@@ -27,7 +63,7 @@
 }
 
 .studentNameInfo {
-    text-align: center;
+    text-align: left;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -38,7 +74,6 @@
     height: 120px;
     border-radius: 50%;
     background: #f8f9fa;
-    border: 3px solid #dee2e6;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,9 +136,6 @@
 .profileNavigation {
     display: flex;
     gap: 1rem;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 1rem;
 }
 
 .navItemProfile {
@@ -120,8 +152,8 @@
 }
 
 .navItemProfile.active {
-    background: #ffa726;
-    color: white;
+    background: rgba(245, 148, 49, 0.06);
+    color: var(--color-primary);
 }
 
 /* --- Сетка для карточек информации --- */
@@ -134,7 +166,7 @@
 
 /* --- Карточка информации --- */
 .infoCard {
-    background: #f8f9fa;
+    background: white;
     border-radius: 10px;
     padding: 1.5rem;
 }
@@ -181,20 +213,7 @@
 }
 
 
-.infoCard {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 1.5rem;
-}
 
-.infoCardTitle {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #dee2e6;
-}
 
 .infoItem {
     margin-bottom: 1rem;
@@ -244,6 +263,165 @@
     font-size: 0.9rem;
 }
 
+.blockHeader {
+    display: flex;
+    justify-content: start;
+    gap: 0.75rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.blockNumber {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--btn-primary);
+}
+
+.blockCardOccupied {
+    border-color: #fb8c00;
+}
+
+.blockNumberBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 0.85rem 1.7rem;
+    border-radius: 12px;
+    border: 2px solid var(--btn-primary);
+}
+
+
+.housingCardWrapper {
+    width: 100%;
+}
+
+.housingCard {
+    background: #fff;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.housingCardOccupied {
+    border-color: #fb8c00;
+}
+
+.housingOccupantsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75rem;
+}
+
+.housingOccupantRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.housingOccupantInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.housingOccupantAvatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--btn-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.studentCardButton {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.housingOccupantMeta {
+    margin: 0.15rem 0 0;
+    color: #475467;
+    font-size: 0.85rem;
+}
+
+.housingOccupantActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.housingCurrentBadge {
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.housingFreeSlotRow {
+    border-style: dashed;
+    border-color: #fdba74;
+    background: #fff7ed;
+}
+
+.housingFreeSlotAvatar {
+    background: #fed7aa;
+    color: #fb8c00;
+}
+
+.housingOccupantHint {
+    margin: 0.15rem 0 0;
+    color: #a16207;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+    .housingCard {
+        padding: 1rem;
+    }
+
+    .housingCardHeader {
+        flex-direction: column;
+    }
+
+    .housingStatusBadge {
+        align-self: flex-start;
+    }
+
+    .housingMetaColumns {
+        gap: 1rem;
+    }
+
+    .housingOccupantsHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .housingOccupantsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .housingCurrentBadge {
+        font-size: 0.8rem;
+    }
+}
+
 /* --- Кнопки действий --- */
 .actionButtons {
     display: flex;
@@ -274,6 +452,13 @@
     min-width: 180px;
 }
 
+.formSection {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+
 /* --- Адаптивность --- */
 @media (max-width: 768px) {
     .studentProfile {
@@ -298,6 +483,7 @@
 
     .studentNameInfo {
         width: 100%;
+        text-align: center;
     }
 
     .studentPhoto {
@@ -323,11 +509,7 @@
     }
 
     .profileNavigation {
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.75rem;
         flex-wrap: wrap;
-        /* Позволяет вкладкам переноситься */
-        gap: 0.5rem;
     }
 
     .navItemProfile {
