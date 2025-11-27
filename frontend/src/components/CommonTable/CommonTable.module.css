@@ -1,11 +1,19 @@
+.tableWrapper {
+    background: #ffffff;
+    border-radius: 12px;
+}
+
 .tableResponsive {
     overflow-x: auto;
+    overflow-y: visible;
+    border-radius: 10px;
 }
 
 /* Сама таблица */
 .table {
     width: 100%;
     border-collapse: collapse;
+    border-radius: 10px;
     background-color: white;
 }
 
@@ -17,6 +25,11 @@
     flex-wrap: wrap;
 }
 
+.indexColumn {
+    width: 3rem;
+    text-align: center;
+}
+
 .tableTitle {
     margin: 0;
     font-size: 1.5rem;
@@ -24,24 +37,16 @@
     color: #2c3e50;
 }
 
-.recordCount {
-    font-size: 0.9rem;
-    color: #6c757d;
-    white-space: nowrap;
-}
-
 .table th,
 .table td {
     padding: 0.75rem;
     vertical-align: top;
-    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
     text-align: left;
 }
 
 .table th {
     vertical-align: bottom;
-    border-bottom: 2px solid #dee2e6;
-    background-color: #f8f9fa;
     font-weight: 600;
     color: #495057;
     text-align: left;
@@ -51,10 +56,79 @@
     background-color: #f8f9fa;
 }
 
-.actionButtons {
+.rowActionColumn {
+    width: 3rem;
+}
+
+.rowActionCell {
+    text-align: center;
+    position: relative;
+}
+
+.rowActionButton {
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    border-radius: 50%;
+    color: #abb0b8;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.rowActionButton:hover,
+.rowActionButton:focus-visible {
+    background-color: transparent;
+    color: #1f2933;
+}
+
+.rowActionButton:focus-visible {
+    outline: 2px solid rgba(13, 110, 253, 0.35);
+    outline-offset: 2px;
+}
+
+.rowActionMenu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 180px;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    padding: 0.25rem;
+    z-index: 2;
+}
+
+.rowActionMenuItem {
+    width: 100%;
+    border: none;
+    background: transparent;
     display: flex;
+    align-items: center;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    color: #212529;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.rowActionMenuItem:hover {
+    background-color: #f1f3f5;
+}
+
+.rowActionMenuItem i {
+    font-size: 1rem;
+}
+
+.rowActionMenuItemDanger {
+    color: #c53030;
+}
+
+.rowActionMenuItemDanger:hover {
+    background-color: #ffe3e3;
+    color: #a61b1b;
 }
 
 @media (max-width: 768px) {
@@ -78,9 +152,5 @@
     .table td {
         padding: 0.5rem;
         font-size: 0.875rem;
-    }
-
-    .actionButtons {
-        gap: 0.25rem;
     }
 }

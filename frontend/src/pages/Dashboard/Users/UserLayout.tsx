@@ -16,8 +16,8 @@ import InputField from '../../../components/InputField/InputField';
 import PasswordField from '../../../components/PasswordField/PasswordField';
 import SelectField from '../../../components/SelectField/SelectField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
-import ChangePasswordModal from '../../../components/ChangePasswordModal/ChangePasswordModal';
-import EditUserModal from '../../../components/EditUserModal/EditUserModal';
+import ChangePasswordModal from './components/ChangePasswordModal/ChangePasswordModal';
+import EditUserModal from './components/EditUserModal/EditUserModal';
 
 import styles from './User.module.css'
 
@@ -196,84 +196,65 @@ const UsersLayout: React.FC = () => {
         },
     ];
 
-    const actions = [
-        {
-            render: (user: UserDto) => (
-                <button
-                    className={`${styles.actionBtn} ${styles.actionBtnEdit}`}
-                    onClick={() => handleEditUser(user)}
-                    title="Редактировать"
-                >
-                    <i className="bi bi-pencil"></i>
-                </button>
-            ),
-        },
-        {
-            render: (user: UserDto) => (
-                <button
-                    className={`${styles.actionBtn} ${styles.actionBtnPassword}`}
-                    onClick={() => handleChangePassword(user)}
-                    title="Изменить пароль"
-                >
-                    <i className="bi bi-key"></i>
-                </button>
-            ),
-        },
-        {
-            render: (user: UserDto) => {
-                if (userSession && userSession.id !== user.id) {
-                    return (
-                        <button
-                            className={`${styles.actionBtn} ${styles.actionBtnDelete}`}
-                            onClick={() => handleDeleteUser(user)}
-                            title="Удалить"
-                        >
-                            <i className="bi bi-trash"></i>
-                        </button>
-                    );
-                }
-                return null;
+    const rowAction = {
+        icon: 'bi-three-dots-vertical',
+        title: 'Дополнительные действия',
+        popupActions: [
+            {
+                label: 'Редактировать',
+                icon: 'bi-pencil',
+                onClick: handleEditUser,
             },
-        },
-    ];
+            {
+                label: 'Изменить пароль',
+                icon: 'bi-key',
+                onClick: handleChangePassword,
+            },
+            {
+                label: 'Удалить',
+                icon: 'bi-trash',
+                variant: 'danger' as const,
+                onClick: handleDeleteUser,
+                isVisible: (user: UserDto) => Boolean(userSession && userSession.id !== user.id),
+            },
+        ],
+    };
     // #endregion  
 
-    const listTabContent = (
-        <>
-            <div className="row g-3 mb-3">
-                <div className="col-md-6">
-                    <InputField
-                        type="text"
-                        placeholder="Поиск по ФИО..."
-                        value={searchTerm}
-                        onChange={handleSearchChange} />
-                </div>
-                <div className="col-md-3">
-                    <SelectField
-                        value={selectedRoleId}
-                        onChange={handleRoleChange}
-                        options={roleOptions} />
-                </div>
-                <div className="col-md-2 " >
-                    <ActionButton
-                        variant='dark'
-                        onClick={handleResetFilters}
-                    >
-                        Сбросить
-                    </ActionButton>
-                </div>
+    const listTabHeader = (
+        <div className="row g-3">
+            <div className="col-md-6">
+                <InputField
+                    type="text"
+                    placeholder="Поиск по ФИО..."
+                    value={searchTerm}
+                    onChange={handleSearchChange} />
             </div>
+            <div className="col-md-3">
+                <SelectField
+                    value={selectedRoleId}
+                    onChange={handleRoleChange}
+                    options={roleOptions} />
+            </div>
+            <div className="col-md-2" >
+                <ActionButton
+                    variant='secondary'
+                    onClick={handleResetFilters}
+                >
+                    Сбросить
+                </ActionButton>
+            </div>
+        </div>
+    );
 
-            <CommonTable
-                title="Список пользователей"
-                data={filteredUsers}
-                totalCount={users.length}
-                columns={columns}
-                actions={actions}
-                emptyMessage="Пользователи не найдены"
-            />
-
-        </>
+    const listTabContent = (
+        <CommonTable
+            data={filteredUsers}
+            totalCount={users.length}
+            columns={columns}
+            rowAction={rowAction}
+            emptyMessage="Пользователи не найдены"
+        />
     );
 
     //#endregion 
@@ -488,7 +469,7 @@ const UsersLayout: React.FC = () => {
                 {/* Кнопки действия */}
                 <div className="d-flex justify-content-end mt-4 pt-2">
                     <ActionButton
-                        variant='dark'
+                        variant='secondary'
                         onClick={resetAddForm}
                         disabled={isAdding}
                     >
@@ -522,6 +503,7 @@ const UsersLayout: React.FC = () => {
         {
             id: 'list',
             title: 'Список пользователей',
+            headerContent: listTabHeader,
             content: listTabContent,
         },
         {

@@ -24,9 +24,13 @@ namespace DataLayer.DTOs.Students
                     Course = student.Group.Course,
                     Name = student.Group.Name,
                 },
+                RoomId = student.Rooms.Count != 0
+                               ? student.Rooms.First().Id
+                               : null,
                 BlockNumber = student.Rooms.Count != 0
                                ? $"{student.Rooms.First().FloorNumber}{student.Rooms.First().RoomNumber:D2}"
-                               : null
+                               : null,
+                Origin = student.Origin
             };
         }
     }

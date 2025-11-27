@@ -6,16 +6,35 @@ import styles from './InputField.module.css';
 interface InputFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'label' | 'error'> {
     label?: string;
     error?: string; // Добавляем пропс для ошибки
+    inputClassName?: string;
+    children?: React.ReactNode;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ label, error, ...inputProps }) => {
+const InputField: React.FC<InputFieldProps> = ({ label, error, inputClassName, children, ...inputProps }) => {
+    const { className, ...restInputProps } = inputProps;
+
+    const inputClasses = [
+        styles.formControl,
+        error ? styles.isInvalid : '',
+        inputClassName,
+        className,
+    ].filter((cls): cls is string => Boolean(cls)).join(' ');
+
+    const wrapperClasses = [
+        styles.inputWrapper,
+        children ? styles.inputWrapperHasAddon : '',
+    ].filter((cls): cls is string => Boolean(cls)).join(' ');
+
     return (
         <div className={styles.formGroup}>
             {label && <label className={styles.formLabel}>{label}</label>}
-            <input
-                className={`${styles.formControl} ${error ? styles.isInvalid : ''}`} // Добавляем класс при ошибке
-                {...inputProps}
-            />
+            <div className={wrapperClasses}>
+                <input
+                    className={inputClasses}
+                    {...restInputProps}
+                />
+                {children}
+            </div>
             {error && <div className={styles.invalidFeedback}>{error}</div>}
         </div>
     );

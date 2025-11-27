@@ -1,19 +1,27 @@
-.tabsContainer {
-    background: white;
+.tabsRoot {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tabsSurface {
+    background: #ffffff;
     border-radius: 10px;
     padding: 1rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    display: block;
+    box-shadow: 0 10px 30px rgba(33, 36, 41, 0.05);
 }
 
 .tabsHeader {
     display: flex;
-    border-bottom: 2px solid #e9ecef;
     margin-bottom: 2rem;
     overflow-x: auto;
     scrollbar-width: thin;
     -ms-overflow-style: none;
     padding-bottom: 2px;
+}
+
+.tabsHeaderCompact {
+    margin-bottom: 0;
 }
 
 .tabsHeader::-webkit-scrollbar {
@@ -36,12 +44,13 @@
     transition: all 0.3s ease;
     border: none;
     background: none;
-    font-family: inherit;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 500;
     font-size: inherit;
-    color: #6c757d;
+    color: #2c3e50;
     white-space: nowrap;
     flex-shrink: 0;
-    border-radius: 5px 5px 0 0;
+    border-radius: 5px;
 }
 
 .tabButton:hover:not(.active) {
@@ -50,14 +59,22 @@
 }
 
 .tabButton.active {
-    background: #ffa726;
-    color: white;
+    background: rgba(245, 148, 49, 0.06);
+    color: var(--color-primary);
+}
+
+.headerExtras {
+    margin-top: 1rem;
+}
+
+.contentArea {
+    width: 100%;
 }
 
 
 /* --- Адаптивность --- */
 @media (max-width: 768px) {
-    .tabsContainer {
+    .tabsSurface {
         padding: 1rem;
         border-radius: 8px;
     }
@@ -70,15 +87,10 @@
         padding: 0.6rem 1rem;
         font-size: 0.9rem;
         margin-right: 0.25rem;
-        border-radius: 5px 5px 0 0;
     }
 
     .tabButton.active {
         border-radius: 5px 5px 0 0;
-    }
-
-    .tabContent {
-        padding: 0.5rem 0;
     }
 }
 

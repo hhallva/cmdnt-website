@@ -1,0 +1,94 @@
+.modalForm {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 16px;
+}
+
+.alertMessage {
+    margin: 0;
+}
+
+.formBody {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+}
+
+.formFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.contactFieldsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 1rem;
+}
+
+.contactRow {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(200px, 1fr) auto;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.contactActions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.contactAddButton {
+    align-self: flex-start;
+}
+
+.formFooter {
+    justify-content: flex-end;
+}
+
+.footerButton {
+    min-width: 160px;
+}
+
+@media (max-width: 768px) {
+    .formBody {
+        padding-right: 0;
+    }
+
+    .formFieldsGrid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .contactRow {
+        grid-template-columns: 1fr;
+    }
+
+    .contactActions {
+        justify-content: flex-start;
+    }
+
+    .contactAddButton {
+        width: 100%;
+    }
+
+    .formFooter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .footerButton {
+        width: 100%;
+    }
+}

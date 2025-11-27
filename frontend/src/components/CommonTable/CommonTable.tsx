@@ -1,157 +1,190 @@
-// src/components/CommonTable/CommonTable.tsx
-import React, { type ReactNode } from 'react';
-import styles from './CommonTable.module.css'; // Создадим стили позже
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import styles from './CommonTable.module.css';
 
-// Тип для определения колонки
-// `key` - ключ в объекте данных (например, 'name', 'group.name')
-// `title` - заголовок колонки
-// `render` - (опционально) функция для кастомного рендеринга ячейки
 interface ColumnDefinition<T> {
     key: keyof T | string;
-    title: ReactNode; // Может быть строкой или JSX
-    sortable?: boolean; // Можно ли сортировать по этой колонке
+    title: ReactNode;
+    sortable?: boolean;
     render?: (item: T) => ReactNode;
     className?: string;
 }
 
-// Тип для определения действия
-// `render` - функция, возвращающая ReactNode (например, кнопку) для каждой строки
-interface ActionDefinition<T> {
-    render: (item: T) => React.ReactNode;
-}
-
-// Новый тип для конфигурации сортировки
 interface SortConfig {
     key: string;
     direction: 'asc' | 'desc';
 }
 
+interface RowActionMenuItem<T> {
+    label: string;
+    icon?: string;
+    onClick: (item: T) => void;
+    variant?: 'default' | 'danger';
+    isVisible?: (item: T) => boolean;
+}
+
+interface RowActionConfig<T> {
+    icon: string;
+    title?: string;
+    onClick?: (item: T) => void;
+    popupActions?: RowActionMenuItem<T>[];
+}
 
 interface CommonTableProps<T> {
     title?: string;
     data: T[];
     columns: ColumnDefinition<T>[];
-    actions?: ActionDefinition<T>[];
     emptyMessage?: string;
     className?: string;
     totalCount?: number;
-    enableSorting?: boolean; // Включена ли сортировка в принципе
-    onSortRequest?: (key: string) => void; // Callback для запроса сортировки
-    sortConfig?: SortConfig | null; // Текущая конфигурация сортировки
+    enableSorting?: boolean;
+    onSortRequest?: (key: string) => void;
+    sortConfig?: SortConfig | null;
+    rowAction?: RowActionConfig<T>;
 }
 
-// Универсальный компонент таблицы
 const CommonTable = <T extends Record<string, any>>({
     title,
     data,
     columns,
-    actions,
     emptyMessage = 'Данные не найдены',
     className = '',
-    totalCount,
-    // Новые пропсы
     enableSorting = false,
     onSortRequest,
     sortConfig,
+    rowAction,
 }: CommonTableProps<T>) => {
+    // Универсальный резолвер значения по ключу или dot-path (group.name)
+    const getValueByPath = (obj: T, path: string | keyof T) =>
+        typeof path === 'string'
+            ? path in obj
+                ? (obj as T)[path]
+                : path.split('.').reduce((acc, part) => acc?.[part], obj as any)
+            : obj[path];
 
-    // --- Вспомогательная функция для получения значения по ключу ---
-    const getValueByPath = (obj: T, path: string | keyof T): any => {
-        if (typeof path === 'string' && path in obj) {
-            return obj[path as keyof T];
-        }
-        if (typeof path === 'string') {
-            return path.split('.').reduce((acc, part) => acc && acc[part], obj as any);
-        }
-        return obj[path];
-    };
-
-    // --- Рендер заголовка колонки с возможностью сортировки ---
+    // Возвращает заголовок колонки с иконкой сортировки при необходимости
     const renderColumnTitle = (column: ColumnDefinition<T>) => {
-        // Если сортировка выключена или колонка не сортируемая, просто возвращаем title
-        if (!enableSorting || !column.sortable) {
-            return column.title;
-        }
+        if (!enableSorting || !column.sortable) return column.title;
+        const isActive = sortConfig?.key === column.key;
+        const icon = !isActive
+            ? 'bi-arrow-down-up'
+            : sortConfig?.direction === 'asc'
+                ? 'bi-sort-alpha-down'
+                : 'bi-sort-alpha-up';
 
         return (
             <div
-                onClick={() => onSortRequest && onSortRequest(column.key as string)}
-                style={{
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                }}
+                onClick={() => onSortRequest?.(column.key as string)}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', width: '100%' }}
             >
                 <span>{column.title}</span>
-                <span style={{ opacity: sortConfig?.key === column.key ? 1 : 0.5, transition: 'opacity 0.2s ease' }}>
-                    {sortConfig?.key === column.key ? (
-                        sortConfig.direction === 'asc' ? (
-                            <i className="bi bi-sort-alpha-down" style={{ color: '#0d6efd' }}></i>
-                        ) : (
-                            <i className="bi bi-sort-alpha-up" style={{ color: '#0d6efd' }}></i>
-                        )
-                    ) : (
-                        <i className="bi bi-arrow-down-up"></i> // Иконка по умолчанию
-                    )}
-                </span>
+                <i className={`bi ${icon}`} style={{ color: isActive ? '#0d6efd' : '#686868', opacity: isActive ? 1 : 0.5, transition: 'opacity 0.2s ease', marginLeft: '0.5rem', }}></i>
             </div>
         );
     };
 
+    // Обрабатываем отображение всплывающего меню действий
+    const tableWrapperRef = useRef<HTMLDivElement | null>(null);
+    const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (tableWrapperRef.current && !tableWrapperRef.current.contains(event.target as Node)) {
+                setActiveRowIndex(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const hasRowAction = Boolean(rowAction);
+    const getVisibleMenuActions = (item: T) =>
+        rowAction?.popupActions?.filter(action => (action.isVisible ? action.isVisible(item) : true)) ?? [];
+
+    const handleRowActionClick = (item: T, rowIndex: number) => {
+        if (!rowAction) return;
+
+        const visibleMenuActions = getVisibleMenuActions(item);
+        if (visibleMenuActions.length) {
+            setActiveRowIndex(prev => (prev === rowIndex ? null : rowIndex));
+        } else {
+            rowAction.onClick?.(item);
+        }
+    };
+
     return (
-        <div className={`${styles.tableWrapper} ${className}`}>
-            {(title || (totalCount !== undefined && data.length > 0)) && (
+        <div className={`${styles.tableWrapper} ${className}`} ref={tableWrapperRef}>
+            {title && (
                 <div className={styles.tableHeader}>
+                    {/* Заголовок таблицы */}
                     {title && <h3 className={styles.tableTitle}>{title}</h3>}
-                    {totalCount !== undefined && data.length > 0 && (
-                        <div className={styles.recordCount}>
-                            Показано {data.length} из {totalCount}
-                        </div>
-                    )}
                 </div>
             )}
             <div className={styles.tableResponsive}>
                 <table className={styles.table}>
                     <thead>
+                        {/*Шапка таблицы*/}
                         <tr>
-                            {/* Рендерим заголовки колонок с учетом сортировки */}
+                            <th className={styles.indexColumn}>№</th>
                             {columns.map((column, index) => (
-                                <th key={index} className={column.className}>
-                                    {renderColumnTitle(column)}
-                                </th>
+                                <th key={index} className={column.className}>{renderColumnTitle(column)}</th>
                             ))}
-                            {actions && actions.length > 0 && <th>Действия</th>}
+                            {hasRowAction && <th className={styles.rowActionColumn}></th>}
                         </tr>
                     </thead>
                     <tbody>
-                        {data.length > 0 ? (
-                            data.map((item, rowIndex) => (
-                                <tr key={rowIndex}>
-                                    {columns.map((column, colIndex) => (
-                                        <td key={colIndex} className={column.className}>
-                                            {column.render ? column.render(item) : (getValueByPath(item, column.key) ?? 'Нет')}
-                                        </td>
-                                    ))}
-                                    {actions && actions.length > 0 && (
-                                        <td>
-                                            <div className={styles.actionButtons}>
-                                                {actions.map((action, actionIndex) => (
-                                                    <React.Fragment key={actionIndex}>
-                                                        {action.render(item)}
-                                                    </React.Fragment>
-                                                ))}
-                                            </div>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))
+                        {/*Данные таблицы*/}
+                        {data.length ? (
+                            data.map((item, rowIndex) => {
+                                const visibleMenuActions = getVisibleMenuActions(item);
+                                return (
+                                    <tr key={rowIndex}>
+                                        <td className={styles.indexColumn}>{rowIndex + 1}</td>
+                                        {columns.map((column, colIndex) => (
+                                            <td key={colIndex} className={column.className}>
+                                                {column.render ? column.render(item) : getValueByPath(item, column.key) ?? 'Нет'}
+                                            </td>
+                                        ))}
+                                        {hasRowAction && (
+                                            <td className={styles.rowActionCell}>
+                                                <button
+                                                    type="button"
+                                                    className={styles.rowActionButton}
+                                                    title={rowAction?.title}
+                                                    onClick={() => handleRowActionClick(item, rowIndex)}
+                                                >
+                                                    {rowAction?.icon && <i className={`bi ${rowAction.icon}`}></i>}
+                                                </button>
+                                                {rowAction && activeRowIndex === rowIndex && visibleMenuActions.length > 0 && (
+                                                    <div className={styles.rowActionMenu}>
+                                                        {visibleMenuActions.map((menuItem, menuIndex) => (
+                                                            <button
+                                                                key={menuIndex}
+
+                                                                type="button"
+                                                                className={`${styles.rowActionMenuItem} ${menuItem.variant === 'danger' ? styles.rowActionMenuItemDanger : ''}`}
+                                                                onClick={() => {
+                                                                    menuItem.onClick(item);
+                                                                    setActiveRowIndex(null);
+                                                                }}
+                                                            >
+                                                                {menuItem.icon && <i className={`bi ${menuItem.icon}`}></i>}
+                                                                <span>{menuItem.label}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                );
+                            })
                         ) : (
                             <tr>
-                                <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center">
-                                    {emptyMessage}
-                                </td>
+                                {/*Plaseholder при отсутсвии данных*/}
+                                <td colSpan={columns.length + 1 + (hasRowAction ? 1 : 0)} className="text-center">{emptyMessage}</td>
                             </tr>
                         )}
                     </tbody>

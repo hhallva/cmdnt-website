@@ -294,12 +294,14 @@ namespace DataLayer.Migrations
                     b.HasOne("DataLayer.Models.Room", null)
                         .WithMany()
                         .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Resettlement_Room");
 
                     b.HasOne("DataLayer.Models.Student", null)
                         .WithMany()
                         .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Resettlement_Student");
                 });

@@ -1,5 +1,5 @@
 /* src/components/EditUserModal/EditUserModal.module.css */
-/* Используем те же стили, что и для ChangePasswordModal */
+/* Styles handled via Bootstrap/CommonModal; placeholder kept intentionally empty. */
 
 /* --- Стили для модального окна --- */
 .modalOverlay {

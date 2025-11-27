@@ -99,11 +99,11 @@ namespace DataLayer.Data
                         "Resettlement",
                         r => r.HasOne<Room>().WithMany()
                             .HasForeignKey("RoomId")
-                            .OnDelete(DeleteBehavior.ClientSetNull)
+                            .OnDelete(DeleteBehavior.Cascade)
                             .HasConstraintName("FK_Resettlement_Room"),
                         l => l.HasOne<Student>().WithMany()
                             .HasForeignKey("StudentId")
-                            .OnDelete(DeleteBehavior.ClientSetNull)
+                            .OnDelete(DeleteBehavior.Cascade)
                             .HasConstraintName("FK_Resettlement_Student"),
                         j =>
                         {

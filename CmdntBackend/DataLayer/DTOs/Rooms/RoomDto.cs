@@ -1,8 +1,10 @@
-﻿namespace DataLayer.DTOs.Room
+﻿namespace DataLayer.DTOs.Rooms
 {
     public class RoomDto
     {
         public int Id { get; set; }
+
+        public int FloorNumber { get; set; }
 
         public string RoomNumber { get; set; } = null!;
 

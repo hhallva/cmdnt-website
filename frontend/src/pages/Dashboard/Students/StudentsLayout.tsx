@@ -6,6 +6,7 @@ import { apiClient } from '../../../api/client';
 
 import type { StudentsDto, PostStudentDto, ContactDto } from '../../../types/students';
 import type { GroupDto } from '../../../types/groups';
+import type { UserSession } from '../../../types/UserSession';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import CommonTable from '../../../components/CommonTable/CommonTable'
@@ -23,6 +24,10 @@ const StudentsLayout: React.FC = () => {
     const [students, setStudents] = useState<StudentsDto[]>([]);
     const [groups, setGroups] = useState<GroupDto[]>([]);
     const navigate = useNavigate();
+
+    const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
+    const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
+    const isEducator = userSession?.role?.name?.toLowerCase().includes('воспитатель');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -240,20 +245,23 @@ const StudentsLayout: React.FC = () => {
         },
     ];
 
-    const actions = [
-        {
-            render: (student: StudentsDto) => (
-                <ActionButton
-                    variant='info'
-                    size='md'
-                    className={`${styles.actionBtn} ${styles.actionBtnMore}`}
-                    onClick={() => alert(`Подробная информация о студенте:\n${student.surname} ${student.name} ${student.patronymic}\nID: ${student.id}`)}
-                >
-                    Подробнее
-                </ActionButton>
-            ),
-        },
-    ];
+    const rowAction = {
+        icon: 'bi-arrows-angle-expand',
+        title: 'Открыть карточку студента',
+        onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
+    };
+
+    const formatBirthday = (value?: string | null) => {
+        if (!value) return 'Нет';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return 'Нет';
+        return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(parsed);
+    };
+
+    const getGenderLabel = (value: boolean | null | undefined) => {
+        if (value === null || value === undefined) return 'Нет';
+        return value ? 'М' : 'Ж';
+    };
     // #endregion
 
     const handleExportToExcel = () => {
@@ -279,11 +287,11 @@ const StudentsLayout: React.FC = () => {
         XLSX.writeFile(wb, `Список_студентов_${new Date().toISOString().slice(0, 10)}.xlsx`);
     };
 
-    const listTabContent = (
+    const listTabHeader = (
         <>
-            <div className="d-flex justify-content-between align-items-start mb-3"> {/* align-items-start для выравнивания по верхнему краю, если фильтры раскроются */}
-                <div className="d-flex gap-2 flex-wrap"> {/* Контейнер для левой группы элементов */}
-                    <div style={{ minWidth: '350px' }}> {/* Ограничиваем ширину поля поиска, чтобы оно не сжималось слишком сильно */}
+            <div className=" justify-content-between align-items-start mb-3 flex-wrap gap-3 gap-md-0">
+                <div className={`d-flex gap-2 flex-wrap ${styles.searchControls}`}>
+                    <div className={styles.searchInputWrapper}>
                         <InputField
                             label=""
                             type="text"
@@ -294,75 +302,135 @@ const StudentsLayout: React.FC = () => {
                     </div>
                     <ActionButton
                         variant='secondary'
+                        size='md'
                         onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
                         aria-expanded={isAdvancedFilterOpen}
                         aria-controls="advancedFilters"
+                        className={styles.modilButton}
                     >
-                        <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} me-1`}></i>
-                        {isAdvancedFilterOpen ? 'Скрыть фильтры' : 'Расширенные фильтры'}
+                        Фильтры
+                        <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} ms-2`}></i>
                     </ActionButton>
                     <ActionButton
-                        variant='dark'
+                        variant='secondary'
+                        size='md'
                         onClick={resetFiltersAndSorts}
+                        className={styles.modilButton}
                     >
                         Сбросить
                     </ActionButton>
                 </div>
-                {/* Правая часть - кнопка экспорта */}
-                <div>
-                    <ActionButton
-                        variant='success'
-                        onClick={handleExportToExcel}
-                    >
-                        <i className="bi bi-file-earmark-spreadsheet me-1"></i>
-                        Экспорт в Excel
-                    </ActionButton>
-                </div>
             </div>
-
             {/* Расширенные фильтры - теперь вне основного контейнера, но под ним */}
             {isAdvancedFilterOpen && (
                 <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
-                    <div className="row g-3">
-                        <div className="col-md-3">
-                            <SelectField
-                                label="Группа"
-                                value={selectedGroupId}
-                                onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                options={groupOptions}
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <SelectField
-                                label="Курс"
-                                value={selectedCourse}
-                                onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                options={courseOptions}
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <SelectField
-                                label="Пол"
-                                value={selectedGender}
-                                onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
-                                options={genderOptions}
-                            />
-                        </div>
+                    <div className={styles.filtersGrid}>
+                        <SelectField
+                            label="Группа"
+                            value={selectedGroupId}
+                            onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                            options={groupOptions}
+                        />
+                        <SelectField
+                            label="Курс"
+                            value={selectedCourse}
+                            onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                            options={courseOptions}
+                        />
+                        <SelectField
+                            label="Пол"
+                            value={selectedGender}
+                            onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
+                            options={genderOptions}
+                        />
                     </div>
                 </div>
             )}
-            <CommonTable
-                title="Список студентов"
-                data={processedStudents}
-                totalCount={students.length}
-                columns={columns}
-                actions={actions}
-                enableSorting={true}
-                onSortRequest={requestSort}
-                sortConfig={sortConfig}
-                emptyMessage="Студенты не найдены"
-            />
         </>
+    );
+
+    const listTabContent = (
+        <>
+            {!isEducator && (
+                <div className={styles.tableContainer}>
+
+                    <ActionButton
+                        size='md'
+                        variant='primary'
+                        onClick={handleExportToExcel}
+                        className={styles.fullWidthMobileButton}
+                    >
+                        <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                        Скачать в Excel
+                    </ActionButton>
+
+                </div>
+            )}
+            <div className={styles.desktopTable}>
+                <CommonTable
+                    data={processedStudents}
+                    totalCount={students.length}
+                    columns={columns}
+                    rowAction={rowAction}
+                    enableSorting={true}
+                    onSortRequest={requestSort}
+                    sortConfig={sortConfig}
+                    emptyMessage="Студенты не найдены"
+                />
+            </div>
+            <div className={styles.mobileCardsWrapper}>
+                {processedStudents.length ? (
+                    processedStudents.map(student => (
+                        <button
+                            type="button"
+                            key={student.id}
+                            className={styles.mobileCard}
+                            onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                        >
+                            <p className={styles.mobileCardTitle}>
+                                {`${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет'}
+                            </p>
+                            <div className={styles.mobileCardDivider}></div>
+                            <div className={styles.mobileCardRow}>
+                                <div className={styles.blockMetaColumn}>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Группа</span>
+                                        <span className={styles.blockMetaValue}>{student.group?.name || 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Телефон</span>
+                                        <span className={styles.blockMetaValue}>{student.phone || 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Рожден</span>
+                                        <span className={styles.blockMetaValue}>{formatBirthday(student.birthday)}</span>
+                                    </div>
+                                </div>
+                                <div className={styles.blockMetaColumn}>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Курс</span>
+                                        <span className={styles.blockMetaValue}>{student.group?.course ?? 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Пол</span>
+                                        <span className={styles.blockMetaValue}>{getGenderLabel(student.gender)}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Блок</span>
+                                        <span className={styles.blockMetaValue}>{student.blockNumber || 'Нет'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    ))
+                ) : (
+                    <div className={styles.mobileCardsEmpty}>Студенты не найдены</div>
+                )}
+            </div>
+        </>
+
+
+
     );
     //#endregion
 
@@ -375,7 +443,7 @@ const StudentsLayout: React.FC = () => {
         groupId: null,
         gender: null,
         phone: '',
-        origin: '',
+        origin: null,
     });
 
     const [newContacts, setNewContacts] = useState<{ comment: string; phone: string }[]>([]);
@@ -507,6 +575,9 @@ const StudentsLayout: React.FC = () => {
             errors.origin = 'Поле "Откуда приехал" должно содержать не более 300 символов.';
             isValid = false;
         }
+        if (newStudent.origin && newStudent.origin.length == 0) {
+            newStudent.origin = null
+        }
 
         if (!newStudent.groupId || newStudent.groupId <= 0) {
             errors.groupId = 'Пожалуйста, выберите группу.';
@@ -568,7 +639,7 @@ const StudentsLayout: React.FC = () => {
             groupId: null,
             gender: null,
             phone: '',
-            origin: '',
+            origin: null,
         });
         setNewContacts([])
         setFormErrors({});
@@ -786,7 +857,7 @@ const StudentsLayout: React.FC = () => {
                 </div>
                 <div className="d-flex justify-content-end mt-4 pt-2">
                     <ActionButton
-                        variant='dark'
+                        variant='secondary'
                         onClick={resetAddForm}
                         disabled={isAdding}
                     >
@@ -805,21 +876,29 @@ const StudentsLayout: React.FC = () => {
     );
     //#endregion
 
+    const tabs = useMemo(() => {
+        const baseTabs: Array<{ id: string; title: string; headerContent?: React.ReactNode; content: React.ReactNode }> = [
+            {
+                id: 'list',
+                title: 'Список',
+                headerContent: listTabHeader,
+                content: listTabContent,
+            },
+        ];
+
+        if (!isEducator) {
+            baseTabs.push({
+                id: 'add',
+                title: 'Новый студент',
+                content: addTabContent,
+            });
+        }
+
+        return baseTabs;
+    }, [addTabContent, isEducator, listTabContent, listTabHeader]);
+
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
-
-    const tabs = [
-        {
-            id: 'list',
-            title: 'Список студентов',
-            content: listTabContent,
-        },
-        {
-            id: 'add',
-            title: 'Добавить студента',
-            content: addTabContent,
-        },
-    ];
 
     return (
         <>

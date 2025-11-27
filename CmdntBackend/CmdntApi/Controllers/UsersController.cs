@@ -1,6 +1,6 @@
 ﻿using DataLayer.Data;
 using DataLayer.DTOs;
-using DataLayer.DTOs.User;
+using DataLayer.DTOs.Users;
 using DataLayer.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -73,8 +73,6 @@ namespace CmdntApi.Controllers
                     }
                 }).ToListAsync();
 
-            if (users.Count == 0)
-                return NotFound(new ApiErrorDto("Пользователи не найдены", StatusCodes.Status404NotFound));
             return Ok(users);
         }
 
@@ -217,6 +215,9 @@ namespace CmdntApi.Controllers
             var dbUser = await _context.Users
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+            if (dbUser == null || dbUser.Role == null)
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorDto("Не удалось получить созданного пользователя", StatusCodes.Status500InternalServerError));
 
             var userDto = new UserDto
             {
