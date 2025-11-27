@@ -196,46 +196,29 @@ const UsersLayout: React.FC = () => {
         },
     ];
 
-    const actions = [
-        {
-            render: (user: UserDto) => (
-                <button
-                    className={`${styles.actionBtn} ${styles.actionBtnEdit}`}
-                    onClick={() => handleEditUser(user)}
-                    title="Редактировать"
-                >
-                    <i className="bi bi-pencil"></i>
-                </button>
-            ),
-        },
-        {
-            render: (user: UserDto) => (
-                <button
-                    className={`${styles.actionBtn} ${styles.actionBtnPassword}`}
-                    onClick={() => handleChangePassword(user)}
-                    title="Изменить пароль"
-                >
-                    <i className="bi bi-key"></i>
-                </button>
-            ),
-        },
-        {
-            render: (user: UserDto) => {
-                if (userSession && userSession.id !== user.id) {
-                    return (
-                        <button
-                            className={`${styles.actionBtn} ${styles.actionBtnDelete}`}
-                            onClick={() => handleDeleteUser(user)}
-                            title="Удалить"
-                        >
-                            <i className="bi bi-trash"></i>
-                        </button>
-                    );
-                }
-                return null;
+    const rowAction = {
+        icon: 'bi-three-dots-vertical',
+        title: 'Дополнительные действия',
+        popupActions: [
+            {
+                label: 'Редактировать',
+                icon: 'bi-pencil',
+                onClick: handleEditUser,
             },
-        },
-    ];
+            {
+                label: 'Изменить пароль',
+                icon: 'bi-key',
+                onClick: handleChangePassword,
+            },
+            {
+                label: 'Удалить',
+                icon: 'bi-trash',
+                variant: 'danger' as const,
+                onClick: handleDeleteUser,
+                isVisible: (user: UserDto) => Boolean(userSession && userSession.id !== user.id),
+            },
+        ],
+    };
     // #endregion  
 
     const listTabHeader = (
@@ -266,11 +249,10 @@ const UsersLayout: React.FC = () => {
 
     const listTabContent = (
         <CommonTable
-            title="Список пользователей"
             data={filteredUsers}
             totalCount={users.length}
             columns={columns}
-            actions={actions}
+            rowAction={rowAction}
             emptyMessage="Пользователи не найдены"
         />
     );

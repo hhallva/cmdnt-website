@@ -19,6 +19,123 @@
      margin-bottom: 1rem;
  }
 
+ .desktopTable {
+     display: block;
+ }
+
+ .mobileCardsWrapper {
+     display: none;
+ }
+
+ .mobileCard {
+     width: 100%;
+     text-align: left;
+     border: 0px solid #e2e8f0;
+     border-radius: 8px;
+     padding: 1rem;
+     background: #ffffff;
+     transition: transform 0.2s ease, box-shadow 0.2s ease;
+     cursor: pointer;
+ }
+
+ .mobileCard:not(:first-child) {
+     margin-top: 0.75rem;
+ }
+
+ .mobileCard:active {
+     transform: scale(0.99);
+ }
+
+ .mobileCard:focus-visible {
+     outline: 2px solid rgba(13, 110, 253, 0.35);
+     outline-offset: 3px;
+ }
+
+ .mobileCardTitle {
+     font-family: 'Inter', 'Segoe UI', sans-serif;
+     font-size: 1.2rem;
+     font-weight: 600;
+     color: #111827;
+     margin: 0;
+ }
+
+ .mobileCardDivider {
+     height: 1px;
+     background: #e5e7eb;
+     margin: 0.75rem 0;
+ }
+
+ .mobileCardRows {
+     display: flex;
+     justify-content: start;
+     align-items: flex-start;
+     flex-wrap: wrap;
+     flex-direction: column;
+     gap: 0.75rem;
+ }
+
+ .blockMetaColumn {
+     display: flex;
+     flex-direction: column;
+     align-items: flex-start;
+     gap: 0.25rem;
+     text-align: left;
+ }
+
+ .blockMeta {
+     margin: 0.15rem 0 0;
+     color: #6b7280;
+     display: flex;
+     align-items: baseline;
+     gap: 0.35rem;
+     font-size: 1rem;
+ }
+
+ .blockMetaLabel {
+     color: #6b7280;
+     font-size: 0.9rem;
+ }
+
+ .blockMetaValue {
+     color: #111827;
+     font-weight: 600;
+     font-size: 0.9rem;
+ }
+
+ .mobileCardRow {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     gap: 4rem;
+ }
+
+ .mobileCardItem {
+     display: flex;
+     flex-wrap: wrap;
+     align-items: baseline;
+     gap: 0.35rem;
+     font-size: 0.95rem;
+     font-weight: 500;
+     color: #111827;
+ }
+
+ .mobileCardItemLabel {
+     font-size: 0.82rem;
+     text-transform: uppercase;
+     letter-spacing: 0.06em;
+     color: #9ca3af;
+ }
+
+ .mobileCardItemValue {
+     color: #111827;
+ }
+
+ .mobileCardsEmpty {
+     text-align: center;
+     color: #6b7280;
+     font-size: 0.95rem;
+     padding: 1rem 0;
+ }
+
  .filtersGrid {
      display: grid;
      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -36,7 +153,7 @@
      flex: 1 1 100%;
  }
 
- @media (max-width: 768px) {
+ @media (max-width: 1000px) {
      .searchControls {
          gap: 0.75rem;
      }
@@ -61,6 +178,15 @@
 
      .advancedFiltersPanel :global(.row) {
          row-gap: 0.75rem;
+     }
+
+     .desktopTable {
+         display: none;
+     }
+
+     .mobileCardsWrapper {
+         display: flex;
+         flex-direction: column;
      }
  }
 

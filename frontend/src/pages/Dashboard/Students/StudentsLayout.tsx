@@ -250,6 +250,18 @@ const StudentsLayout: React.FC = () => {
         title: 'Открыть карточку студента',
         onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
     };
+
+    const formatBirthday = (value?: string | null) => {
+        if (!value) return 'Нет';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return 'Нет';
+        return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(parsed);
+    };
+
+    const getGenderLabel = (value: boolean | null | undefined) => {
+        if (value === null || value === undefined) return 'Нет';
+        return value ? 'М' : 'Ж';
+    };
     // #endregion
 
     const handleExportToExcel = () => {
@@ -339,8 +351,9 @@ const StudentsLayout: React.FC = () => {
 
     const listTabContent = (
         <>
-            <div className={styles.tableContainer}>
-                {!isEducator && (
+            {!isEducator && (
+                <div className={styles.tableContainer}>
+
                     <ActionButton
                         size='md'
                         variant='primary'
@@ -348,20 +361,72 @@ const StudentsLayout: React.FC = () => {
                         className={styles.fullWidthMobileButton}
                     >
                         <i className="bi bi-file-earmark-spreadsheet me-1"></i>
-                        Экспорт в Excel
+                        Скачать в Excel
                     </ActionButton>
+
+                </div>
+            )}
+            <div className={styles.desktopTable}>
+                <CommonTable
+                    data={processedStudents}
+                    totalCount={students.length}
+                    columns={columns}
+                    rowAction={rowAction}
+                    enableSorting={true}
+                    onSortRequest={requestSort}
+                    sortConfig={sortConfig}
+                    emptyMessage="Студенты не найдены"
+                />
+            </div>
+            <div className={styles.mobileCardsWrapper}>
+                {processedStudents.length ? (
+                    processedStudents.map(student => (
+                        <button
+                            type="button"
+                            key={student.id}
+                            className={styles.mobileCard}
+                            onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                        >
+                            <p className={styles.mobileCardTitle}>
+                                {`${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет'}
+                            </p>
+                            <div className={styles.mobileCardDivider}></div>
+                            <div className={styles.mobileCardRow}>
+                                <div className={styles.blockMetaColumn}>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Группа</span>
+                                        <span className={styles.blockMetaValue}>{student.group?.name || 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Телефон</span>
+                                        <span className={styles.blockMetaValue}>{student.phone || 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Рожден</span>
+                                        <span className={styles.blockMetaValue}>{formatBirthday(student.birthday)}</span>
+                                    </div>
+                                </div>
+                                <div className={styles.blockMetaColumn}>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Курс</span>
+                                        <span className={styles.blockMetaValue}>{student.group?.course ?? 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Пол</span>
+                                        <span className={styles.blockMetaValue}>{getGenderLabel(student.gender)}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Блок</span>
+                                        <span className={styles.blockMetaValue}>{student.blockNumber || 'Нет'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    ))
+                ) : (
+                    <div className={styles.mobileCardsEmpty}>Студенты не найдены</div>
                 )}
             </div>
-            <CommonTable
-                data={processedStudents}
-                totalCount={students.length}
-                columns={columns}
-                rowAction={rowAction}
-                enableSorting={true}
-                onSortRequest={requestSort}
-                sortConfig={sortConfig}
-                emptyMessage="Студенты не найдены"
-            />
         </>
 
 
