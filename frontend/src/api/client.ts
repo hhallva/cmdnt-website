@@ -13,7 +13,7 @@ import type { PostUserDto } from '../types/PostUserDto'
 import type { PostStudentDto, StudentsDto, ContactDto, UpdateStudentPayload } from '../types/students'
 
 import type { GroupDto } from '../types/groups'
-import type { RoomDto } from '../types/rooms'
+import type { RoomDto, PostRoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
 import type { StructureStatisticDto } from '../types/structures'
 
@@ -269,6 +269,16 @@ export const apiClient = {
 
   getStudentsByRoomId: async (id: number): Promise<StudentsDto[]> => {
     return apiClient.requestWithAuth<StudentsDto[]>(`/api/v1/Rooms/${id}/students`);
+  },
+
+  createRoom: async (payload: PostRoomDto): Promise<RoomDto> => {
+    return apiClient.requestWithAuth<RoomDto>('/api/v1/Rooms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
   },
   //#endregion
 

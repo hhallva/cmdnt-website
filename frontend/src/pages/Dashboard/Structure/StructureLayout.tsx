@@ -4,11 +4,13 @@ import SelectField from '../../../components/SelectField/SelectField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../components/CommonModal/CommonModal';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
+import InputField from '../../../components/InputField/InputField';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
 import { apiClient } from '../../../api/client';
 import type { RoomDto } from '../../../types/rooms';
 import type { StudentsDto } from '../../../types/students';
 import type { StructureStatisticDto } from '../../../types/structures';
+import type { UserSession } from '../../../types/UserSession';
 import styles from './Structure.module.css';
 
 type RoomWithOccupants = RoomDto & { occupants: StudentsDto[] };
@@ -29,6 +31,14 @@ type FloorWithBlocks = {
     total: number;
     free: number;
 };
+
+type NewRoomFormState = {
+    floorNumber: string;
+    roomNumber: string;
+    capacity: string;
+};
+
+type NewRoomFormErrors = Partial<Record<keyof NewRoomFormState, string>>;
 
 const getStatus = (currentCapacity: number, capacity: number): RoomStatus => {
     if (currentCapacity === 0) {
@@ -82,7 +92,12 @@ const deriveGenderTypeFromOccupants = (rooms: RoomWithOccupants[]): RoomWithOccu
 
 const StructureLayout: React.FC = () => {
     const navigate = useNavigate();
-    const { rooms, students, loading, error } = useDormStructureData();
+    const { rooms, students, loading, error, refetch } = useDormStructureData();
+    const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
+    const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
+    const roleName = userSession?.role?.name?.toLowerCase() ?? '';
+    const isEducator = roleName.includes('воспитатель');
+    const canManageRooms = !isEducator;
 
     const [selectedStudentId, setSelectedStudentId] = useState<'all' | number>('all');
     const [selectedFloor, setSelectedFloor] = useState<'all' | number>('all');
@@ -91,6 +106,14 @@ const StructureLayout: React.FC = () => {
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState<string | null>(null);
+    const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
+    const [newRoomForm, setNewRoomForm] = useState<NewRoomFormState>({
+        floorNumber: '',
+        roomNumber: '',
+        capacity: '',
+    });
+    const [newRoomErrors, setNewRoomErrors] = useState<NewRoomFormErrors>({});
+    const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
     const loadStructureStats = useCallback(async () => {
         setStatsLoading(true);
@@ -250,6 +273,81 @@ const StructureLayout: React.FC = () => {
         setSelectedRoomId('all');
     };
 
+    const openAddRoomModal = (floorNumber?: number) => {
+        if (!canManageRooms) {
+            return;
+        }
+        setNewRoomForm({
+            floorNumber: floorNumber ? floorNumber.toString() : '',
+            roomNumber: '',
+            capacity: '',
+        });
+        setNewRoomErrors({});
+        setIsAddRoomModalOpen(true);
+    };
+
+    const closeAddRoomModal = () => {
+        setIsAddRoomModalOpen(false);
+        setNewRoomErrors({});
+    };
+
+    const handleNewRoomFieldChange = (field: keyof NewRoomFormState, value: string) => {
+        setNewRoomForm(prev => ({ ...prev, [field]: value }));
+        if (newRoomErrors[field]) {
+            setNewRoomErrors(prev => {
+                const next = { ...prev };
+                delete next[field];
+                return next;
+            });
+        }
+    };
+
+    const validateNewRoomForm = () => {
+        const errors: NewRoomFormErrors = {};
+        (['floorNumber', 'roomNumber', 'capacity'] as Array<keyof NewRoomFormState>).forEach(field => {
+            const rawValue = newRoomForm[field].trim();
+            if (!rawValue) {
+                errors[field] = 'Поле обязательно';
+                return;
+            }
+            const parsed = Number(rawValue);
+            if (!Number.isInteger(parsed) || parsed <= 0) {
+                errors[field] = 'Введите положительное число';
+            }
+        });
+
+        setNewRoomErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleAddRoomSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!validateNewRoomForm()) {
+            return;
+        }
+
+        const payload = {
+            floorNumber: Number(newRoomForm.floorNumber),
+            roomNumber: Number(newRoomForm.roomNumber),
+            capacity: Number(newRoomForm.capacity),
+        };
+
+        setIsCreatingRoom(true);
+        try {
+            await apiClient.createRoom(payload);
+            setIsAddRoomModalOpen(false);
+            setNewRoomForm({ floorNumber: '', roomNumber: '', capacity: '' });
+            setNewRoomErrors({});
+            refetch();
+            await loadStructureStats();
+        } catch (err: any) {
+            console.error('Ошибка при добавлении комнаты:', err);
+            alert(err?.message || 'Не удалось добавить комнату');
+        } finally {
+            setIsCreatingRoom(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
@@ -338,9 +436,20 @@ const StructureLayout: React.FC = () => {
                 {floors.map(floor => (
                     <section key={floor.floor} className={styles.floorSection}>
                         <div className={styles.floorHeader}>
-                            <div>
-                                <h3 className={styles.floorTitle}>{floor.floor} этаж</h3>
-                            </div>
+                            <h3 className={styles.floorTitle}>{floor.floor} этаж</h3>
+                            {canManageRooms && (
+                                <div className={styles.floorActions}>
+                                    <ActionButton
+                                        variant='secondary'
+                                        size='md'
+                                        className={styles.addRoomButton}
+                                        onClick={() => openAddRoomModal(floor.floor)}
+                                    >
+                                        <span className={styles.addRoomButtonIcon}>+</span>
+                                        <span className={styles.addRoomButtonText}>Добавить</span>
+                                    </ActionButton>
+                                </div>
+                            )}
                         </div>
                         <div className={styles.blocksGrid}>
                             {floor.blocks.map(block => {
@@ -393,6 +502,67 @@ const StructureLayout: React.FC = () => {
                     </section>
                 ))}
             </div>
+
+            {canManageRooms && (
+                <CommonModal
+                    title="Добавить комнату"
+                    isOpen={isAddRoomModalOpen}
+                    onClose={closeAddRoomModal}
+                    minWidth={520}
+                >
+                    <form className={styles.addRoomForm} onSubmit={handleAddRoomSubmit}>
+                        <div className={styles.addRoomFormGrid}>
+                            <InputField
+                                label="Номер этажа"
+                                type="number"
+                                min="1"
+                                inputMode="numeric"
+                                value={newRoomForm.floorNumber}
+                                onChange={(e) => handleNewRoomFieldChange('floorNumber', e.target.value)}
+                                disabled={isCreatingRoom}
+                                error={newRoomErrors.floorNumber}
+                            />
+                            <InputField
+                                label="Номер комнаты"
+                                type="number"
+                                min="1"
+                                inputMode="numeric"
+                                value={newRoomForm.roomNumber}
+                                onChange={(e) => handleNewRoomFieldChange('roomNumber', e.target.value)}
+                                disabled={isCreatingRoom}
+                                error={newRoomErrors.roomNumber}
+                            />
+                            <InputField
+                                label="Вместимость"
+                                type="number"
+                                min="1"
+                                inputMode="numeric"
+                                value={newRoomForm.capacity}
+                                onChange={(e) => handleNewRoomFieldChange('capacity', e.target.value)}
+                                disabled={isCreatingRoom}
+                                error={newRoomErrors.capacity}
+                            />
+                        </div>
+                        <div className={styles.addRoomActions}>
+                            <ActionButton
+                                variant='secondary'
+                                type='button'
+                                onClick={closeAddRoomModal}
+                                disabled={isCreatingRoom}
+                            >
+                                Отмена
+                            </ActionButton>
+                            <ActionButton
+                                variant='primary'
+                                type='submit'
+                                disabled={isCreatingRoom}
+                            >
+                                {isCreatingRoom ? 'Добавляем…' : 'Добавить комнату'}
+                            </ActionButton>
+                        </div>
+                    </form>
+                </CommonModal>
+            )}
 
             <CommonModal
                 title={activeBlock && (
