@@ -37,6 +37,36 @@
     background: #e0a800;
 }
 
+.filterBar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.filterField {
+    flex: 1 1 260px;
+}
+
+.filterActions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.filterResetButton {
+    min-height: 48px;
+    white-space: nowrap;
+}
+
+.modilButton {
+    min-height: 50px;
+    min-width: 160px;
+    font-size: 1rem;
+}
+
 @media (max-width: 768px) {
     .actionBtn {
         padding: 0.3rem 0.5rem;
@@ -47,9 +77,28 @@
         padding: 1rem;
     }
 
+
+    .modilButton {
+        min-height: 38px;
+        align-self: end;
+        height: fit-content;
+        justify-self: flex;
+        font-size: 1rem;
+        width: 100%;
+    }
+
     .col-md-8,
     .col-md-4 {
         flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .filterActions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .filterResetButton {
         width: 100%;
     }
 }

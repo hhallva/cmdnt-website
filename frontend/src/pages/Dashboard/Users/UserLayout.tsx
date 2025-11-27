@@ -64,10 +64,7 @@ const UsersLayout: React.FC = () => {
             setStatistics(statsResponse);
         } catch (err: any) {
             console.error('Ошибка при загрузке статистики:', err);
-            // Обработка ошибки статистики, если нужно отдельно
-            // setError(err.message || 'Ошибка при загрузке статистики');
-            // Но, возможно, лучше бросить ошибку дальше или вернуть null
-            throw err; // Бросаем ошибку, чтобы вызывающий код (например, useEffect или handleDelete) мог её обработать
+            throw err;
         }
     };
 
@@ -222,24 +219,27 @@ const UsersLayout: React.FC = () => {
     // #endregion  
 
     const listTabHeader = (
-        <div className="row g-3">
-            <div className="col-md-6">
+        <div className={styles.filterBar}>
+            <div className={styles.filterField}
+            >
                 <InputField
                     type="text"
                     placeholder="Поиск по ФИО..."
                     value={searchTerm}
                     onChange={handleSearchChange} />
             </div>
-            <div className="col-md-3">
+            <div className={styles.filterField}>
                 <SelectField
                     value={selectedRoleId}
                     onChange={handleRoleChange}
                     options={roleOptions} />
             </div>
-            <div className="col-md-2" >
+            <div className={styles.filterActions}>
                 <ActionButton
+                    size='sm'
                     variant='secondary'
                     onClick={handleResetFilters}
+                    className={styles.modilButton}
                 >
                     Сбросить
                 </ActionButton>
@@ -502,13 +502,13 @@ const UsersLayout: React.FC = () => {
     const tabs = [
         {
             id: 'list',
-            title: 'Список пользователей',
+            title: 'Список',
             headerContent: listTabHeader,
             content: listTabContent,
         },
         {
             id: 'add',
-            title: 'Добавить пользователя',
+            title: 'Новый пользователь',
             content: addTabContent,
         }
     ];
