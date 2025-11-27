@@ -280,6 +280,12 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
+
+  deleteRoom: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Rooms/${id}`, {
+      method: 'DELETE',
+    });
+  },
   //#endregion
 
   //#region Структура

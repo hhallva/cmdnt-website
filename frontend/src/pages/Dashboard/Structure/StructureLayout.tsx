@@ -114,6 +114,7 @@ const StructureLayout: React.FC = () => {
     });
     const [newRoomErrors, setNewRoomErrors] = useState<NewRoomFormErrors>({});
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+    const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
 
     const loadStructureStats = useCallback(async () => {
         setStatsLoading(true);
@@ -345,6 +346,33 @@ const StructureLayout: React.FC = () => {
             alert(err?.message || 'Не удалось добавить комнату');
         } finally {
             setIsCreatingRoom(false);
+        }
+    };
+
+    const handleDeleteRoom = async (roomId: number, roomLabel: string) => {
+        if (!canManageRooms) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Удалить комнату ${roomLabel}? При удалении комнаты все её студенты будут автоматически выселены.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setDeletingRoomId(roomId);
+        try {
+            await apiClient.deleteRoom(roomId);
+            closeBlockModal();
+            refetch();
+            await loadStructureStats();
+        } catch (err: any) {
+            console.error('Ошибка при удалении комнаты:', err);
+            alert(err?.message || 'Не удалось удалить комнату');
+        } finally {
+            setDeletingRoomId(null);
         }
     };
 
@@ -605,6 +633,18 @@ const StructureLayout: React.FC = () => {
                                 <div key={room.id} className={styles.blockRoomSection}>
                                     <div className={styles.blockRoomHeader}>
                                         <p className={styles.blockRoomTitle}>Комната {roomIndex + 1}</p>
+                                        {canManageRooms && (
+                                            <ActionButton
+                                                variant='transparent-primary'
+                                                size='sm'
+                                                type='button'
+                                                className={styles.blockRoomDeleteButton}
+                                                disabled={deletingRoomId === room.id}
+                                                onClick={() => handleDeleteRoom(room.id, room.roomNumber)}
+                                            >
+                                                {deletingRoomId === room.id ? 'Удаляем…' : 'Удалить'}
+                                            </ActionButton>
+                                        )}
                                     </div>
                                     <div className={styles.studentsList}>
                                         {room.occupants.map(student => (
