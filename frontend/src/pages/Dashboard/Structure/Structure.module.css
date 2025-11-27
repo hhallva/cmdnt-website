@@ -103,7 +103,7 @@
 }
 
 .emptyState {
-    border: 1px dashed #cbd5f5;
+    background-color: white;
     border-radius: 12px;
     padding: 2rem;
     text-align: center;
@@ -115,6 +115,21 @@
     display: block;
     margin-bottom: 0.5rem;
 }
+
+.tableContainer {
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: right;
+}
+
+.fullWidthMobileButton {
+    min-width: 220px;
+}
+
+
 
 .floorSection {
     padding: 0;
@@ -168,9 +183,11 @@
 
 .addRoomActions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: 0.75rem;
 }
+
 
 @media (max-width: 768px) {
 
@@ -187,6 +204,14 @@
 
     .floorTitle {
         font-size: 1rem;
+    }
+
+    .tableContainer {
+        justify-content: stretch;
+    }
+
+    .fullWidthMobileButton {
+        width: 100%;
     }
 }
 
@@ -324,21 +349,6 @@
     padding: 0.25rem 0.75rem;
     font-size: 0.85rem;
     font-weight: 600;
-}
-
-.statusOccupied {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-.statusFree {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.statusPartial {
-    background: #e0f2fe;
-    color: #0369a1;
 }
 
 .modalContentWrapper {

@@ -158,7 +158,7 @@ const StructureLayout: React.FC = () => {
         const options = roomsWithOccupants
             .map(room => ({
                 value: room.id.toString(),
-                label: `Комната ${room.roomNumber} (${room.capacity})`,
+                label: `${room.roomNumber}(${room.capacity})`,
                 sortKey: Number(room.roomNumber),
             }))
             .sort((a, b) => a.sortKey - b.sortKey)
@@ -365,7 +365,6 @@ const StructureLayout: React.FC = () => {
         setDeletingRoomId(roomId);
         try {
             await apiClient.deleteRoom(roomId);
-            closeBlockModal();
             refetch();
             await loadStructureStats();
         } catch (err: any) {
@@ -458,6 +457,20 @@ const StructureLayout: React.FC = () => {
                     <div className={styles.emptyState}>
                         <i className="bi bi-buildings" />
                         <p>Блоки не найдены</p>
+                    </div>
+                )}
+
+                {floors.length === 0 && canManageRooms && (
+                    <div className={styles.tableContainer}>
+                        <ActionButton
+                            size='md'
+                            variant='primary'
+                            onClick={() => openAddRoomModal()}
+                            className={styles.fullWidthMobileButton}
+                        >
+                            <span className="me-2">+</span>
+                            Добавить комнату
+                        </ActionButton>
                     </div>
                 )}
 
@@ -573,19 +586,23 @@ const StructureLayout: React.FC = () => {
                         </div>
                         <div className={styles.addRoomActions}>
                             <ActionButton
+                                size='md'
                                 variant='secondary'
                                 type='button'
+                                className={styles.fullWidthMobileButton}
                                 onClick={closeAddRoomModal}
                                 disabled={isCreatingRoom}
                             >
                                 Отмена
                             </ActionButton>
                             <ActionButton
+                                size='md'
                                 variant='primary'
                                 type='submit'
+                                className={styles.fullWidthMobileButton}
                                 disabled={isCreatingRoom}
                             >
-                                {isCreatingRoom ? 'Добавляем…' : 'Добавить комнату'}
+                                {isCreatingRoom ? 'Добавляем…' : 'Добавить'}
                             </ActionButton>
                         </div>
                     </form>
