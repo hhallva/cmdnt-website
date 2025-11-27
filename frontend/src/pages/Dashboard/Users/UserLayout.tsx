@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 import { getUserSession } from '../../../components/ProtectedRoute';
@@ -20,6 +21,8 @@ import ChangePasswordModal from './components/ChangePasswordModal/ChangePassword
 import EditUserModal from './components/EditUserModal/EditUserModal';
 
 import styles from './User.module.css'
+
+const MOBILE_MENU_WIDTH = 220;
 
 const UsersLayout: React.FC = () => {
     // #region Загрузка данных
@@ -176,11 +179,16 @@ const UsersLayout: React.FC = () => {
     //#endregion
 
     // #region Таблица
+    const getUserFullName = (user: UserDto) => {
+        const fullName = `${user.surname || ''} ${user.name || ''} ${user.patronymic || ''}`.replace(/\s+/g, ' ').trim();
+        return fullName || 'Нет';
+    };
+
     const columns = [
         {
             key: 'fullName',
             title: 'ФИО',
-            render: (user: UserDto) => `${user.surname || ''} ${user.name || ''} ${user.patronymic || ''}`.trim() || 'Нет',
+            render: (user: UserDto) => getUserFullName(user),
         },
         {
             key: 'login',
@@ -218,6 +226,76 @@ const UsersLayout: React.FC = () => {
     };
     // #endregion  
 
+    const getVisibleRowActions = (user: UserDto) =>
+        rowAction.popupActions?.filter(action => (action.isVisible ? action.isVisible(user) : true)) ?? [];
+
+    const [activeMobileMenuUserId, setActiveMobileMenuUserId] = useState<number | null>(null);
+    const [mobileMenuPosition, setMobileMenuPosition] = useState<{ top: number; left: number | null; right: number | null } | null>(null);
+    const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+    const mobileMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+    const closeMobileMenu = useCallback(() => {
+        setActiveMobileMenuUserId(null);
+        setMobileMenuPosition(null);
+        mobileMenuTriggerRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (mobileMenuRef.current?.contains(target) || mobileMenuTriggerRef.current?.contains(target)) {
+                return;
+            }
+            closeMobileMenu();
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [closeMobileMenu]);
+
+    useEffect(() => {
+        if (!activeMobileMenuUserId) return;
+
+        const handleViewportChange = () => {
+            closeMobileMenu();
+        };
+
+        window.addEventListener('scroll', handleViewportChange, true);
+        window.addEventListener('resize', handleViewportChange);
+
+        return () => {
+            window.removeEventListener('scroll', handleViewportChange, true);
+            window.removeEventListener('resize', handleViewportChange);
+        };
+    }, [activeMobileMenuUserId, closeMobileMenu]);
+
+    const handleMobileMenuToggle = (
+        event: React.MouseEvent<HTMLButtonElement>,
+        userId: number,
+        hasActions: boolean,
+    ) => {
+        if (!hasActions) return;
+
+        if (activeMobileMenuUserId === userId) {
+            closeMobileMenu();
+            return;
+        }
+
+        const buttonRect = event.currentTarget.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const shouldAlignRight = buttonRect.left + MOBILE_MENU_WIDTH > viewportWidth - 12;
+
+        setMobileMenuPosition({
+            top: buttonRect.bottom + 4,
+            left: shouldAlignRight ? null : Math.max(buttonRect.left, 8),
+            right: shouldAlignRight ? Math.max(viewportWidth - buttonRect.right, 8) : null,
+        });
+        mobileMenuTriggerRef.current = event.currentTarget;
+        setActiveMobileMenuUserId(userId);
+    };
+
     const listTabHeader = (
         <div className={styles.filterBar}>
             <div className={styles.filterField}
@@ -248,13 +326,89 @@ const UsersLayout: React.FC = () => {
     );
 
     const listTabContent = (
-        <CommonTable
-            data={filteredUsers}
-            totalCount={users.length}
-            columns={columns}
-            rowAction={rowAction}
-            emptyMessage="Пользователи не найдены"
-        />
+        <>
+            <div className={styles.desktopTable}>
+                <CommonTable
+                    data={filteredUsers}
+                    totalCount={users.length}
+                    columns={columns}
+                    rowAction={rowAction}
+                    emptyMessage="Пользователи не найдены"
+                />
+            </div>
+            <div className={styles.mobileCardsWrapper}>
+                {filteredUsers.length ? (
+                    filteredUsers.map(user => {
+                        const visibleMobileActions = getVisibleRowActions(user);
+                        const canDeleteUser = Boolean(userSession && userSession.id !== user.id);
+                        const hasMobileActions = visibleMobileActions.length > 0;
+                        return (
+                            <div key={user.id} className={styles.mobileCard}>
+                                <div className={styles.mobileCardHeader}>
+                                    <p className={styles.mobileCardTitle}>{getUserFullName(user)}</p>
+                                </div>
+                                <div className={styles.mobileCardDivider}></div>
+
+                                <div className={styles.mobileCardBody}>
+                                    <div className={styles.mobileCardRow}>
+                                        <span className={styles.mobileCardLabel}>Роль</span>
+                                        <span className={styles.mobileCardValue}>{user.role?.name ?? 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.mobileCardRow}>
+                                        <span className={styles.mobileCardLabel}>Логин</span>
+                                        <span className={styles.mobileCardValue}>{user.login || 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.mobileCardActions}>
+                                        <button
+                                            type="button"
+                                            className={styles.mobileCardActionTrigger}
+                                            title="Действия"
+                                            onClick={(event) => handleMobileMenuToggle(event, user.id, hasMobileActions)}
+                                            disabled={!hasMobileActions}
+                                        >
+                                            <i className="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {hasMobileActions &&
+                                    activeMobileMenuUserId === user.id &&
+                                    mobileMenuPosition &&
+                                    createPortal(
+                                        <div
+                                            ref={mobileMenuRef}
+                                            className={styles.mobileCardActionMenu}
+                                            style={{
+                                                top: mobileMenuPosition.top,
+                                                left: mobileMenuPosition.left ?? undefined,
+                                                right: mobileMenuPosition.right ?? undefined,
+                                            }}
+                                        >
+                                            {visibleMobileActions.map((action, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    className={`${styles.mobileCardActionMenuItem} ${action.variant === 'danger' ? styles.mobileCardActionMenuItemDanger : ''}`}
+                                                    onClick={() => {
+                                                        action.onClick(user);
+                                                        closeMobileMenu();
+                                                    }}
+                                                >
+                                                    {action.icon && <i className={`bi ${action.icon}`}></i>}
+                                                    <span>{action.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>,
+                                        document.body
+                                    )}
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className={styles.mobileCardsEmpty}>Пользователи не найдены</div>
+                )}
+            </div>
+        </>
     );
 
     //#endregion 
