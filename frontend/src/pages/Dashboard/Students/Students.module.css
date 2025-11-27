@@ -2,6 +2,25 @@
      align-items: stretch;
  }
 
+ .formSectionsWrapper {
+     display: flex;
+     flex-direction: column;
+     gap: 1.5rem;
+ }
+
+ .formSection {
+     background: #ffffff;
+     border-radius: 12px;
+     padding: 1.5rem;
+ }
+
+ .formSectionTitle {
+     margin: 0 0 1rem;
+     font-size: 1.25rem;
+     font-weight: 600;
+     color: #111827;
+ }
+
  .searchInputWrapper {
      min-width: 320px;
      flex: 1 1 320px;
@@ -14,9 +33,82 @@
 
  .tableContainer {
      padding: 1rem;
-     background: #ffffff;
-     border-radius: 10px;
-     margin-bottom: 1rem;
+ }
+
+ .contactsWrapper {
+     display: flex;
+     flex-direction: column;
+     gap: 0.75rem;
+ }
+
+ .contactsList {
+     display: flex;
+     flex-direction: column;
+     gap: 0.5rem;
+ }
+
+ .contactRow {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr)) 56px;
+     gap: 1rem;
+     align-items: end;
+     width: 100%;
+ }
+
+ .addedContactRow {
+     border-radius: 12px;
+ }
+
+ .pendingContactRow {
+     border-radius: 12px;
+     background: #fff;
+     cursor: pointer;
+ }
+
+
+
+ .pendingContactRow:focus-visible {
+     outline: 2px solid #2563eb;
+     outline-offset: 3px;
+ }
+
+ .contactField {
+     width: 100%;
+ }
+
+ .contactButtonCell {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+ }
+
+ .contactActionButton {
+     width: 50px;
+     height: 50px;
+     padding: 0;
+     display: inline-flex;
+     justify-content: center;
+     background-color: transparent !important;
+     border-color: transparent !important;
+     align-items: center;
+ }
+
+ .pendingFieldWrapper {
+     pointer-events: none;
+ }
+
+ .pendingPlusIconDelete {
+     font-size: 3rem;
+     margin-top: -13px;
+     line-height: 1;
+     color: #50555f;
+ }
+
+ .pendingPlusIcon {
+     font-size: 3rem;
+     padding-bottom: 6px;
+     line-height: 1;
+     color: #a6aab3;
  }
 
  .desktopTable {
@@ -209,6 +301,18 @@
          padding: 0.4rem 0.6rem;
          /* Уменьшаем кнопки */
          font-size: 0.75rem;
+     }
+
+     .formSection {
+         padding: 1rem;
+     }
+
+     .contactRow {
+         grid-template-columns: 1fr;
+     }
+
+     .contactButtonCell {
+         justify-content: flex-start;
      }
 
      /* Можно скрыть менее важные столбцы на средних экранах, если нужно */

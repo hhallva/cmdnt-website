@@ -525,54 +525,61 @@ const StudentsLayout: React.FC = () => {
         });
     };
 
+    const handlePendingRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleAddContactField();
+        }
+    };
+
     const validateForm = (): boolean => {
         const errors: typeof formErrors = {}; // Используем тот же тип
         let isValid = true;
 
         // --- Валидация основной формы ---
         if (!newStudent.surname?.trim()) {
-            errors.surname = 'Фамилия обязательна.';
+            errors.surname = 'Поле обязательно';
             isValid = false;
         } else if (newStudent.surname.length > 100) {
-            errors.surname = 'Фамилия должна содержать не более 100 символов.';
+            errors.surname = 'Максимум 100 символов';
             isValid = false;
         }
 
         if (!newStudent.name?.trim()) {
-            errors.name = 'Имя обязательно.';
+            errors.name = 'Поле обязательно';
             isValid = false;
         } else if (newStudent.name.length > 100) {
-            errors.name = 'Имя должно содержать не более 100 символов.';
+            errors.name = 'Максимум 100 символов';
             isValid = false;
         }
 
         if (newStudent.patronymic && newStudent.patronymic.length > 100) {
-            errors.patronymic = 'Отчество должно содержать не более 100 символов.';
+            errors.patronymic = 'Максимум 100 символов';
             isValid = false;
         }
 
         if (!newStudent.birthday) {
-            errors.birthday = 'Дата рождения обязательна.';
+            errors.birthday = 'Поле обязательно';
             isValid = false;
         } else {
             const birthDate = new Date(newStudent.birthday);
             const today = new Date();
             if (isNaN(birthDate.getTime())) {
-                errors.birthday = 'Некорректная дата рождения.';
+                errors.birthday = 'Только формат дд.мм.гггг';
                 isValid = false;
             } else if (birthDate > today) {
-                errors.birthday = 'Дата рождения не может быть в будущем.';
+                errors.birthday = 'Не может быть в будущем';
                 isValid = false;
             }
         }
 
         if (newStudent.gender === null || newStudent.gender === undefined) {
-            errors.gender = 'Пол обязателен для выбора.';
+            errors.gender = 'Поле обязательно';
             isValid = false;
         }
 
         if (newStudent.origin && newStudent.origin.length > 300) {
-            errors.origin = 'Поле "Откуда приехал" должно содержать не более 300 символов.';
+            errors.origin = 'Максимум 300 символов';
             isValid = false;
         }
         if (newStudent.origin && newStudent.origin.length == 0) {
@@ -580,17 +587,17 @@ const StudentsLayout: React.FC = () => {
         }
 
         if (!newStudent.groupId || newStudent.groupId <= 0) {
-            errors.groupId = 'Пожалуйста, выберите группу.';
+            errors.groupId = 'Поле обязательно';
             isValid = false;
         }
 
         if (!newStudent.phone?.trim()) {
-            errors.phone = 'Телефон обязателен.';
+            errors.phone = 'Поле обязательно';
             isValid = false;
         } else {
             const phoneRegex = /^8\d{10}$/;
             if (!phoneRegex.test(newStudent.phone)) {
-                errors.phone = 'Телефон должен быть в формате 89000000000.';
+                errors.phone = 'Разрешен формат 8XXXXXXXXXX';
                 isValid = false;
             }
         }
@@ -603,17 +610,17 @@ const StudentsLayout: React.FC = () => {
             const contactErrors: { comment?: string; phone?: string } = {};
 
             if (!contact.comment.trim()) {
-                contactErrors.comment = 'Комментарий обязателен.';
+                contactErrors.comment = 'Поле обязательно';
                 contactsValid = false;
             }
 
             if (!contact.phone.trim()) {
-                contactErrors.phone = 'Телефон обязателен.';
+                contactErrors.phone = 'Поле обязательно';
                 contactsValid = false;
             } else {
                 const phoneRegex = /^8\d{10}$/;
                 if (!phoneRegex.test(contact.phone)) {
-                    contactErrors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
+                    contactErrors.phone = 'Разрешен формат 8XXXXXXXXXX';
                     contactsValid = false;
                 }
             }
@@ -703,111 +710,113 @@ const StudentsLayout: React.FC = () => {
     ];
 
     const addTabContent = (
-        <>
-            <h3 className="mb-2">Добавить нового студента</h3>
-
-            <form onSubmit={handleAddSubmit}>
-                <div className="row g-3 mt-2">
-                    <div className="col-md-4">
-                        <InputField
-                            label="Фамилия"
-                            type="text"
-                            name="surname"
-                            value={newStudent.surname || ''}
-                            onChange={handleAddChange}
-                            error={formErrors.surname}
-                            disabled={isAdding}
-                        />
+        <form onSubmit={handleAddSubmit}>
+            <div className={styles.formSectionsWrapper}>
+                <section className={styles.formSection}>
+                    <h4 className={styles.formSectionTitle}>Основное</h4>
+                    <div className="row g-3 mt-0">
+                        <div className="col-md-4">
+                            <InputField
+                                label="Фамилия"
+                                type="text"
+                                name="surname"
+                                value={newStudent.surname || ''}
+                                onChange={handleAddChange}
+                                error={formErrors.surname}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Имя"
+                                type="text"
+                                name="name"
+                                value={newStudent.name || ''}
+                                onChange={handleAddChange}
+                                disabled={isAdding}
+                                error={formErrors.name}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Отчество"
+                                type="text"
+                                name="patronymic"
+                                value={newStudent.patronymic || ''}
+                                onChange={handleAddChange}
+                                disabled={isAdding}
+                                error={formErrors.patronymic}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Дата рождения"
+                                type="date"
+                                name="birthday"
+                                value={newStudent.birthday || ''}
+                                onChange={handleAddChange}
+                                disabled={isAdding}
+                                error={formErrors.birthday}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <SelectField
+                                label="Пол"
+                                name="gender"
+                                value={
+                                    newStudent.gender === true ? 'true' :
+                                        newStudent.gender === false ? 'false' :
+                                            ''
+                                }
+                                onChange={handleAddChange}
+                                options={genderAddOptions}
+                                disabled={isAdding}
+                                error={formErrors.gender}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Населенный пункт"
+                                type="text"
+                                name="origin"
+                                value={newStudent.origin || ''}
+                                onChange={handleAddChange}
+                                disabled={isAdding}
+                                error={formErrors.origin}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <SelectField
+                                label="Группа"
+                                name="groupId"
+                                value={newStudent.groupId ?? ''}
+                                onChange={handleAddChange}
+                                options={groupAddOptions}
+                                disabled={isAdding}
+                                error={formErrors.groupId}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Контактный телефон"
+                                type="tel"
+                                name="phone"
+                                value={newStudent.phone || ''}
+                                onChange={handleAddChange}
+                                disabled={isAdding}
+                                error={formErrors.phone}
+                            />
+                        </div>
                     </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Имя"
-                            type="text"
-                            name="name"
-                            value={newStudent.name || ''}
-                            onChange={handleAddChange}
-                            disabled={isAdding}
-                            error={formErrors.name}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Отчество"
-                            type="text"
-                            name="patronymic"
-                            value={newStudent.patronymic || ''}
-                            onChange={handleAddChange}
-                            disabled={isAdding}
-                            error={formErrors.patronymic}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Дата рождения"
-                            type="date"
-                            name="birthday"
-                            value={newStudent.birthday || ''}
-                            onChange={handleAddChange}
-                            disabled={isAdding}
-                            error={formErrors.birthday}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <SelectField
-                            label="Пол"
-                            name="gender"
-                            value={
-                                newStudent.gender === true ? 'true' :
-                                    newStudent.gender === false ? 'false' :
-                                        '' // Если null или undefined, value будет пустой строкой
-                            }
-                            onChange={handleAddChange}
-                            options={genderAddOptions}
-                            disabled={isAdding}
-                            error={formErrors.gender}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Откуда приехал"
-                            type="text"
-                            name="origin"
-                            value={newStudent.origin || ''}
-                            onChange={handleAddChange}
-                            disabled={isAdding}
-                            error={formErrors.origin}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <SelectField
-                            label="Группа"
-                            name="groupId"
-                            value={newStudent.groupId ?? ''}
-                            onChange={handleAddChange}
-                            options={groupAddOptions}
-                            disabled={isAdding}
-                            error={formErrors.groupId}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <InputField
-                            label="Контактный телефон"
-                            type="tel"
-                            name="phone"
-                            value={newStudent.phone || ''}
-                            onChange={handleAddChange}
-                            disabled={isAdding}
-                            error={formErrors.phone}
-                        />
-                    </div>
-                    <div className="additional-contacts-section mt-4 pt-2">
-                        <h4 className="h6 mb-2 pb-2 border-bottom">Дополнительные контакты</h4>
-
+                </section>
+                <section className={styles.formSection}>
+                    <h4 className={styles.formSectionTitle}>Дополнительно</h4>
+                    <div className={styles.contactsWrapper}>
                         {newContacts.length > 0 && (
-                            <div className="contact-fields-container">
+                            <div className={styles.contactsList}>
                                 {newContacts.map((contact, index) => (
-                                    <div key={index} className="row g-2 mb-2 contact-field-row">
-                                        <div className="col-md-5">
+                                    <div key={index} className={`${styles.contactRow} ${styles.addedContactRow}`}>
+                                        <div className={styles.contactField}>
                                             <InputField
                                                 label="Комментарий"
                                                 type="text"
@@ -817,7 +826,7 @@ const StudentsLayout: React.FC = () => {
                                                 error={formErrors.contacts?.[index]?.comment}
                                             />
                                         </div>
-                                        <div className="col-md-6">
+                                        <div className={styles.contactField}>
                                             <InputField
                                                 label="Телефон"
                                                 type="tel"
@@ -827,14 +836,17 @@ const StudentsLayout: React.FC = () => {
                                                 error={formErrors.contacts?.[index]?.phone}
                                             />
                                         </div>
-                                        <div className="col-md-1 d-flex align-items-end">
+                                        <div className={styles.contactButtonCell}>
                                             <ActionButton
                                                 type="button"
-                                                variant='danger'
+                                                variant='secondary'
+                                                size='md'
+                                                className={styles.contactActionButton}
                                                 onClick={() => handleRemoveContactField(index)}
                                                 disabled={isAdding}
                                             >
-                                                <i className="bi bi-trash"></i>
+                                                <span aria-hidden="true" className={styles.pendingPlusIconDelete}>-</span>
+                                                <span className="visually-hidden">Удалить контакт</span>
                                             </ActionButton>
                                         </div>
                                     </div>
@@ -843,36 +855,62 @@ const StudentsLayout: React.FC = () => {
                         )}
 
                         {newContacts.length < 5 && (
-                            <ActionButton
-                                type="button"
-                                size='md'
-                                onClick={handleAddContactField}>
-                                <i className="bi bi-plus-circle me-1"></i>
-                                Добавить контакт
-                            </ActionButton>
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                className={`${styles.contactRow} ${styles.pendingContactRow}`}
+                                onClick={handleAddContactField}
+                                onKeyDown={handlePendingRowKeyDown}
+                                aria-label="Добавить контакт"
+                            >
+                                <div className={styles.contactField}>
+                                    <div className={styles.pendingFieldWrapper}>
+                                        <InputField
+                                            label="Комментарий"
+                                            type="text"
+                                            value=""
+                                            placeholder=""
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <div className={styles.contactField}>
+                                    <div className={styles.pendingFieldWrapper}>
+                                        <InputField
+                                            label="Телефон"
+                                            type="text"
+                                            value=""
+                                            placeholder=""
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <div className={styles.contactButtonCell}>
+                                    <span className={styles.pendingPlusIcon}>+</span>
+                                </div>
+                            </div>
                         )}
                     </div>
-
-
-                </div>
-                <div className="d-flex justify-content-end mt-4 pt-2">
-                    <ActionButton
-                        variant='secondary'
-                        onClick={resetAddForm}
-                        disabled={isAdding}
-                    >
-                        Сбросить
-                    </ActionButton>
-                    <ActionButton
-                        type='submit'
-                        variant='primary'
-                        className="ms-2"
-                    >
-                        Добавить
-                    </ActionButton>
-                </div>
-            </form>
-        </>
+                </section>
+            </div>
+            <div className={styles.formSection + ' mt-4 d-flex justify-content-end'}>
+                <ActionButton
+                    variant='secondary'
+                    onClick={resetAddForm}
+                    disabled={isAdding}
+                >
+                    Сбросить
+                </ActionButton>
+                <ActionButton
+                    type='submit'
+                    variant='primary'
+                    className="ms-2"
+                    disabled={isAdding}
+                >
+                    Добавить
+                </ActionButton>
+            </div>
+        </form>
     );
     //#endregion
 
