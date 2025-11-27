@@ -166,6 +166,21 @@
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.formSection {
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.formSectionTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 1rem;
+}
+
 .mobileCardActionMenuItem:hover {
     background-color: #f1f3f5;
 }

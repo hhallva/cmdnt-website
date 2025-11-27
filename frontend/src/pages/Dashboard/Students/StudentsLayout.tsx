@@ -895,6 +895,8 @@ const StudentsLayout: React.FC = () => {
             </div>
             <div className={styles.formSection + ' mt-4 d-flex justify-content-end'}>
                 <ActionButton
+                    size='md'
+                    className={styles.fullWidthMobileButton}
                     variant='secondary'
                     onClick={resetAddForm}
                     disabled={isAdding}
@@ -902,15 +904,16 @@ const StudentsLayout: React.FC = () => {
                     Сбросить
                 </ActionButton>
                 <ActionButton
+                    size='md'
+                    className={styles.fullWidthMobileButton + ' ms-2'}
                     type='submit'
                     variant='primary'
-                    className="ms-2"
                     disabled={isAdding}
                 >
                     Добавить
                 </ActionButton>
             </div>
-        </form>
+        </form >
     );
     //#endregion
 

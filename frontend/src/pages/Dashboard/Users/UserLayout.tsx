@@ -340,7 +340,6 @@ const UsersLayout: React.FC = () => {
                 {filteredUsers.length ? (
                     filteredUsers.map(user => {
                         const visibleMobileActions = getVisibleRowActions(user);
-                        const canDeleteUser = Boolean(userSession && userSession.id !== user.id);
                         const hasMobileActions = visibleMobileActions.length > 0;
                         return (
                             <div key={user.id} className={styles.mobileCard}>
@@ -458,35 +457,35 @@ const UsersLayout: React.FC = () => {
     const validateAddUserForm = (): boolean => {
         const errors: Record<string, string> = {};
         if (!newUser.roleId || newUser.roleId <= 0) {
-            errors.roleId = 'Пожалуйста, выберите роль.';
+            errors.roleId = 'Поле обязательно';
         }
         if (!newUser.surname?.trim()) {
-            errors.surname = 'Фамилия обязательна.';
+            errors.surname = 'Поле обязательно';
         } else if (newUser.surname.length > 100) {
-            errors.surname = 'Фамилия должна содержать не более 100 символов.';
+            errors.surname = 'Максимум 100 символов';
         }
         if (!newUser.name?.trim()) {
-            errors.name = 'Имя обязательно.';
+            errors.name = 'Поле обязательно';
         } else if (newUser.name.length > 100) {
-            errors.name = 'Имя должно содержать не более 100 символов.';
+            errors.name = 'Максимум 100 символов';
         }
         if (newUser.patronymic && newUser.patronymic.length > 100) {
-            errors.patronymic = 'Отчество должно содержать не более 100 символов.';
+            errors.patronymic = 'Максимум 100 символов';
         }
         if (!newUser.login?.trim()) {
-            errors.login = 'Логин обязателен.';
+            errors.login = 'Поле обязательно';
         } else if (newUser.login.length < 3 || newUser.login.length > 50) {
-            errors.login = 'Логин должен содержать от 3 до 50 символов.';
+            errors.login = 'От 3 до 50 символов';
         } else if (!/^[a-zA-Z0-9_\-\.]+$/.test(newUser.login)) {
-            errors.login = 'Логин может содержать только латиницу, цифры, подчёркивания, дефисы и точки.';
+            errors.login = 'Только (EN 0..9 - _ .)';
         }
         if (!newUser.password) {
-            errors.password = 'Пароль обязателен.';
+            errors.password = 'Поле обязательно';
         } else if (newUser.password.length < 8) {
-            errors.password = 'Пароль должен содержать минимум 8 символов.';
+            errors.password = 'Минимум 8 символов';
         }
         if (newUser.password !== confirmPassword) {
-            errors.confirmPassword = 'Пароли не совпадают.';
+            errors.confirmPassword = 'Пароли не совпадают';
         }
 
         setAddErrors(errors);
@@ -531,98 +530,103 @@ const UsersLayout: React.FC = () => {
     };
 
     const addTabContent = (
-        <div className="p-3">
-            <h3 className="h5 mb-3">Добавить нового пользователя</h3>
-            <form onSubmit={handleAddUserSubmit}>
-                <div className="row g-3">
-                    <div className="col-md-6">
-                        <InputField
-                            label="Фамилия"
-                            type="text"
-                            name="surname"
-                            value={newUser.surname || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.surname}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <InputField
-                            label="Имя"
-                            type="text"
-                            name="name"
-                            value={newUser.name || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.name}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <InputField
-                            label="Отчество"
-                            type="text"
-                            name="patronymic"
-                            value={newUser.patronymic || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.patronymic}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <InputField
-                            label="Логин"
-                            type="text"
-                            name="login"
-                            value={newUser.login || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.login}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <SelectField
-                            label="Роль"
-                            name="roleId"
-                            value={newUser.roleId}
-                            onChange={handleAddUserChange}
-                            options={roleOptions}
-                            error={addErrors.roleId}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <PasswordField
-                            label="Пароль"
-                            name="password"
-                            value={newUser.password}
-                            onChange={handleAddUserChange}
-                            error={addErrors.password}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <PasswordField
-                            label="Подтверждение пароля"
-                            name="confirmPassword"
-                            value={confirmPassword}
-                            onChange={(e) => {
-                                setConfirmPassword(e.target.value);
-                                if (addErrors.confirmPassword) {
-                                    setAddErrors(prev => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.confirmPassword;
-                                        return newErrors;
-                                    });
-                                }
-                            }}
-                            error={addErrors.confirmPassword}
-                            disabled={isAdding}
-                        />
+        <div>
+            <form onSubmit={handleAddUserSubmit} >
+                <div className={styles.formSection}>
+                    <h4 className={styles.formSectionTitle}>Основное</h4>
+                    <div className="row g-3">
+                        <div className="col-md-4">
+                            <InputField
+                                label="Фамилия"
+                                type="text"
+                                name="surname"
+                                value={newUser.surname || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.surname}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Имя"
+                                type="text"
+                                name="name"
+                                value={newUser.name || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.name}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Отчество"
+                                type="text"
+                                name="patronymic"
+                                value={newUser.patronymic || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.patronymic}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Логин"
+                                type="text"
+                                name="login"
+                                value={newUser.login || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.login}
+                                disabled={isAdding}
+                            />
+                        </div>
+
+                        <div className="col-md-4">
+                            <PasswordField
+                                label="Пароль"
+                                name="password"
+                                value={newUser.password}
+                                onChange={handleAddUserChange}
+                                error={addErrors.password}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <PasswordField
+                                label="Подтверждение пароля"
+                                name="confirmPassword"
+                                value={confirmPassword}
+                                onChange={(e) => {
+                                    setConfirmPassword(e.target.value);
+                                    if (addErrors.confirmPassword) {
+                                        setAddErrors(prev => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors.confirmPassword;
+                                            return newErrors;
+                                        });
+                                    }
+                                }}
+                                error={addErrors.confirmPassword}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-12">
+                            <SelectField
+                                label="Роль"
+                                name="roleId"
+                                value={newUser.roleId}
+                                onChange={handleAddUserChange}
+                                options={roleOptions}
+                                error={addErrors.roleId}
+                                disabled={isAdding}
+                            />
+                        </div>
                     </div>
                 </div>
-                {/* Кнопки действия */}
-                <div className="d-flex justify-content-end mt-4 pt-2">
+
+                <div className={styles.formSection + ' mt-4 d-flex justify-content-end'}>
                     <ActionButton
+                        size='md'
+                        className={styles.fullWidthMobileButton}
                         variant='secondary'
                         onClick={resetAddForm}
                         disabled={isAdding}
@@ -630,9 +634,11 @@ const UsersLayout: React.FC = () => {
                         Сбросить
                     </ActionButton>
                     <ActionButton
+                        size='md'
+                        className={styles.fullWidthMobileButton + ' ms-2'}
                         type='submit'
                         variant='primary'
-                        className="ms-2"
+                        disabled={isAdding}
                     >
                         Добавить
                     </ActionButton>
