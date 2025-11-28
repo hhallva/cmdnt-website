@@ -862,6 +862,49 @@ const StructureLayout: React.FC = () => {
                     className={styles.tablePlain}
                 />
             </div>
+            <div className={styles.mobileCardsWrapper}>
+                {unassignedStudentsSorted.length ? (
+                    unassignedStudentsSorted.map(student => (
+                        <button
+                            type="button"
+                            key={student.id}
+                            className={styles.mobileCard}
+                            onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                        >
+                            <p className={styles.mobileCardTitle}>{formatFullName(student) || '—'}</p>
+                            <div className={styles.mobileCardDivider}></div>
+                            <div className={styles.mobileCardRow}>
+                                <div className={styles.blockMetaColumn}>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Группа</span>
+                                        <span className={styles.blockMetaValue}>{student.group?.name ?? '—'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Телефон</span>
+                                        <span className={styles.blockMetaValue}>{student.phone ?? '—'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Рожден</span>
+                                        <span className={styles.blockMetaValue}>{formatBirthday(student.birthday)}</span>
+                                    </div>
+                                </div>
+                                <div className={styles.blockMetaColumn}>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Курс</span>
+                                        <span className={styles.blockMetaValue}>{student.group?.course ?? '—'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Пол</span>
+                                        <span className={styles.blockMetaValue}>{getStudentGenderLabel(student.gender)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    ))
+                ) : (
+                    <div className={styles.mobileCardsEmpty}>Все студенты уже заселены</div>
+                )}
+            </div>
         </div>
     );
 

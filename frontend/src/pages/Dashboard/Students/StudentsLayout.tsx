@@ -202,14 +202,6 @@ const StudentsLayout: React.FC = () => {
     ];
     // #endregion
 
-
-    const getStudentGenderLabel = (gender: StudentsDto['gender']): string => {
-        if (gender === null || gender === undefined) {
-            return 'Не указан';
-        }
-        return gender ? 'Мужской' : 'Женский';
-    };
-
     // #region Таблица
     const columns = [
         {

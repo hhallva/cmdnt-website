@@ -12,6 +12,61 @@
     display: block;
 }
 
+.mobileCardsWrapper {
+    display: none;
+}
+
+.mobileCard {
+    width: 100%;
+    text-align: left;
+    border-radius: 10px;
+    border: none;
+    padding: 1rem 1.25rem;
+    background: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.mobileCard:not(:first-child) {
+    margin-top: 0.75rem;
+}
+
+.mobileCard:active {
+    transform: scale(0.99);
+}
+
+.mobileCard:focus-visible {
+    outline: 2px solid rgba(13, 110, 253, 0.35);
+    outline-offset: 3px;
+}
+
+.mobileCardTitle {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.mobileCardDivider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0.75rem 0;
+}
+
+.mobileCardRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
+}
+
+.mobileCardsEmpty {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.95rem;
+    padding: 1rem 0;
+}
+
 .topRow {
     display: flex;
     justify-content: space-between;
@@ -292,6 +347,14 @@
 
 @media (max-width: 768px) {
 
+    .desktopTable {
+        display: none;
+    }
+
+    .mobileCardsWrapper {
+        display: block;
+    }
+
     .toastContainer {
         left: 1rem;
         right: 1rem;
@@ -407,7 +470,6 @@
     display: flex;
     align-items: baseline;
     gap: 0.35rem;
-    flex-wrap: wrap;
     font-size: 1rem;
 }
 
@@ -637,10 +699,6 @@
 
     .addRoomButtonText {
         display: none;
-    }
-
-    .settlementCard {
-        padding: 1rem;
     }
 
     .settlementFormGrid {

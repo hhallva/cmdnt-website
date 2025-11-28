@@ -120,7 +120,7 @@
  .mobileCard {
      width: 100%;
      text-align: left;
-     border: 0px solid #e2e8f0;
+     border: none;
      border-radius: 8px;
      padding: 1rem;
      background: #ffffff;
