@@ -210,6 +210,15 @@ export const apiClient = {
       },
     });
   },
+
+  assignStudentToRoom: async (studentId: number, roomId: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Students/${studentId}/assign-room/${roomId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
   //#endregion
 
   //#region Контакты студентов

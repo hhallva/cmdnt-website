@@ -202,22 +202,32 @@ const StudentsLayout: React.FC = () => {
     ];
     // #endregion
 
+
+    const getStudentGenderLabel = (gender: StudentsDto['gender']): string => {
+        if (gender === null || gender === undefined) {
+            return 'Не указан';
+        }
+        return gender ? 'Мужской' : 'Женский';
+    };
+
     // #region Таблица
     const columns = [
         {
             key: 'fullName',
             title: 'ФИО',
             sortable: true,
-            render: (student: StudentsDto) => `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет',
+            render: (student: StudentsDto) => `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || '—',
         },
         {
             key: 'group.name',
             title: 'Группа',
+            render: (student: StudentsDto) => student.group?.name ?? '—',
         },
         {
             key: 'group.course',
             title: 'Курс',
             sortable: true,
+            render: (student: StudentsDto) => student.group?.course ?? '—',
         },
         {
             key: 'gender',
@@ -229,19 +239,18 @@ const StudentsLayout: React.FC = () => {
             key: 'blockNumber',
             title: 'Блок',
             sortable: true,
-            render: (student: StudentsDto) => student.blockNumber ?? "Нет",
+            render: (student: StudentsDto) => student.blockNumber ?? "—",
         },
         {
             key: 'phone',
             title: 'Телефон',
-            render: (student: StudentsDto) => student.phone ?? "Нет",
+            render: (student: StudentsDto) => student.phone ?? "—",
         },
         {
             key: 'birthday',
             title: 'День рождения',
             sortable: true,
-            render: (student: StudentsDto) =>
-                new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(student.birthday)),
+            render: (student: StudentsDto) => formatBirthday(student.birthday),
         },
     ];
 
@@ -251,11 +260,15 @@ const StudentsLayout: React.FC = () => {
         onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
     };
 
-    const formatBirthday = (value?: string | null) => {
-        if (!value) return 'Нет';
-        const parsed = new Date(value);
-        if (Number.isNaN(parsed.getTime())) return 'Нет';
-        return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(parsed);
+    const formatBirthday = (birthday?: string | null): string => {
+        if (!birthday) {
+            return '—';
+        }
+        const parsed = new Date(birthday);
+        if (Number.isNaN(parsed.getTime())) {
+            return '—';
+        }
+        return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
     };
 
     const getGenderLabel = (value: boolean | null | undefined) => {
@@ -353,7 +366,6 @@ const StudentsLayout: React.FC = () => {
         <>
             {!isEducator && (
                 <div className={styles.tableContainer}>
-
                     <ActionButton
                         size='md'
                         variant='primary'

@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import SelectField from '../../../components/SelectField/SelectField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../components/CommonModal/CommonModal';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import InputField from '../../../components/InputField/InputField';
+import Tabs from '../../../components/Tabs/Tabs';
+import CommonTable from '../../../components/CommonTable/CommonTable';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
 import { apiClient } from '../../../api/client';
 import type { RoomDto } from '../../../types/rooms';
@@ -40,6 +43,23 @@ type NewRoomFormState = {
 
 type NewRoomFormErrors = Partial<Record<keyof NewRoomFormState, string>>;
 
+type SettlementFormState = {
+    studentId: string;
+    floorNumber: string;
+    roomId: string;
+};
+
+type SettlementFormErrors = Partial<Record<'studentId' | 'roomId', string>>;
+
+const settlementFormInitialState: SettlementFormState = {
+    studentId: '',
+    floorNumber: '',
+    roomId: '',
+};
+
+const STRUCTURE_TABS_STORAGE_KEY = 'structure-active-tab';
+const STRUCTURE_TAB_IDS = ['structure', 'settlement'] as const;
+
 const getStatus = (currentCapacity: number, capacity: number): RoomStatus => {
     if (currentCapacity === 0) {
         return 'free';
@@ -63,11 +83,33 @@ const formatShortName = (student: StudentsDto): string => {
     return [surname, initials].filter(Boolean).join(' ').trim() || `Студент ${student.id}`;
 };
 
+export const formatFullName = (student: StudentsDto): string => {
+    return [student.surname, student.name, student.patronymic].filter(Boolean).join(' ').trim();
+};
+
 const getGenderLabel = (entity: { genderType: RoomWithOccupants['genderType'] }): string => {
     if (entity.genderType === null) {
         return '-';
     }
     return entity.genderType ? 'Мужской' : 'Женский';
+};
+
+export const getStudentGenderLabel = (gender: StudentsDto['gender']): string => {
+    if (gender === null || gender === undefined) {
+        return 'Не указан';
+    }
+    return gender ? 'Мужской' : 'Женский';
+};
+
+export const formatBirthday = (birthday?: string | null): string => {
+    if (!birthday) {
+        return '—';
+    }
+    const parsed = new Date(birthday);
+    if (Number.isNaN(parsed.getTime())) {
+        return '—';
+    }
+    return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
 };
 
 const deriveGenderTypeFromOccupants = (rooms: RoomWithOccupants[]): RoomWithOccupants['genderType'] => {
@@ -115,6 +157,30 @@ const StructureLayout: React.FC = () => {
     const [newRoomErrors, setNewRoomErrors] = useState<NewRoomFormErrors>({});
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
+    const [settlementForm, setSettlementForm] = useState<SettlementFormState>(settlementFormInitialState);
+    const [settlementErrors, setSettlementErrors] = useState<SettlementFormErrors>({});
+    const [settlementAlert, setSettlementAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [isSettling, setIsSettling] = useState(false);
+    const [activeTabId, setActiveTabId] = useState<string>(() => {
+        const fallbackTabId = STRUCTURE_TAB_IDS[0];
+        if (typeof window === 'undefined') {
+            return fallbackTabId;
+        }
+        const storedTabId = sessionStorage.getItem(STRUCTURE_TABS_STORAGE_KEY);
+        return storedTabId && STRUCTURE_TAB_IDS.some(id => id === storedTabId)
+            ? storedTabId
+            : fallbackTabId;
+    });
+
+    useEffect(() => {
+        if (!settlementAlert) {
+            return;
+        }
+        const timeout = window.setTimeout(() => {
+            setSettlementAlert(null);
+        }, 4000);
+        return () => window.clearTimeout(timeout);
+    }, [settlementAlert]);
 
     const loadStructureStats = useCallback(async () => {
         setStatsLoading(true);
@@ -176,6 +242,100 @@ const StructureLayout: React.FC = () => {
             .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
         return [{ value: 'all', label: 'Все студенты' }, ...uniqueStudents];
     }, [students]);
+
+    const roomsById = useMemo(() => {
+        const map = new Map<number, RoomDto>();
+        rooms.forEach(room => map.set(room.id, room));
+        return map;
+    }, [rooms]);
+
+    const unassignedStudents = useMemo(() => {
+        return students.filter(student => student.roomId === null || student.roomId === undefined);
+    }, [students]);
+
+    const availableRooms = useMemo(() => {
+        return rooms.filter(room => room.currentCapacity < room.capacity);
+    }, [rooms]);
+
+    const settlementStudentOptions = useMemo(() => {
+        return [
+            { value: '', label: 'Выберите студента' },
+            ...unassignedStudents
+                .map(student => ({ value: student.id.toString(), label: formatShortName(student) }))
+                .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
+        ];
+    }, [unassignedStudents]);
+
+    const settlementFloorOptions = useMemo(() => {
+        const floorsSet = new Set<number>();
+        availableRooms.forEach(room => floorsSet.add(room.floorNumber));
+        const floorOptions = Array.from(floorsSet)
+            .sort((a, b) => a - b)
+            .map(floor => ({ value: floor.toString(), label: `${floor} этаж` }));
+        return [{ value: '', label: 'Выберите этаж' }, ...floorOptions];
+    }, [availableRooms]);
+
+    const settlementRoomOptions = useMemo(() => {
+        const targetRooms = settlementForm.floorNumber
+            ? availableRooms.filter(room => room.floorNumber === Number(settlementForm.floorNumber))
+            : availableRooms;
+
+        const sortedRooms = targetRooms
+            .slice()
+            .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber))
+            .map(room => ({
+                value: room.id.toString(),
+                label: `Комната ${room.roomNumber} • ${room.currentCapacity}/${room.capacity}`,
+            }));
+
+        return [
+            {
+                value: '',
+                label: sortedRooms.length ? 'Выберите комнату' : 'Нет доступных комнат',
+            },
+            ...sortedRooms,
+        ];
+    }, [availableRooms, settlementForm.floorNumber]);
+
+    const unassignedStudentsSorted = useMemo(() => {
+        return unassignedStudents
+            .slice()
+            .sort((a, b) => formatFullName(a).localeCompare(formatFullName(b), 'ru'));
+    }, [unassignedStudents]);
+
+    const unassignedColumns = useMemo(() => ([
+        {
+            key: 'fullName',
+            title: 'ФИО',
+            render: (student: StudentsDto) => formatFullName(student) || '—',
+        },
+        {
+            key: 'group.name',
+            title: 'Группа',
+            render: (student: StudentsDto) => student.group?.name ?? '—',
+        },
+        {
+            key: 'group.course',
+            title: 'Курс',
+            render: (student: StudentsDto) => student.group?.course ?? '—',
+            className: styles.tableNumericCell,
+        },
+        {
+            key: 'gender',
+            title: 'Пол',
+            render: (student: StudentsDto) => getStudentGenderLabel(student.gender),
+        },
+        {
+            key: 'phone',
+            title: 'Телефон',
+            render: (student: StudentsDto) => student.phone ?? '—',
+        },
+        {
+            key: 'birthday',
+            title: 'Дата рождения',
+            render: (student: StudentsDto) => formatBirthday(student.birthday),
+        },
+    ]), [navigate]);
 
     const getBlockKey = (floorNumber: number, blockNumber: string) => `${floorNumber}-${blockNumber}`;
 
@@ -292,6 +452,83 @@ const StructureLayout: React.FC = () => {
         setNewRoomErrors({});
     };
 
+    const handleSettlementStudentChange = (value: string) => {
+        setSettlementForm(prev => ({ ...prev, studentId: value }));
+        if (settlementErrors.studentId) {
+            setSettlementErrors(prev => ({ ...prev, studentId: undefined }));
+        }
+        setSettlementAlert(null);
+    };
+
+    const handleSettlementFloorChange = (value: string) => {
+        setSettlementForm(prev => {
+            const nextState = { ...prev, floorNumber: value };
+            if (value && prev.roomId) {
+                const currentRoom = roomsById.get(Number(prev.roomId));
+                if (currentRoom && currentRoom.floorNumber.toString() !== value) {
+                    nextState.roomId = '';
+                }
+            }
+            return nextState;
+        });
+        setSettlementAlert(null);
+    };
+
+    const handleSettlementRoomChange = (value: string) => {
+        setSettlementForm(prev => {
+            if (!value) {
+                return { ...prev, roomId: '', floorNumber: prev.floorNumber };
+            }
+            const room = roomsById.get(Number(value));
+            return {
+                ...prev,
+                roomId: value,
+                floorNumber: room ? room.floorNumber.toString() : prev.floorNumber,
+            };
+        });
+        if (settlementErrors.roomId) {
+            setSettlementErrors(prev => ({ ...prev, roomId: undefined }));
+        }
+        setSettlementAlert(null);
+    };
+
+    const handleSettlementReset = () => {
+        setSettlementForm(settlementFormInitialState);
+        setSettlementErrors({});
+        setSettlementAlert(null);
+    };
+
+    const handleSettlementSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const errors: SettlementFormErrors = {};
+        if (!settlementForm.studentId) {
+            errors.studentId = 'Выберите студента';
+        }
+        if (!settlementForm.roomId) {
+            errors.roomId = 'Выберите комнату';
+        }
+        setSettlementErrors(errors);
+        if (Object.keys(errors).length > 0) {
+            setSettlementAlert({ type: 'error', message: 'Заполните обязательные поля' });
+            return;
+        }
+
+        setSettlementAlert(null);
+        setIsSettling(true);
+        try {
+            await apiClient.assignStudentToRoom(Number(settlementForm.studentId), Number(settlementForm.roomId));
+            setSettlementForm(settlementFormInitialState);
+            setSettlementErrors({});
+            setSettlementAlert({ type: 'success', message: 'Студент успешно заселён' });
+            refetch();
+            await loadStructureStats();
+        } catch (err: any) {
+            setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось заселить студента' });
+        } finally {
+            setIsSettling(false);
+        }
+    };
+
     const handleNewRoomFieldChange = (field: keyof NewRoomFormState, value: string) => {
         setNewRoomForm(prev => ({ ...prev, [field]: value }));
         if (newRoomErrors[field]) {
@@ -375,6 +612,25 @@ const StructureLayout: React.FC = () => {
         }
     };
 
+    const handleTabChange = (tabId: string) => {
+        setActiveTabId(tabId);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, tabId);
+        }
+    };
+
+    const handleFreeSlotClick = (room: RoomWithOccupants) => {
+        handleTabChange('settlement');
+        setSettlementForm(prev => ({
+            ...prev,
+            floorNumber: room.floorNumber.toString(),
+            roomId: room.id.toString(),
+        }));
+        setSettlementErrors(prev => ({ ...prev, roomId: undefined }));
+        setSettlementAlert(null);
+        closeBlockModal();
+    };
+
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
@@ -393,7 +649,40 @@ const StructureLayout: React.FC = () => {
         );
     }
 
-    return (
+    const structureHeaderContent = (
+        <div className={styles.searchSection}>
+            <div className={styles.filtersGrid}>
+                <SelectField
+                    label="Студент"
+                    value={selectedStudentId === 'all' ? 'all' : selectedStudentId.toString()}
+                    onChange={(e) => setSelectedStudentId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    options={studentOptions}
+                />
+                <SelectField
+                    label="Этаж"
+                    value={selectedFloor === 'all' ? 'all' : selectedFloor.toString()}
+                    onChange={(e) => setSelectedFloor(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    options={floorOptions.map(option => ({ value: option.value.toString(), label: option.label }))}
+                />
+                <SelectField
+                    label="Комната"
+                    value={selectedRoomId === 'all' ? 'all' : selectedRoomId.toString()}
+                    onChange={(e) => setSelectedRoomId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    options={roomOptions}
+                />
+                <ActionButton
+                    variant='secondary'
+                    size='md'
+                    onClick={resetFilters}
+                    className={styles.resetButton}
+                >
+                    Сбросить
+                </ActionButton>
+            </div>
+        </div>
+    );
+
+    const structureTabContent = (
         <>
             {statsLoading && (
                 <div className="d-flex justify-content-center align-items-center my-3">
@@ -408,49 +697,6 @@ const StructureLayout: React.FC = () => {
                     {statsError}
                 </div>
             )}
-
-            {!statsLoading && !statsError && structureStats && (
-                <StatisticsCard
-                    stats={[
-                        { value: students.length, label: 'Всего студентов' },
-                        { value: structureStats.studentCount, label: 'Заселено студентов' },
-                        { value: Math.max(students.length - structureStats.studentCount, 0), label: 'Свободно студентов' },//TODO: Добавить строку в API чтоб она не вычислялась тут,
-                        { value: structureStats.totalCopacity, label: 'Всего мест' },
-                        { value: structureStats.freeCount, label: 'Свободных мест' },
-                    ]}
-                />
-            )}
-
-            <div className={styles.searchSection}>
-                <div className={styles.filtersGrid}>
-                    <SelectField
-                        label="Студент"
-                        value={selectedStudentId === 'all' ? 'all' : selectedStudentId.toString()}
-                        onChange={(e) => setSelectedStudentId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                        options={studentOptions}
-                    />
-                    <SelectField
-                        label="Этаж"
-                        value={selectedFloor === 'all' ? 'all' : selectedFloor.toString()}
-                        onChange={(e) => setSelectedFloor(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                        options={floorOptions.map(option => ({ value: option.value.toString(), label: option.label }))}
-                    />
-                    <SelectField
-                        label="Комната"
-                        value={selectedRoomId === 'all' ? 'all' : selectedRoomId.toString()}
-                        onChange={(e) => setSelectedRoomId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                        options={roomOptions}
-                    />
-                    <ActionButton
-                        variant='secondary'
-                        size='md'
-                        onClick={resetFilters}
-                        className={styles.resetButton}
-                    >
-                        Сбросить
-                    </ActionButton>
-                </div>
-            </div>
 
             <div className={styles.structureWrapper}>
                 {floors.length === 0 && (
@@ -543,6 +789,111 @@ const StructureLayout: React.FC = () => {
                     </section>
                 ))}
             </div>
+        </>
+    );
+
+    const settlementHeaderContent = (
+        <section className={styles.settlementCard}>
+            <form className={styles.settlementForm} onSubmit={handleSettlementSubmit}>
+                <div className={styles.settlementFormGrid}>
+                    <SelectField
+                        label="Студент"
+                        value={settlementForm.studentId}
+                        onChange={(e) => handleSettlementStudentChange(e.target.value)}
+                        options={settlementStudentOptions}
+                        disabled={isSettling || unassignedStudents.length === 0}
+                        error={settlementErrors.studentId}
+                    />
+                    <SelectField
+                        label="Этаж"
+                        value={settlementForm.floorNumber}
+                        onChange={(e) => handleSettlementFloorChange(e.target.value)}
+                        options={settlementFloorOptions}
+                        disabled={isSettling || availableRooms.length === 0}
+                    />
+                    <SelectField
+                        label="Комната"
+                        value={settlementForm.roomId}
+                        onChange={(e) => handleSettlementRoomChange(e.target.value)}
+                        options={settlementRoomOptions}
+                        disabled={isSettling || availableRooms.length === 0}
+                        error={settlementErrors.roomId}
+                    />
+                </div>
+                <div className={styles.settlementActions}>
+                    <ActionButton
+                        variant='secondary'
+                        size='md'
+                        type='button'
+                        className={styles.fullWidthMobileButton}
+                        onClick={handleSettlementReset}
+                        disabled={isSettling}
+                    >
+                        Сбросить
+                    </ActionButton>
+                    <ActionButton
+                        variant='primary'
+                        size='md'
+                        type='submit'
+                        className={styles.fullWidthMobileButton}
+                        disabled={isSettling || !unassignedStudents.length || !availableRooms.length}
+                    >
+                        {isSettling ? 'Заселяем…' : 'Заселить студента'}
+                    </ActionButton>
+                </div>
+            </form>
+        </section>
+    );
+
+
+    const rowAction = {
+        icon: 'bi-arrows-angle-expand',
+        title: 'Открыть карточку студента',
+        onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
+    };
+    const settlementTabContent = (
+        <div className={styles.unassignedTableWrapper}>
+            <div className={styles.desktopTable}>
+                <CommonTable
+                    data={unassignedStudentsSorted}
+                    columns={unassignedColumns}
+                    emptyMessage="Все студенты уже заселены"
+                    rowAction={rowAction}
+                    className={styles.tablePlain}
+                />
+            </div>
+        </div>
+    );
+
+    const tabs = [
+        { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
+        { id: 'settlement', title: 'Расселение', headerContent: settlementHeaderContent, content: settlementTabContent },
+    ];
+
+    const settlementToast = settlementAlert && typeof document !== 'undefined'
+        ? createPortal(
+            <div className={styles.toastContainer}>
+                <div className={`${styles.toast} ${settlementAlert.type === 'success' ? styles.toastSuccess : styles.toastError}`}>
+                    <span>{settlementAlert.message}</span>
+                    <button
+                        type="button"
+                        className={styles.toastCloseButton}
+                        onClick={() => setSettlementAlert(null)}
+                        aria-label="Закрыть уведомление"
+                    >
+                        ×
+                    </button>
+                </div>
+            </div>,
+            document.body
+        )
+        : null;
+
+    return (
+        <>
+
+            {settlementToast}
+
 
             {canManageRooms && (
                 <CommonModal
@@ -609,6 +960,23 @@ const StructureLayout: React.FC = () => {
                 </CommonModal>
             )}
 
+            {!statsLoading && !statsError && structureStats && (
+                <StatisticsCard
+                    stats={[
+                        { value: students.length, label: 'Всего студентов' },
+                        { value: structureStats.studentCount, label: 'Заселено студентов' },
+                        { value: Math.max(students.length - structureStats.studentCount, 0), label: 'Свободно студентов' },
+                        { value: structureStats.totalCopacity, label: 'Всего мест' },
+                        { value: structureStats.freeCount, label: 'Свободных мест' },
+                    ]}
+                />
+            )}
+
+            <Tabs
+                tabs={tabs}
+                activeTabId={activeTabId}
+                onTabChange={handleTabChange}
+            />
             <CommonModal
                 title={activeBlock && (
                     <div className={styles.blockHeader}>
@@ -686,7 +1054,19 @@ const StructureLayout: React.FC = () => {
                                             </div>
                                         ))}
                                         {freeSlotsCount > 0 && Array.from({ length: freeSlotsCount }).map((_, slotIndex) => (
-                                            <div key={`${room.id}-free-${slotIndex}`} className={`${styles.studentRow} ${styles.freeSlotCard}`}>
+                                            <div
+                                                key={`${room.id}-free-${slotIndex}`}
+                                                className={`${styles.studentRow} ${styles.freeSlotCard}`}
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={() => handleFreeSlotClick(room)}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === 'Enter' || event.key === ' ') {
+                                                        event.preventDefault();
+                                                        handleFreeSlotClick(room);
+                                                    }
+                                                }}
+                                            >
                                                 <div className={styles.studentInfo}>
                                                     <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>+</div>
                                                     <div>

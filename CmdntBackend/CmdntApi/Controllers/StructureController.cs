@@ -1,15 +1,15 @@
 ﻿using DataLayer.Data;
 using DataLayer.DTOs.Structures;
-using DataLayer.DTOs.Users;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CmdntApi.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
+    [Authorize]
     public class StructureController(AppDbContext context) : ControllerBase
     {
         private readonly AppDbContext _context = context;
