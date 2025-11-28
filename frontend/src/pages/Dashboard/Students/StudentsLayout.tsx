@@ -28,6 +28,8 @@ const IMPORT_EXPECTED_HEADERS = [
     'Телефон',
     'Дата рождения',
 ];
+const ALLOWED_IMPORT_EXTENSIONS = ['.xls', '.xlsx'];
+const MOBILE_IMPORT_BREAKPOINT = 768;
 
 const StudentsLayout: React.FC = () => {
     // #region Загрузка данных
@@ -37,6 +39,7 @@ const StudentsLayout: React.FC = () => {
     const [students, setStudents] = useState<StudentsDto[]>([]);
     const [groups, setGroups] = useState<GroupDto[]>([]);
     const navigate = useNavigate();
+    const [isMobileViewport, setIsMobileViewport] = useState(false);
 
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
@@ -77,6 +80,29 @@ const StudentsLayout: React.FC = () => {
         }
         sessionStorage.setItem(STUDENTS_TAB_STORAGE_KEY, activeTabId);
     }, [activeTabId]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_IMPORT_BREAKPOINT}px)`);
+        const handleViewportChange = (event: MediaQueryListEvent | MediaQueryList) => {
+            setIsMobileViewport(event.matches);
+        };
+
+        handleViewportChange(mediaQuery);
+
+        const listener = (event: MediaQueryListEvent) => handleViewportChange(event);
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', listener);
+            return () => mediaQuery.removeEventListener('change', listener);
+        }
+
+        mediaQuery.addListener(listener);
+        return () => mediaQuery.removeListener(listener);
+    }, []);
 
     const fetchStudents = async () => {
         try {
@@ -289,6 +315,24 @@ const StudentsLayout: React.FC = () => {
         return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
     };
 
+    const formatBirthdayForExport = (birthday?: string | null): string => {
+        if (!birthday) {
+            return '';
+        }
+        const parsed = new Date(birthday);
+        if (Number.isNaN(parsed.getTime())) {
+            return '';
+        }
+        return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
+    };
+
+    const formatGenderShort = (value?: boolean | null): string => {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        return value ? 'М' : 'Ж';
+    };
+
     const getGenderLabel = (value: boolean | null | undefined) => {
         if (value === null || value === undefined) return 'Нет';
         return value ? 'М' : 'Ж';
@@ -296,26 +340,21 @@ const StudentsLayout: React.FC = () => {
     // #endregion
 
     const handleExportToExcel = () => {
-        // Подготовим данные для экспорта из processedStudents
-        const dataForExport = processedStudents.map(student => ({
-            'ФИО': `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет',
-            'Группа': student.group?.name || 'Нет',
-            'Курс': student.group?.course || 'Нет',
-            'Пол': student.gender ? 'Мужчина' : 'Женщина',
-            'Блок': student.blockNumber || 'Нет',
-            'Телефон': student.phone || 'Нет',
-            'День рождения': new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(student.birthday)),
-        }));
+        const headerRow = [...IMPORT_EXPECTED_HEADERS];
+        const bodyRows = processedStudents.map(student => ([
+            `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim(),
+            student.group?.name ?? '',
+            student.group?.course ?? '',
+            formatGenderShort(student.gender),
+            student.origin ?? '',
+            student.phone ?? '',
+            formatBirthdayForExport(student.birthday),
+        ]));
 
-        // Создаём книгу Excel
-        const wb = XLSX.utils.book_new();
-        // Создаём лист из данных
-        const ws = XLSX.utils.json_to_sheet(dataForExport);
-        // Добавляем лист в книгу
-        XLSX.utils.book_append_sheet(wb, ws, "Студенты");
-
-        // Генерируем и скачиваем файл
-        XLSX.writeFile(wb, `Список_студентов_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        const worksheet = XLSX.utils.aoa_to_sheet([headerRow, ...bodyRows]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Студенты');
+        XLSX.writeFile(workbook, `Список_студентов_${new Date().toISOString().slice(0, 10)}.xlsx`);
     };
 
     const listTabHeader = (
@@ -504,8 +543,18 @@ const StudentsLayout: React.FC = () => {
     }>>([]);
     const [importError, setImportError] = useState<string | null>(null);
     const [isImporting, setIsImporting] = useState(false);
-    const [importResult, setImportResult] = useState<{ success: number; failed: number } | null>(null);
+    const [importResult, setImportResult] = useState<{ success: number; failed: number; failedStudents: string[] } | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const importPreviewColumns = useMemo(() => ([
+        { key: 'fullName', title: 'ФИО' },
+        { key: 'groupName', title: 'Группа' },
+        { key: 'course', title: 'Курс' },
+        { key: 'gender', title: 'Пол' },
+        { key: 'origin', title: 'Населенный пункт' },
+        { key: 'phone', title: 'Телефон' },
+        { key: 'birthday', title: 'Дата рождения' },
+    ]), []);
 
 
     const handleAddChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -627,21 +676,14 @@ const StudentsLayout: React.FC = () => {
             errors.origin = 'Максимум 300 символов';
             isValid = false;
         }
-        if (newStudent.origin && newStudent.origin.length == 0) {
-            newStudent.origin = null
-        }
 
         if (!newStudent.groupId || newStudent.groupId <= 0) {
             errors.groupId = 'Поле обязательно';
             isValid = false;
         }
-
-        if (!newStudent.phone?.trim()) {
-            errors.phone = 'Поле обязательно';
-            isValid = false;
-        } else {
+        if (newStudent.phone?.trim()) {
             const phoneRegex = /^8\d{10}$/;
-            if (!phoneRegex.test(newStudent.phone)) {
+            if (!phoneRegex.test(newStudent.phone.trim())) {
                 errors.phone = 'Разрешен формат 8XXXXXXXXXX';
                 isValid = false;
             }
@@ -704,9 +746,13 @@ const StudentsLayout: React.FC = () => {
 
         setIsAdding(true);
         try {
+            const trimmedOrigin = newStudent.origin?.trim() ?? '';
+            const trimmedPhone = newStudent.phone?.trim() ?? '';
             const studentDataToSend: PostStudentDto = {
                 ...newStudent,
                 groupId: newStudent.groupId && newStudent.groupId !== 0 ? newStudent.groupId : null,
+                origin: trimmedOrigin ? trimmedOrigin : null,
+                phone: trimmedPhone ? trimmedPhone : null,
             };
 
             console.log('Отправка данных нового студента:', studentDataToSend);
@@ -776,10 +822,10 @@ const StudentsLayout: React.FC = () => {
         return null;
     }, []);
 
-    const sanitizePhone = useCallback((value: string): string => {
+    const sanitizePhone = useCallback((value: string): string | null => {
         const digits = value.replace(/\D/g, '');
         if (!digits) {
-            return '';
+            return null;
         }
         if (digits.length === 11 && digits.startsWith('8')) {
             return digits;
@@ -840,6 +886,13 @@ const StudentsLayout: React.FC = () => {
         }
         if (file.size > MAX_IMPORT_FILE_SIZE) {
             setImportError('Файл превышает максимальный размер 200 МБ');
+            setImportRows([]);
+            setImportFileName('');
+            return;
+        }
+        const extension = file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')).toLowerCase() : '';
+        if (!ALLOWED_IMPORT_EXTENSIONS.includes(extension)) {
+            setImportError('Допустимы только файлы форматов .xls или .xlsx');
             setImportRows([]);
             setImportFileName('');
             return;
@@ -915,10 +968,12 @@ const StudentsLayout: React.FC = () => {
         setImportResult(null);
         let successCount = 0;
         let failedCount = 0;
+        const failedStudents: string[] = [];
         for (const row of importRows) {
             const { surname, name, patronymic } = splitFullName(row.fullName);
             if (!surname || !name) {
                 failedCount++;
+                failedStudents.push(row.fullName || 'Без ФИО');
                 continue;
             }
             const normalizedGroupName = row.groupName.trim().toLowerCase();
@@ -938,14 +993,18 @@ const StudentsLayout: React.FC = () => {
             });
             if (!matchedGroup) {
                 failedCount++;
+                failedStudents.push(row.fullName || 'Без ФИО');
                 continue;
             }
             const birthdayIso = formatDateForApi(row.birthday);
             const genderValue = mapGenderFromText(row.gender);
             if (!birthdayIso || genderValue === null) {
                 failedCount++;
+                failedStudents.push(row.fullName || 'Без ФИО');
                 continue;
             }
+            const normalizedOrigin = row.origin?.trim() ?? '';
+            const sanitizedPhone = sanitizePhone(row.phone);
             const payload: PostStudentDto = {
                 surname,
                 name,
@@ -953,8 +1012,8 @@ const StudentsLayout: React.FC = () => {
                 birthday: birthdayIso,
                 groupId: matchedGroup.id,
                 gender: genderValue,
-                origin: row.origin || null,
-                phone: sanitizePhone(row.phone),
+                origin: normalizedOrigin ? normalizedOrigin : null,
+                phone: sanitizedPhone,
             };
             try {
                 await apiClient.createStudent(payload);
@@ -962,24 +1021,36 @@ const StudentsLayout: React.FC = () => {
             } catch (err) {
                 console.error('Ошибка при импорте студента:', err);
                 failedCount++;
+                failedStudents.push(row.fullName || 'Без ФИО');
             }
         }
         await fetchStudents();
-        setImportResult({ success: successCount, failed: failedCount });
+        setImportResult({ success: successCount, failed: failedCount, failedStudents });
         setIsImporting(false);
         setImportRows([]);
         setImportFileName('');
     }, [importRows, splitFullName, groups, formatDateForApi, mapGenderFromText, sanitizePhone]);
 
     const handleDownloadTemplate = useCallback(() => {
-        const worksheet = XLSX.utils.aoa_to_sheet([
+        const templateSheet = XLSX.utils.aoa_to_sheet([
             IMPORT_EXPECTED_HEADERS,
             ['Иванов Иван Иванович', 'ИС-21', '3', 'М', 'г. Пермь', '8XXXXXXXXXX', '12.08.2002'],
         ]);
+
+        const groupsSheetData = [
+            ['Группа', 'Курс'],
+            ...groups
+                .slice()
+                .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'))
+                .map(group => [group.name ?? '', group.course ?? '']),
+        ];
+        const groupsSheet = XLSX.utils.aoa_to_sheet(groupsSheetData);
+
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Шаблон');
+        XLSX.utils.book_append_sheet(workbook, templateSheet, 'Шаблон');
+        XLSX.utils.book_append_sheet(workbook, groupsSheet, 'Группы');
         XLSX.writeFile(workbook, 'Шаблон_импорта_студентов.xlsx');
-    }, []);
+    }, [groups]);
 
     const handleDropZoneClick = useCallback(() => {
         fileInputRef.current?.click();
@@ -1249,7 +1320,7 @@ const StudentsLayout: React.FC = () => {
                             Выберите
                         </button>
                     </p>
-                    <p className={styles.importDropNote}>Формат: xls, xlsx, csv; Максимальный размер: 200 MB</p>
+                    <p className={styles.importDropNote}>Формат: xls, xlsx; Максимальный размер: 200 MB</p>
                     {importFileName && (
                         <p className={styles.importFileName}>Выбран файл: {importFileName}</p>
                     )}
@@ -1257,7 +1328,7 @@ const StudentsLayout: React.FC = () => {
                 <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".xls,.xlsx,.csv"
+                    accept=".xls,.xlsx"
                     className="visually-hidden"
                     onChange={handleFileInputChange}
                 />
@@ -1267,42 +1338,31 @@ const StudentsLayout: React.FC = () => {
                     </div>
                 )}
                 {importResult && (
-                    <div className="alert alert-success mt-3" role="alert">
-                        Успешно: {importResult.success}. Ошибки: {importResult.failed}.
+                    <div
+                        className={`alert mt-3 ${importResult.failed ? 'alert-warning' : 'alert-success'}`}
+                        role="alert"
+                    >
+                        <p className="mb-1">Успешно: {importResult.success}. Ошибки: {importResult.failed}.</p>
+                        {importResult.failedStudents.length > 0 && (
+                            <div>
+                                <p className="mb-1">Не удалось импортировать:</p>
+                                <ul className={styles.importFailedList}>
+                                    {importResult.failedStudents.map((name, index) => (
+                                        <li key={`${name}-${index}`}>{name || 'Строка без ФИО'}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 )}
                 <div className={styles.previewTableWrapper}>
                     {importRows.length ? (
-                        <div className="table-responsive">
-                            <table className={`table table-sm mb-0 ${styles.importPreviewTable}`}>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">№</th>
-                                        <th scope="col">ФИО</th>
-                                        <th scope="col">Группа</th>
-                                        <th scope="col">Курс</th>
-                                        <th scope="col">Пол</th>
-                                        <th scope="col">Населенный пункт</th>
-                                        <th scope="col">Телефон</th>
-                                        <th scope="col">Дата рождения</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {importRows.map((row, index) => (
-                                        <tr key={`${row.fullName}-${index}`}>
-                                            <td>{index + 1}</td>
-                                            <td>{row.fullName}</td>
-                                            <td>{row.groupName}</td>
-                                            <td>{row.course}</td>
-                                            <td>{row.gender}</td>
-                                            <td>{row.origin}</td>
-                                            <td>{row.phone}</td>
-                                            <td>{row.birthday}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <CommonTable
+                            data={importRows}
+                            columns={importPreviewColumns}
+                            className={styles.importPreviewTable}
+                            emptyMessage="Строки для импорта отсутствуют"
+                        />
                     ) : (
                         <div className={styles.previewPlaceholder}>
                             Таблица предварительного просмотра появится после выбора файла.
@@ -1316,7 +1376,7 @@ const StudentsLayout: React.FC = () => {
                         variant="transparent-primary"
                         size="md"
                         onClick={handleDownloadTemplate}
-                        className={styles.importTemplateButton}
+                        className={`${styles.importTemplateButton} ${styles.fullWidthMobileButton}`}
                     >
                         <i className="bi bi-download me-2"></i>
                         Скачать шаблон
@@ -1327,6 +1387,7 @@ const StudentsLayout: React.FC = () => {
                             size="md"
                             onClick={handleImportCancel}
                             disabled={isImporting}
+                            className={styles.fullWidthMobileButton}
                         >
                             Отмена
                         </ActionButton>
@@ -1335,6 +1396,7 @@ const StudentsLayout: React.FC = () => {
                             size="md"
                             onClick={handleImportSubmit}
                             disabled={!importRows.length || isImporting}
+                            className={styles.fullWidthMobileButton}
                         >
                             <i className="bi bi-upload me-2"></i>
                             Загрузить
@@ -1361,15 +1423,17 @@ const StudentsLayout: React.FC = () => {
                 title: 'Новый студент',
                 content: addTabContent,
             });
-            baseTabs.push({
-                id: 'import',
-                title: 'Импорт студентов',
-                content: importTabContent,
-            });
+            if (!isMobileViewport) {
+                baseTabs.push({
+                    id: 'import',
+                    title: 'Импорт студентов',
+                    content: importTabContent,
+                });
+            }
         }
 
         return baseTabs;
-    }, [addTabContent, importTabContent, isEducator, listTabContent, listTabHeader]);
+    }, [addTabContent, importTabContent, isEducator, isMobileViewport, listTabContent, listTabHeader]);
 
     useEffect(() => {
         if (tabs.some(tab => tab.id === activeTabId)) {

@@ -35,16 +35,21 @@ const Tabs: React.FC<TabsProps> = ({ tabs, defaultActiveTabId, activeTabId: cont
     return (
         <div className={styles.tabsRoot}>
             <div className={styles.tabsSurface}>
-                <div className={headerClassName}>
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            className={`${styles.tabButton} ${activeTabId === tab.id ? styles.active : ''}`}
-                            onClick={() => handleTabClick(tab.id)}
-                        >
-                            {tab.title}
-                        </button>
-                    ))}
+                <div className={styles.tabsHeaderWrapper}>
+                    <div className={headerClassName} role="tablist">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={activeTabId === tab.id}
+                                className={`${styles.tabButton} ${activeTabId === tab.id ? styles.active : ''}`}
+                                onClick={() => handleTabClick(tab.id)}
+                            >
+                                {tab.title}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {activeTab?.headerContent && (
