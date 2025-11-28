@@ -134,6 +134,35 @@ const deriveGenderTypeFromOccupants = (rooms: RoomWithOccupants[]): RoomWithOccu
     return hasMaleStudents ? true : false;
 };
 
+const hasGenderValue = (value: boolean | null | undefined): value is boolean => value === true || value === false;
+
+const doesRoomMatchStudentGender = (room: RoomDto, studentGender: StudentsDto['gender'] | null | undefined): boolean => {
+    if (room.currentCapacity >= room.capacity) {
+        return false;
+    }
+
+    if (!hasGenderValue(studentGender)) {
+        return room.currentCapacity === 0;
+    }
+
+    if (room.currentCapacity === 0) {
+        return true;
+    }
+
+    return hasGenderValue(room.genderType) && room.genderType === studentGender;
+};
+
+const doesStudentMatchRoomGender = (
+    studentGender: StudentsDto['gender'] | null | undefined,
+    roomGender: RoomDto['genderType'] | null
+): boolean => {
+    if (!hasGenderValue(roomGender)) {
+        return true;
+    }
+
+    return hasGenderValue(studentGender) && studentGender === roomGender;
+};
+
 const getBlockKey = (floorNumber: number, blockNumber: string): string => `${floorNumber}-${blockNumber}`;
 
 const StructureLayout: React.FC = () => {
@@ -327,28 +356,63 @@ const StructureLayout: React.FC = () => {
         return rooms.filter(room => room.currentCapacity < room.capacity);
     }, [rooms]);
 
+    const selectedSettlementStudent = useMemo(() => {
+        if (!settlementForm.studentId) {
+            return null;
+        }
+        return unassignedStudents.find(student => student.id.toString() === settlementForm.studentId) ?? null;
+    }, [settlementForm.studentId, unassignedStudents]);
+
+    const filteredAvailableRooms = useMemo(() => {
+        if (!selectedSettlementStudent) {
+            return availableRooms;
+        }
+        return availableRooms.filter(room => doesRoomMatchStudentGender(room, selectedSettlementStudent.gender));
+    }, [availableRooms, selectedSettlementStudent]);
+
+    const selectedSettlementRoom = useMemo(() => {
+        if (!settlementForm.roomId) {
+            return null;
+        }
+        return rooms.find(room => room.id === Number(settlementForm.roomId)) ?? null;
+    }, [rooms, settlementForm.roomId]);
+
+    const selectedRoomGender = useMemo(() => {
+        if (!selectedSettlementRoom) {
+            return null;
+        }
+        return hasGenderValue(selectedSettlementRoom.genderType) ? selectedSettlementRoom.genderType : null;
+    }, [selectedSettlementRoom]);
+
+    const filteredSettlementStudents = useMemo(() => {
+        if (!hasGenderValue(selectedRoomGender)) {
+            return unassignedStudents;
+        }
+        return unassignedStudents.filter(student => doesStudentMatchRoomGender(student.gender, selectedRoomGender));
+    }, [unassignedStudents, selectedRoomGender]);
+
     const settlementStudentOptions = useMemo(() => {
         return [
             { value: '', label: 'Выберите студента' },
-            ...unassignedStudents
+            ...filteredSettlementStudents
                 .map(student => ({ value: student.id.toString(), label: formatShortName(student) }))
                 .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
         ];
-    }, [unassignedStudents]);
+    }, [filteredSettlementStudents]);
 
     const settlementFloorOptions = useMemo(() => {
         const floorsSet = new Set<number>();
-        availableRooms.forEach(room => floorsSet.add(room.floorNumber));
+        filteredAvailableRooms.forEach(room => floorsSet.add(room.floorNumber));
         const floorOptions = Array.from(floorsSet)
             .sort((a, b) => a - b)
             .map(floor => ({ value: floor.toString(), label: `${floor} этаж` }));
         return [{ value: '', label: 'Выберите этаж' }, ...floorOptions];
-    }, [availableRooms]);
+    }, [filteredAvailableRooms]);
 
     const settlementRoomOptions = useMemo(() => {
         const targetRooms = settlementForm.floorNumber
-            ? availableRooms.filter(room => room.floorNumber === Number(settlementForm.floorNumber))
-            : availableRooms;
+            ? filteredAvailableRooms.filter(room => room.floorNumber === Number(settlementForm.floorNumber))
+            : filteredAvailableRooms;
 
         const sortedRooms = targetRooms
             .slice()
@@ -365,7 +429,7 @@ const StructureLayout: React.FC = () => {
             },
             ...sortedRooms,
         ];
-    }, [availableRooms, settlementForm.floorNumber]);
+    }, [filteredAvailableRooms, settlementForm.floorNumber]);
 
     const unassignedStudentsSorted = useMemo(() => {
         return unassignedStudents
@@ -589,7 +653,25 @@ const StructureLayout: React.FC = () => {
     };
 
     const handleSettlementStudentChange = (value: string) => {
-        setSettlementForm(prev => ({ ...prev, studentId: value }));
+        setSettlementForm(prev => {
+            const nextState = { ...prev, studentId: value };
+
+            if (!value || !nextState.roomId) {
+                return nextState;
+            }
+
+            const selectedStudent = unassignedStudents.find(student => student.id.toString() === value);
+            if (!selectedStudent) {
+                return nextState;
+            }
+
+            const room = roomsById.get(Number(nextState.roomId));
+            if (room && !doesRoomMatchStudentGender(room, selectedStudent.gender)) {
+                nextState.roomId = '';
+            }
+
+            return nextState;
+        });
         if (settlementErrors.studentId) {
             setSettlementErrors(prev => ({ ...prev, studentId: undefined }));
         }
@@ -616,11 +698,20 @@ const StructureLayout: React.FC = () => {
                 return { ...prev, roomId: '', floorNumber: prev.floorNumber };
             }
             const room = roomsById.get(Number(value));
-            return {
+            const nextState = {
                 ...prev,
                 roomId: value,
                 floorNumber: room ? room.floorNumber.toString() : prev.floorNumber,
             };
+
+            if (room && prev.studentId) {
+                const student = unassignedStudents.find(item => item.id.toString() === prev.studentId);
+                if (student && !doesRoomMatchStudentGender(room, student.gender)) {
+                    nextState.studentId = '';
+                }
+            }
+
+            return nextState;
         });
         if (settlementErrors.roomId) {
             setSettlementErrors(prev => ({ ...prev, roomId: undefined }));
@@ -763,11 +854,22 @@ const StructureLayout: React.FC = () => {
             return;
         }
         handleTabChange(SETTLEMENT_TAB_ID);
-        setSettlementForm(prev => ({
-            ...prev,
-            floorNumber: room.floorNumber.toString(),
-            roomId: room.id.toString(),
-        }));
+        setSettlementForm(prev => {
+            const nextState = {
+                ...prev,
+                floorNumber: room.floorNumber.toString(),
+                roomId: room.id.toString(),
+            };
+
+            if (prev.studentId) {
+                const student = unassignedStudents.find(item => item.id.toString() === prev.studentId);
+                if (student && !doesRoomMatchStudentGender(room, student.gender)) {
+                    nextState.studentId = '';
+                }
+            }
+
+            return nextState;
+        });
         setSettlementErrors(prev => ({ ...prev, roomId: undefined }));
         setSettlementAlert(null);
         closeBlockModal();
@@ -951,14 +1053,14 @@ const StructureLayout: React.FC = () => {
                         value={settlementForm.floorNumber}
                         onChange={(e) => handleSettlementFloorChange(e.target.value)}
                         options={settlementFloorOptions}
-                        disabled={isSettling || availableRooms.length === 0}
+                        disabled={isSettling || filteredAvailableRooms.length === 0}
                     />
                     <SelectField
                         label="Комната"
                         value={settlementForm.roomId}
                         onChange={(e) => handleSettlementRoomChange(e.target.value)}
                         options={settlementRoomOptions}
-                        disabled={isSettling || availableRooms.length === 0}
+                        disabled={isSettling || filteredAvailableRooms.length === 0}
                         error={settlementErrors.roomId}
                     />
                 </div>
@@ -978,7 +1080,7 @@ const StructureLayout: React.FC = () => {
                         size='md'
                         type='submit'
                         className={styles.fullWidthMobileButton}
-                        disabled={isSettling || !unassignedStudents.length || !availableRooms.length}
+                        disabled={isSettling || !unassignedStudents.length || !filteredAvailableRooms.length}
                     >
                         {isSettling ? 'Заселяем…' : 'Заселить студента'}
                     </ActionButton>

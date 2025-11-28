@@ -285,7 +285,6 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
                     onDrop={handleDropZoneDrop}
                 >
                     <i className={`bi bi-cloud-upload-fill ${styles.importDropIcon}`}></i>
-                    <p className={styles.importDropTitle}>Импорт студентов</p>
                     <p className={styles.importDropHint}>
                         Перетащите файл или{' '}
                         <button

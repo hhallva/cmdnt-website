@@ -345,6 +345,17 @@ const UsersLayout: React.FC = () => {
                             <div key={user.id} className={styles.mobileCard}>
                                 <div className={styles.mobileCardHeader}>
                                     <p className={styles.mobileCardTitle}>{getUserFullName(user)}</p>
+                                    <div className={styles.mobileCardActions}>
+                                        <button
+                                            type="button"
+                                            className={styles.mobileCardActionTrigger}
+                                            title="Действия"
+                                            onClick={(event) => handleMobileMenuToggle(event, user.id, hasMobileActions)}
+                                            disabled={!hasMobileActions}
+                                        >
+                                            <i className="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className={styles.mobileCardDivider}></div>
 
@@ -356,17 +367,6 @@ const UsersLayout: React.FC = () => {
                                     <div className={styles.mobileCardRow}>
                                         <span className={styles.mobileCardLabel}>Логин</span>
                                         <span className={styles.mobileCardValue}>{user.login || 'Нет'}</span>
-                                    </div>
-                                    <div className={styles.mobileCardActions}>
-                                        <button
-                                            type="button"
-                                            className={styles.mobileCardActionTrigger}
-                                            title="Действия"
-                                            onClick={(event) => handleMobileMenuToggle(event, user.id, hasMobileActions)}
-                                            disabled={!hasMobileActions}
-                                        >
-                                            <i className="bi bi-three-dots-vertical"></i>
-                                        </button>
                                     </div>
                                 </div>
 
