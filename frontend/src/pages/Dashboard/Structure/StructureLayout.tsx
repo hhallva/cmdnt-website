@@ -134,6 +134,8 @@ const deriveGenderTypeFromOccupants = (rooms: RoomWithOccupants[]): RoomWithOccu
     return hasMaleStudents ? true : false;
 };
 
+const getBlockKey = (floorNumber: number, blockNumber: string): string => `${floorNumber}-${blockNumber}`;
+
 const StructureLayout: React.FC = () => {
     const navigate = useNavigate();
     const { rooms, students, loading, error, refetch } = useDormStructureData();
@@ -145,7 +147,7 @@ const StructureLayout: React.FC = () => {
 
     const [selectedStudentId, setSelectedStudentId] = useState<'all' | number>('all');
     const [selectedFloor, setSelectedFloor] = useState<'all' | number>('all');
-    const [selectedRoomId, setSelectedRoomId] = useState<'all' | number>('all');
+    const [selectedBlockKey, setSelectedBlockKey] = useState<'all' | string>('all');
     const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -245,27 +247,38 @@ const StructureLayout: React.FC = () => {
         return map;
     }, [rooms]);
 
-    const roomOptions = useMemo(() => {
+    const blockOptions = useMemo(() => {
         const filteredRooms = selectedFloor === 'all'
             ? roomsWithOccupants
             : roomsWithOccupants.filter(room => room.floorNumber === selectedFloor);
-        const options = filteredRooms
-            .map(room => ({
-                value: room.id.toString(),
-                label: `${room.roomNumber}(${room.capacity})`,
-                sortKey: Number(room.roomNumber),
-            }))
-            .sort((a, b) => a.sortKey - b.sortKey)
-            .map(({ value, label }) => ({ value, label }));
-        const allLabel = selectedFloor === 'all' ? 'Все комнаты' : 'Все комнаты этажа';
+        const blockMap = new Map<string, { label: string }>();
+        filteredRooms.forEach(room => {
+            const blockKey = getBlockKey(room.floorNumber, room.roomNumber);
+            if (!blockMap.has(blockKey)) {
+                blockMap.set(blockKey, { label: room.roomNumber });
+            }
+        });
+        const options = Array.from(blockMap.entries())
+            .sort((a, b) => a[1].label.localeCompare(b[1].label, 'ru'))
+            .map(([value, data]) => ({ value, label: `${data.label}` }));
+        const allLabel = selectedFloor === 'all' ? 'Все блоки' : 'Все блоки этажа';
         return [{ value: 'all', label: allLabel }, ...options];
     }, [roomsWithOccupants, selectedFloor]);
 
     const studentOptions = useMemo(() => {
         const studentsWithRooms = students.filter(student => student.roomId !== null && student.roomId !== undefined);
         let filtered = studentsWithRooms;
-        if (selectedRoomId !== 'all') {
-            filtered = filtered.filter(student => student.roomId === selectedRoomId);
+        if (selectedBlockKey !== 'all') {
+            filtered = filtered.filter(student => {
+                if (student.roomId === null || student.roomId === undefined) {
+                    return false;
+                }
+                const room = roomsById.get(student.roomId);
+                if (!room) {
+                    return false;
+                }
+                return getBlockKey(room.floorNumber, room.roomNumber) === selectedBlockKey;
+            });
         } else if (selectedFloor !== 'all') {
             filtered = filtered.filter(student => {
                 if (student.roomId === null || student.roomId === undefined) {
@@ -275,8 +288,8 @@ const StructureLayout: React.FC = () => {
                 return room?.floorNumber === selectedFloor;
             });
         }
-        const allLabel = selectedRoomId !== 'all'
-            ? 'Все студенты комнаты'
+        const allLabel = selectedBlockKey !== 'all'
+            ? 'Все студенты блока'
             : selectedFloor !== 'all'
                 ? 'Все студенты этажа'
                 : 'Все студенты';
@@ -284,7 +297,7 @@ const StructureLayout: React.FC = () => {
             .map(student => ({ value: student.id.toString(), label: formatShortName(student) }))
             .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
         return [{ value: 'all', label: allLabel }, ...uniqueStudents];
-    }, [students, roomsById, selectedRoomId, selectedFloor]);
+    }, [students, roomsById, selectedBlockKey, selectedFloor]);
 
     const unassignedStudents = useMemo(() => {
         return students.filter(student => student.roomId === null || student.roomId === undefined);
@@ -394,13 +407,8 @@ const StructureLayout: React.FC = () => {
         },
     ]), [navigate]);
 
-    const getBlockKey = (floorNumber: number, blockNumber: string) => `${floorNumber}-${blockNumber}`;
-
     const filteredRooms = useMemo(() => {
-        const selectedRoom = selectedRoomId === 'all'
-            ? null
-            : roomsWithOccupants.find(room => room.id === selectedRoomId) ?? null;
-        const targetBlockKey = selectedRoom ? getBlockKey(selectedRoom.floorNumber, selectedRoom.roomNumber) : null;
+        const targetBlockKey = selectedBlockKey === 'all' ? null : selectedBlockKey;
 
         return roomsWithOccupants.filter(room => {
             if (selectedFloor !== 'all' && room.floorNumber !== selectedFloor) {
@@ -414,13 +422,9 @@ const StructureLayout: React.FC = () => {
                 return getBlockKey(room.floorNumber, room.roomNumber) === targetBlockKey;
             }
 
-            if (selectedRoomId !== 'all') {
-                return room.id === selectedRoomId;
-            }
-
             return true;
         });
-    }, [roomsWithOccupants, selectedFloor, selectedRoomId, selectedStudentId]);
+    }, [roomsWithOccupants, selectedFloor, selectedBlockKey, selectedStudentId]);
 
     const floors = useMemo<FloorWithBlocks[]>(() => {
         const floorMap = new Map<number, Map<string, BlockWithRooms>>();
@@ -488,7 +492,7 @@ const StructureLayout: React.FC = () => {
     const resetFilters = () => {
         setSelectedStudentId('all');
         setSelectedFloor('all');
-        setSelectedRoomId('all');
+        setSelectedBlockKey('all');
     };
 
     const handleFloorFilterChange = useCallback((value: string) => {
@@ -497,12 +501,12 @@ const StructureLayout: React.FC = () => {
         if (nextFloor === 'all') {
             return;
         }
-        setSelectedRoomId(prev => {
+        setSelectedBlockKey(prev => {
             if (prev === 'all') {
                 return prev;
             }
-            const room = roomsById.get(prev);
-            return room && room.floorNumber === nextFloor ? prev : 'all';
+            const [floorPart] = prev.split('-');
+            return Number(floorPart) === nextFloor ? prev : 'all';
         });
         setSelectedStudentId(prev => {
             if (prev === 'all') {
@@ -517,24 +521,31 @@ const StructureLayout: React.FC = () => {
         });
     }, [roomsById, students]);
 
-    const handleRoomFilterChange = useCallback((value: string) => {
+    const handleBlockFilterChange = useCallback((value: string) => {
         if (value === 'all') {
-            setSelectedRoomId('all');
+            setSelectedBlockKey('all');
             setSelectedStudentId('all');
             return;
         }
-        const roomId = Number(value);
-        setSelectedRoomId(roomId);
-        const room = roomsById.get(roomId);
-        if (room) {
-            setSelectedFloor(room.floorNumber);
+        setSelectedBlockKey(value);
+        const [floorPart] = value.split('-');
+        const floorNumber = Number(floorPart);
+        if (!Number.isNaN(floorNumber)) {
+            setSelectedFloor(floorNumber);
         }
         setSelectedStudentId(prev => {
             if (prev === 'all') {
                 return prev;
             }
             const student = students.find(item => item.id === prev);
-            return student?.roomId === roomId ? prev : 'all';
+            if (!student?.roomId) {
+                return 'all';
+            }
+            const room = roomsById.get(student.roomId);
+            if (!room) {
+                return 'all';
+            }
+            return getBlockKey(room.floorNumber, room.roomNumber) === value ? prev : 'all';
         });
     }, [roomsById, students]);
 
@@ -547,15 +558,15 @@ const StructureLayout: React.FC = () => {
         setSelectedStudentId(studentId);
         const student = students.find(item => item.id === studentId);
         if (!student?.roomId) {
-            setSelectedRoomId('all');
+            setSelectedBlockKey('all');
             return;
         }
         const room = roomsById.get(student.roomId);
         if (room) {
-            setSelectedRoomId(room.id);
+            setSelectedBlockKey(getBlockKey(room.floorNumber, room.roomNumber));
             setSelectedFloor(room.floorNumber);
         } else {
-            setSelectedRoomId('all');
+            setSelectedBlockKey('all');
         }
     }, [roomsById, students]);
 
@@ -796,10 +807,10 @@ const StructureLayout: React.FC = () => {
                     options={floorOptions.map(option => ({ value: option.value.toString(), label: option.label }))}
                 />
                 <SelectField
-                    label="Комната"
-                    value={selectedRoomId === 'all' ? 'all' : selectedRoomId.toString()}
-                    onChange={(e) => handleRoomFilterChange(e.target.value)}
-                    options={roomOptions}
+                    label="Блок"
+                    value={selectedBlockKey}
+                    onChange={(e) => handleBlockFilterChange(e.target.value)}
+                    options={blockOptions}
                 />
                 <ActionButton
                     variant='secondary'
