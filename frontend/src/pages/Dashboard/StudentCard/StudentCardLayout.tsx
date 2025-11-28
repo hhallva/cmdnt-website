@@ -18,6 +18,9 @@ import EditStudentModal from './components/EditStudentModal/EditStudentModal';
 type StudentTabKey = 'personal' | 'housing' | 'notes';
 
 const STORAGE_DEFAULT_TAB: StudentTabKey = 'personal';
+const STRUCTURE_TABS_STORAGE_KEY = 'structure-active-tab';
+const STRUCTURE_SETTLEMENT_PREFILL_KEY = 'structure-settlement-prefill';
+const SETTLEMENT_TAB_ID = 'settlement';
 const getStoredTab = (key: string): StudentTabKey => {
     if (typeof window === 'undefined') return STORAGE_DEFAULT_TAB;
     const saved = sessionStorage.getItem(key);
@@ -125,6 +128,17 @@ const StudentCardLayout: React.FC = () => {
         }
     };
 
+    const handleSettleClick = () => {
+        if (!student?.id) {
+            return;
+        }
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, SETTLEMENT_TAB_ID);
+            sessionStorage.setItem(STRUCTURE_SETTLEMENT_PREFILL_KEY, JSON.stringify({ studentId: student.id }));
+        }
+        navigate('/dashboard/accomodation');
+    };
+
     // Рендер вкладок
     const renderTabContent = () => {
         switch (activeTab) {
@@ -226,7 +240,8 @@ const StudentCardLayout: React.FC = () => {
                                     <ActionButton
                                         variant="primary"
                                         className={styles.actionButtonFullWidth}
-                                        size='md'>
+                                        size='md'
+                                        onClick={handleSettleClick}>
                                         Заселить
                                     </ActionButton>
                                 )

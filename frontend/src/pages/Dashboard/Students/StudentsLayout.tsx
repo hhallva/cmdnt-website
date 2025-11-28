@@ -16,6 +16,9 @@ import ActionButton from '../../../components/ActionButton/ActionButton'
 
 import styles from './Students.module.css';
 
+const STUDENTS_TAB_STORAGE_KEY = 'students-active-tab';
+const STUDENTS_DEFAULT_TAB_ID = 'list';
+
 const StudentsLayout: React.FC = () => {
     // #region Загрузка данных
     const [loading, setLoading] = useState(true);
@@ -28,6 +31,12 @@ const StudentsLayout: React.FC = () => {
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
     const isEducator = userSession?.role?.name?.toLowerCase().includes('воспитатель');
+    const [activeTabId, setActiveTabId] = useState<string>(() => {
+        if (typeof window === 'undefined') {
+            return STUDENTS_DEFAULT_TAB_ID;
+        }
+        return sessionStorage.getItem(STUDENTS_TAB_STORAGE_KEY) || STUDENTS_DEFAULT_TAB_ID;
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,6 +60,13 @@ const StudentsLayout: React.FC = () => {
 
         fetchData();
     }, [navigate]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        sessionStorage.setItem(STUDENTS_TAB_STORAGE_KEY, activeTabId);
+    }, [activeTabId]);
 
     const fetchStudents = async () => {
         try {
@@ -942,12 +958,30 @@ const StudentsLayout: React.FC = () => {
         return baseTabs;
     }, [addTabContent, isEducator, listTabContent, listTabHeader]);
 
+    useEffect(() => {
+        if (tabs.some(tab => tab.id === activeTabId)) {
+            return;
+        }
+        const fallbackTabId = tabs[0]?.id ?? STUDENTS_DEFAULT_TAB_ID;
+        setActiveTabId(fallbackTabId);
+    }, [tabs, activeTabId]);
+
+    const handleTabChange = (tabId: string) => {
+        if (tabs.some(tab => tab.id === tabId)) {
+            setActiveTabId(tabId);
+        }
+    };
+
     if (loading) return <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}><div className="spinner-border" role="status"><span className="visually-hidden">Загрузка...</span></div></div>;
     if (error) return <div className="alert alert-danger m-3" role="alert">{error}</div>;
 
     return (
         <>
-            <Tabs tabs={tabs} defaultActiveTabId="list" />
+            <Tabs
+                tabs={tabs}
+                activeTabId={activeTabId}
+                onTabChange={handleTabChange}
+            />
         </>
     );
 };

@@ -59,6 +59,8 @@ const settlementFormInitialState: SettlementFormState = {
 
 const STRUCTURE_TABS_STORAGE_KEY = 'structure-active-tab';
 const STRUCTURE_TAB_IDS = ['structure', 'settlement'] as const;
+const STRUCTURE_SETTLEMENT_PREFILL_KEY = 'structure-settlement-prefill';
+const SETTLEMENT_TAB_ID = 'settlement';
 
 const getStatus = (currentCapacity: number, capacity: number): RoomStatus => {
     if (currentCapacity === 0) {
@@ -161,15 +163,32 @@ const StructureLayout: React.FC = () => {
     const [settlementErrors, setSettlementErrors] = useState<SettlementFormErrors>({});
     const [settlementAlert, setSettlementAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [isSettling, setIsSettling] = useState(false);
+    const availableTabIds = canManageRooms ? [...STRUCTURE_TAB_IDS] : ['structure'];
     const [activeTabId, setActiveTabId] = useState<string>(() => {
-        const fallbackTabId = STRUCTURE_TAB_IDS[0];
+        const fallbackTabId = availableTabIds[0];
         if (typeof window === 'undefined') {
             return fallbackTabId;
         }
         const storedTabId = sessionStorage.getItem(STRUCTURE_TABS_STORAGE_KEY);
-        return storedTabId && STRUCTURE_TAB_IDS.some(id => id === storedTabId)
+        return storedTabId && availableTabIds.includes(storedTabId)
             ? storedTabId
             : fallbackTabId;
+    });
+    const [pendingSettlementStudentId, setPendingSettlementStudentId] = useState<string | null>(() => {
+        if (typeof window === 'undefined') {
+            return null;
+        }
+        const payload = sessionStorage.getItem(STRUCTURE_SETTLEMENT_PREFILL_KEY);
+        if (!payload) {
+            return null;
+        }
+        sessionStorage.removeItem(STRUCTURE_SETTLEMENT_PREFILL_KEY);
+        try {
+            const parsed = JSON.parse(payload);
+            return parsed?.studentId ? String(parsed.studentId) : null;
+        } catch {
+            return null;
+        }
     });
 
     useEffect(() => {
@@ -252,6 +271,26 @@ const StructureLayout: React.FC = () => {
     const unassignedStudents = useMemo(() => {
         return students.filter(student => student.roomId === null || student.roomId === undefined);
     }, [students]);
+
+    useEffect(() => {
+        if (!canManageRooms) {
+            return;
+        }
+        if (!pendingSettlementStudentId) {
+            return;
+        }
+        const canPrefill = unassignedStudents.some(student => student.id.toString() === pendingSettlementStudentId);
+        if (!canPrefill) {
+            return;
+        }
+        setSettlementForm(prev => ({ ...prev, studentId: pendingSettlementStudentId }));
+        setSettlementErrors(prev => ({ ...prev, studentId: undefined }));
+        setActiveTabId(SETTLEMENT_TAB_ID);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, SETTLEMENT_TAB_ID);
+        }
+        setPendingSettlementStudentId(null);
+    }, [pendingSettlementStudentId, unassignedStudents]);
 
     const availableRooms = useMemo(() => {
         return rooms.filter(room => room.currentCapacity < room.capacity);
@@ -613,6 +652,9 @@ const StructureLayout: React.FC = () => {
     };
 
     const handleTabChange = (tabId: string) => {
+        if (!availableTabIds.includes(tabId)) {
+            return;
+        }
         setActiveTabId(tabId);
         if (typeof window !== 'undefined') {
             sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, tabId);
@@ -620,7 +662,10 @@ const StructureLayout: React.FC = () => {
     };
 
     const handleFreeSlotClick = (room: RoomWithOccupants) => {
-        handleTabChange('settlement');
+        if (!canManageRooms) {
+            return;
+        }
+        handleTabChange(SETTLEMENT_TAB_ID);
         setSettlementForm(prev => ({
             ...prev,
             floorNumber: room.floorNumber.toString(),
@@ -908,10 +953,14 @@ const StructureLayout: React.FC = () => {
         </div>
     );
 
-    const tabs = [
-        { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
-        { id: 'settlement', title: 'Расселение', headerContent: settlementHeaderContent, content: settlementTabContent },
-    ];
+    const tabs = canManageRooms
+        ? [
+            { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
+            { id: SETTLEMENT_TAB_ID, title: 'Расселение', headerContent: settlementHeaderContent, content: settlementTabContent },
+        ]
+        : [
+            { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
+        ];
 
     const settlementToast = settlementAlert && typeof document !== 'undefined'
         ? createPortal(
