@@ -2,6 +2,12 @@
      align-items: stretch;
  }
 
+ .searchPanel {
+     background: #ffffff;
+     border-radius: 12px;
+     padding: 1.25rem;
+ }
+
  .formSectionsWrapper {
      display: flex;
      flex-direction: column;
@@ -62,7 +68,6 @@
  .pendingContactRow {
      cursor: pointer;
      color: #6c757d;
-     background: #fdfdfd;
  }
 
  .pendingContactRow:focus-visible {
@@ -93,6 +98,7 @@
 
  .pendingFieldWrapper {
      pointer-events: none;
+     opacity: 0.6;
  }
 
  .pendingPlusIconDelete {
@@ -155,15 +161,6 @@
      margin: 0.75rem 0;
  }
 
- .mobileCardRows {
-     display: flex;
-     justify-content: start;
-     align-items: flex-start;
-     flex-wrap: wrap;
-     flex-direction: column;
-     gap: 0.75rem;
- }
-
  .blockMetaColumn {
      display: flex;
      flex-direction: column;
@@ -196,27 +193,6 @@
      display: grid;
      grid-template-columns: repeat(2, minmax(0, 1fr));
      gap: 4rem;
- }
-
- .mobileCardItem {
-     display: flex;
-     flex-wrap: wrap;
-     align-items: baseline;
-     gap: 0.35rem;
-     font-size: 0.95rem;
-     font-weight: 500;
-     color: #111827;
- }
-
- .mobileCardItemLabel {
-     font-size: 0.82rem;
-     text-transform: uppercase;
-     letter-spacing: 0.06em;
-     color: #9ca3af;
- }
-
- .mobileCardItemValue {
-     color: #111827;
  }
 
  .mobileCardsEmpty {

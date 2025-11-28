@@ -8,6 +8,7 @@ import InputField from '../../../../../components/InputField/InputField';
 import SelectField from '../../../../../components/SelectField/SelectField';
 import ActionButton from '../../../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../../../components/CommonModal/CommonModal';
+import { isPhoneValid } from '../../../../../utils/students';
 import styles from './EditStudentModal.module.css';
 
 interface EditStudentModalProps {
@@ -205,12 +206,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
         if (!formData.phone?.trim()) {
             errors.phone = 'Телефон обязателен.';
             isValid = false;
-        } else {
-            const phoneRegex = /^8\d{10}$/;
-            if (!phoneRegex.test(formData.phone)) {
-                errors.phone = 'Телефон должен быть в формате 89000000000.';
-                isValid = false;
-            }
+        } else if (!isPhoneValid(formData.phone)) {
+            errors.phone = 'Телефон должен быть в формате 89000000000.';
+            isValid = false;
         }
 
         const contactErrorsArray: { comment?: string; phone?: string }[] = [];
@@ -225,12 +223,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
             if (!contact.phone?.trim()) {
                 contactErrors.phone = 'Телефон обязателен.';
                 contactsValid = false;
-            } else {
-                const phoneRegex = /^8\d{10}$/;
-                if (!phoneRegex.test(contact.phone)) {
-                    contactErrors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
-                    contactsValid = false;
-                }
+            } else if (!isPhoneValid(contact.phone)) {
+                contactErrors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
+                contactsValid = false;
             }
             contactErrorsArray[index] = contactErrors;
         });
