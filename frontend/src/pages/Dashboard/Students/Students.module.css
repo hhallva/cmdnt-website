@@ -340,3 +340,142 @@
      }
 
  }
+
+ .importTabWrapper {
+     display: flex;
+     flex-direction: column;
+     gap: 1.5rem;
+ }
+
+ .importSection {
+     background: #ffffff;
+     border-radius: 12px;
+     padding: 1.5rem;
+ }
+
+ .importDropZone {
+     border: 2px dashed #ffb347;
+     background: #fff4e1;
+     border-radius: 16px;
+     padding: 2.5rem 1.5rem;
+     text-align: center;
+     cursor: pointer;
+ }
+
+ .importDropZoneActive {
+     border-color: #ff922b;
+     background: #ffe8cc;
+ }
+
+ .importDropIcon {
+     font-size: 2.5rem;
+     color: #ff922b;
+ }
+
+ .importDropTitle {
+     margin-top: 0.75rem;
+     font-size: 1.25rem;
+     font-weight: 600;
+     color: #111827;
+ }
+
+ .importDropHint {
+     margin: 0.5rem 0 0;
+     font-size: 1rem;
+     color: #111827;
+ }
+
+ .importChooseLink {
+     background: none;
+     border: none;
+     padding: 0;
+     margin: 0;
+     color: #ff6b00;
+     font-weight: 600;
+     text-decoration: underline;
+     cursor: pointer;
+ }
+
+ .importChooseLink:focus-visible {
+     outline: 2px solid #0d6efd;
+     outline-offset: 3px;
+ }
+
+ .importDropNote {
+     margin-top: 0.35rem;
+     color: #6b7280;
+     font-size: 0.95rem;
+ }
+
+ .importFileName {
+     margin-top: 0.5rem;
+     color: #0f5132;
+     font-weight: 500;
+ }
+
+ .previewTableWrapper {
+     margin-top: 1.5rem;
+     border: 1px solid #e5e7eb;
+     border-radius: 12px;
+     overflow: hidden;
+     background: #fff;
+ }
+
+ .importPreviewTable thead {
+     background: #f8fafc;
+ }
+
+ .importPreviewTable th,
+ .importPreviewTable td {
+     vertical-align: middle;
+ }
+
+ .previewPlaceholder {
+     padding: 1.5rem;
+     text-align: center;
+     color: #6b7280;
+     font-size: 0.95rem;
+ }
+
+ .importActions {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 1rem;
+     flex-wrap: wrap;
+ }
+
+ .importTemplateButton {
+     flex-shrink: 0;
+ }
+
+ .importActionsRight {
+     display: flex;
+     justify-content: flex-end;
+     gap: 0.75rem;
+     flex-wrap: wrap;
+ }
+
+ .previewTableWrapper table {
+     margin: 0;
+ }
+
+ @media (max-width: 768px) {
+     .importDropZone {
+         padding: 2rem 1rem;
+     }
+
+     .importActions {
+         flex-direction: column;
+         align-items: stretch;
+     }
+
+     .importActionsRight {
+         width: 100%;
+         justify-content: stretch;
+     }
+
+     .importActionsRight> :global(button) {
+         flex: 1;
+     }
+ }

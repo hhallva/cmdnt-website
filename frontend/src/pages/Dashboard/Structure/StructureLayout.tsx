@@ -239,8 +239,17 @@ const StructureLayout: React.FC = () => {
         return [{ value: 'all', label: 'Все этажи' }, ...options];
     }, [roomsWithOccupants]);
 
+    const roomsById = useMemo(() => {
+        const map = new Map<number, RoomDto>();
+        rooms.forEach(room => map.set(room.id, room));
+        return map;
+    }, [rooms]);
+
     const roomOptions = useMemo(() => {
-        const options = roomsWithOccupants
+        const filteredRooms = selectedFloor === 'all'
+            ? roomsWithOccupants
+            : roomsWithOccupants.filter(room => room.floorNumber === selectedFloor);
+        const options = filteredRooms
             .map(room => ({
                 value: room.id.toString(),
                 label: `${room.roomNumber}(${room.capacity})`,
@@ -248,25 +257,34 @@ const StructureLayout: React.FC = () => {
             }))
             .sort((a, b) => a.sortKey - b.sortKey)
             .map(({ value, label }) => ({ value, label }));
-        return [{ value: 'all', label: 'Все комнаты' }, ...options];
-    }, [roomsWithOccupants]);
+        const allLabel = selectedFloor === 'all' ? 'Все комнаты' : 'Все комнаты этажа';
+        return [{ value: 'all', label: allLabel }, ...options];
+    }, [roomsWithOccupants, selectedFloor]);
 
     const studentOptions = useMemo(() => {
-        const uniqueStudents = students
-            .filter(student => student.roomId !== null && student.roomId !== undefined)
-            .map(student => ({
-                value: student.id.toString(),
-                label: formatShortName(student),
-            }))
+        const studentsWithRooms = students.filter(student => student.roomId !== null && student.roomId !== undefined);
+        let filtered = studentsWithRooms;
+        if (selectedRoomId !== 'all') {
+            filtered = filtered.filter(student => student.roomId === selectedRoomId);
+        } else if (selectedFloor !== 'all') {
+            filtered = filtered.filter(student => {
+                if (student.roomId === null || student.roomId === undefined) {
+                    return false;
+                }
+                const room = roomsById.get(student.roomId);
+                return room?.floorNumber === selectedFloor;
+            });
+        }
+        const allLabel = selectedRoomId !== 'all'
+            ? 'Все студенты комнаты'
+            : selectedFloor !== 'all'
+                ? 'Все студенты этажа'
+                : 'Все студенты';
+        const uniqueStudents = filtered
+            .map(student => ({ value: student.id.toString(), label: formatShortName(student) }))
             .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
-        return [{ value: 'all', label: 'Все студенты' }, ...uniqueStudents];
-    }, [students]);
-
-    const roomsById = useMemo(() => {
-        const map = new Map<number, RoomDto>();
-        rooms.forEach(room => map.set(room.id, room));
-        return map;
-    }, [rooms]);
+        return [{ value: 'all', label: allLabel }, ...uniqueStudents];
+    }, [students, roomsById, selectedRoomId, selectedFloor]);
 
     const unassignedStudents = useMemo(() => {
         return students.filter(student => student.roomId === null || student.roomId === undefined);
@@ -324,7 +342,7 @@ const StructureLayout: React.FC = () => {
             .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber))
             .map(room => ({
                 value: room.id.toString(),
-                label: `Комната ${room.roomNumber} • ${room.currentCapacity}/${room.capacity}`,
+                label: `${room.roomNumber} (${room.currentCapacity}/${room.capacity})`,
             }));
 
         return [
@@ -472,6 +490,74 @@ const StructureLayout: React.FC = () => {
         setSelectedFloor('all');
         setSelectedRoomId('all');
     };
+
+    const handleFloorFilterChange = useCallback((value: string) => {
+        const nextFloor = value === 'all' ? 'all' : Number(value);
+        setSelectedFloor(nextFloor);
+        if (nextFloor === 'all') {
+            return;
+        }
+        setSelectedRoomId(prev => {
+            if (prev === 'all') {
+                return prev;
+            }
+            const room = roomsById.get(prev);
+            return room && room.floorNumber === nextFloor ? prev : 'all';
+        });
+        setSelectedStudentId(prev => {
+            if (prev === 'all') {
+                return prev;
+            }
+            const student = students.find(item => item.id === prev);
+            if (!student?.roomId) {
+                return 'all';
+            }
+            const room = roomsById.get(student.roomId);
+            return room && room.floorNumber === nextFloor ? prev : 'all';
+        });
+    }, [roomsById, students]);
+
+    const handleRoomFilterChange = useCallback((value: string) => {
+        if (value === 'all') {
+            setSelectedRoomId('all');
+            setSelectedStudentId('all');
+            return;
+        }
+        const roomId = Number(value);
+        setSelectedRoomId(roomId);
+        const room = roomsById.get(roomId);
+        if (room) {
+            setSelectedFloor(room.floorNumber);
+        }
+        setSelectedStudentId(prev => {
+            if (prev === 'all') {
+                return prev;
+            }
+            const student = students.find(item => item.id === prev);
+            return student?.roomId === roomId ? prev : 'all';
+        });
+    }, [roomsById, students]);
+
+    const handleStudentFilterChange = useCallback((value: string) => {
+        if (value === 'all') {
+            setSelectedStudentId('all');
+            return;
+        }
+        const studentId = Number(value);
+        setSelectedStudentId(studentId);
+        const student = students.find(item => item.id === studentId);
+        if (!student?.roomId) {
+            setSelectedRoomId('all');
+            return;
+        }
+        const room = roomsById.get(student.roomId);
+        if (room) {
+            setSelectedRoomId(room.id);
+            setSelectedFloor(room.floorNumber);
+        } else {
+            setSelectedRoomId('all');
+        }
+    }, [roomsById, students]);
 
     const openAddRoomModal = (floorNumber?: number) => {
         if (!canManageRooms) {
@@ -700,19 +786,19 @@ const StructureLayout: React.FC = () => {
                 <SelectField
                     label="Студент"
                     value={selectedStudentId === 'all' ? 'all' : selectedStudentId.toString()}
-                    onChange={(e) => setSelectedStudentId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    onChange={(e) => handleStudentFilterChange(e.target.value)}
                     options={studentOptions}
                 />
                 <SelectField
                     label="Этаж"
                     value={selectedFloor === 'all' ? 'all' : selectedFloor.toString()}
-                    onChange={(e) => setSelectedFloor(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    onChange={(e) => handleFloorFilterChange(e.target.value)}
                     options={floorOptions.map(option => ({ value: option.value.toString(), label: option.label }))}
                 />
                 <SelectField
                     label="Комната"
                     value={selectedRoomId === 'all' ? 'all' : selectedRoomId.toString()}
-                    onChange={(e) => setSelectedRoomId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    onChange={(e) => handleRoomFilterChange(e.target.value)}
                     options={roomOptions}
                 />
                 <ActionButton
