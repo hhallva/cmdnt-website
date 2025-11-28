@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import type { LoginDto } from '../../types/auth';
 import { apiClient } from '../../api/client';
+import InputField from '../../components/InputField/InputField';
 
 import styles from './Login.module.css';
 
@@ -80,45 +81,34 @@ const LoginPage: React.FC = () => {
                     <form className={styles.loginForm} onSubmit={handleSubmit}>
                         {/* Логин */}
                         <div className={styles.formGroup}>
-                            <div className={styles.formLabelWithError}>
-                                <label htmlFor="username" className={styles.formLabel}>Логин</label>
-                                {usernameError && (
-                                    <span className={styles.errorMessageInline}>Пожалуйста, введите логин</span>
-                                )}
-                            </div>
-                            <div className={styles.inputWrapper}>
-                                <i className="bi bi-person"></i>
-                                <input
-                                    type="text"
-                                    id="username"
-                                    className={styles.formControl}
-                                    placeholder="Введите логин"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    autoComplete="username"
-                                />
-                            </div>
+                            <InputField
+                                label="Логин"
+                                name="username"
+                                id="username"
+                                type="text"
+                                placeholder="Введите логин"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                autoComplete="username"
+                                error={usernameError ? 'Пожалуйста, введите логин' : undefined}
+                                disabled={isLoading}
+                            />
                         </div>
 
                         {/* Пароль */}
                         <div className={styles.formGroup}>
-                            <div className={styles.formLabelWithError}>
-                                <label htmlFor="password" className={styles.formLabel}>Пароль</label>
-                                {passwordError && (
-                                    <span className={styles.errorMessageInline}>Пожалуйста, введите пароль</span>
-                                )}
-                            </div>
-                            <div className={styles.inputWrapper}>
-                                <i className="bi bi-lock"></i>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    id="password"
-                                    className={styles.formControl}
-                                    placeholder="Введите пароль"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    autoComplete="current-password"
-                                />
+                            <InputField
+                                label="Пароль"
+                                name="password"
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Введите пароль"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="current-password"
+                                error={passwordError ? 'Пожалуйста, введите пароль' : undefined}
+                                disabled={isLoading}
+                            >
                                 <button
                                     type="button"
                                     className={styles.passwordToggleBtn}
@@ -127,7 +117,7 @@ const LoginPage: React.FC = () => {
                                 >
                                     <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                                 </button>
-                            </div>
+                            </InputField>
                         </div>
                         {/* Кнопка */}
                         <button type="submit" className={`${styles.btnPrimary} ${styles.btn} `} disabled={isLoading}>

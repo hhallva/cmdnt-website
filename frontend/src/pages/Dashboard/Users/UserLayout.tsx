@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 import { getUserSession } from '../../../components/ProtectedRoute';
@@ -20,6 +21,8 @@ import ChangePasswordModal from './components/ChangePasswordModal/ChangePassword
 import EditUserModal from './components/EditUserModal/EditUserModal';
 
 import styles from './User.module.css'
+
+const MOBILE_MENU_WIDTH = 220;
 
 const UsersLayout: React.FC = () => {
     // #region Загрузка данных
@@ -64,10 +67,7 @@ const UsersLayout: React.FC = () => {
             setStatistics(statsResponse);
         } catch (err: any) {
             console.error('Ошибка при загрузке статистики:', err);
-            // Обработка ошибки статистики, если нужно отдельно
-            // setError(err.message || 'Ошибка при загрузке статистики');
-            // Но, возможно, лучше бросить ошибку дальше или вернуть null
-            throw err; // Бросаем ошибку, чтобы вызывающий код (например, useEffect или handleDelete) мог её обработать
+            throw err;
         }
     };
 
@@ -179,11 +179,16 @@ const UsersLayout: React.FC = () => {
     //#endregion
 
     // #region Таблица
+    const getUserFullName = (user: UserDto) => {
+        const fullName = `${user.surname || ''} ${user.name || ''} ${user.patronymic || ''}`.replace(/\s+/g, ' ').trim();
+        return fullName || 'Нет';
+    };
+
     const columns = [
         {
             key: 'fullName',
             title: 'ФИО',
-            render: (user: UserDto) => `${user.surname || ''} ${user.name || ''} ${user.patronymic || ''}`.trim() || 'Нет',
+            render: (user: UserDto) => getUserFullName(user),
         },
         {
             key: 'login',
@@ -221,25 +226,98 @@ const UsersLayout: React.FC = () => {
     };
     // #endregion  
 
+    const getVisibleRowActions = (user: UserDto) =>
+        rowAction.popupActions?.filter(action => (action.isVisible ? action.isVisible(user) : true)) ?? [];
+
+    const [activeMobileMenuUserId, setActiveMobileMenuUserId] = useState<number | null>(null);
+    const [mobileMenuPosition, setMobileMenuPosition] = useState<{ top: number; left: number | null; right: number | null } | null>(null);
+    const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+    const mobileMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+    const closeMobileMenu = useCallback(() => {
+        setActiveMobileMenuUserId(null);
+        setMobileMenuPosition(null);
+        mobileMenuTriggerRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (mobileMenuRef.current?.contains(target) || mobileMenuTriggerRef.current?.contains(target)) {
+                return;
+            }
+            closeMobileMenu();
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [closeMobileMenu]);
+
+    useEffect(() => {
+        if (!activeMobileMenuUserId) return;
+
+        const handleViewportChange = () => {
+            closeMobileMenu();
+        };
+
+        window.addEventListener('scroll', handleViewportChange, true);
+        window.addEventListener('resize', handleViewportChange);
+
+        return () => {
+            window.removeEventListener('scroll', handleViewportChange, true);
+            window.removeEventListener('resize', handleViewportChange);
+        };
+    }, [activeMobileMenuUserId, closeMobileMenu]);
+
+    const handleMobileMenuToggle = (
+        event: React.MouseEvent<HTMLButtonElement>,
+        userId: number,
+        hasActions: boolean,
+    ) => {
+        if (!hasActions) return;
+
+        if (activeMobileMenuUserId === userId) {
+            closeMobileMenu();
+            return;
+        }
+
+        const buttonRect = event.currentTarget.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const shouldAlignRight = buttonRect.left + MOBILE_MENU_WIDTH > viewportWidth - 12;
+
+        setMobileMenuPosition({
+            top: buttonRect.bottom + 4,
+            left: shouldAlignRight ? null : Math.max(buttonRect.left, 8),
+            right: shouldAlignRight ? Math.max(viewportWidth - buttonRect.right, 8) : null,
+        });
+        mobileMenuTriggerRef.current = event.currentTarget;
+        setActiveMobileMenuUserId(userId);
+    };
+
     const listTabHeader = (
-        <div className="row g-3">
-            <div className="col-md-6">
+        <div className={styles.filterBar}>
+            <div className={styles.filterField}
+            >
                 <InputField
                     type="text"
                     placeholder="Поиск по ФИО..."
                     value={searchTerm}
                     onChange={handleSearchChange} />
             </div>
-            <div className="col-md-3">
+            <div className={styles.filterField}>
                 <SelectField
                     value={selectedRoleId}
                     onChange={handleRoleChange}
                     options={roleOptions} />
             </div>
-            <div className="col-md-2" >
+            <div className={styles.filterActions}>
                 <ActionButton
+                    size='sm'
                     variant='secondary'
                     onClick={handleResetFilters}
+                    className={styles.modilButton}
                 >
                     Сбросить
                 </ActionButton>
@@ -248,13 +326,88 @@ const UsersLayout: React.FC = () => {
     );
 
     const listTabContent = (
-        <CommonTable
-            data={filteredUsers}
-            totalCount={users.length}
-            columns={columns}
-            rowAction={rowAction}
-            emptyMessage="Пользователи не найдены"
-        />
+        <>
+            <div className={styles.desktopTable}>
+                <CommonTable
+                    data={filteredUsers}
+                    totalCount={users.length}
+                    columns={columns}
+                    rowAction={rowAction}
+                    emptyMessage="Пользователи не найдены"
+                />
+            </div>
+            <div className={styles.mobileCardsWrapper}>
+                {filteredUsers.length ? (
+                    filteredUsers.map(user => {
+                        const visibleMobileActions = getVisibleRowActions(user);
+                        const hasMobileActions = visibleMobileActions.length > 0;
+                        return (
+                            <div key={user.id} className={styles.mobileCard}>
+                                <div className={styles.mobileCardHeader}>
+                                    <p className={styles.mobileCardTitle}>{getUserFullName(user)}</p>
+                                    <div className={styles.mobileCardActions}>
+                                        <button
+                                            type="button"
+                                            className={styles.mobileCardActionTrigger}
+                                            title="Действия"
+                                            onClick={(event) => handleMobileMenuToggle(event, user.id, hasMobileActions)}
+                                            disabled={!hasMobileActions}
+                                        >
+                                            <i className="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className={styles.mobileCardDivider}></div>
+
+                                <div className={styles.mobileCardBody}>
+                                    <div className={styles.mobileCardRow}>
+                                        <span className={styles.mobileCardLabel}>Роль</span>
+                                        <span className={styles.mobileCardValue}>{user.role?.name ?? 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.mobileCardRow}>
+                                        <span className={styles.mobileCardLabel}>Логин</span>
+                                        <span className={styles.mobileCardValue}>{user.login || 'Нет'}</span>
+                                    </div>
+                                </div>
+
+                                {hasMobileActions &&
+                                    activeMobileMenuUserId === user.id &&
+                                    mobileMenuPosition &&
+                                    createPortal(
+                                        <div
+                                            ref={mobileMenuRef}
+                                            className={styles.mobileCardActionMenu}
+                                            style={{
+                                                top: mobileMenuPosition.top,
+                                                left: mobileMenuPosition.left ?? undefined,
+                                                right: mobileMenuPosition.right ?? undefined,
+                                            }}
+                                        >
+                                            {visibleMobileActions.map((action, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    className={`${styles.mobileCardActionMenuItem} ${action.variant === 'danger' ? styles.mobileCardActionMenuItemDanger : ''}`}
+                                                    onClick={() => {
+                                                        action.onClick(user);
+                                                        closeMobileMenu();
+                                                    }}
+                                                >
+                                                    {action.icon && <i className={`bi ${action.icon}`}></i>}
+                                                    <span>{action.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>,
+                                        document.body
+                                    )}
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className={styles.mobileCardsEmpty}>Пользователи не найдены</div>
+                )}
+            </div>
+        </>
     );
 
     //#endregion 
@@ -304,35 +457,35 @@ const UsersLayout: React.FC = () => {
     const validateAddUserForm = (): boolean => {
         const errors: Record<string, string> = {};
         if (!newUser.roleId || newUser.roleId <= 0) {
-            errors.roleId = 'Пожалуйста, выберите роль.';
+            errors.roleId = 'Поле обязательно';
         }
         if (!newUser.surname?.trim()) {
-            errors.surname = 'Фамилия обязательна.';
+            errors.surname = 'Поле обязательно';
         } else if (newUser.surname.length > 100) {
-            errors.surname = 'Фамилия должна содержать не более 100 символов.';
+            errors.surname = 'Максимум 100 символов';
         }
         if (!newUser.name?.trim()) {
-            errors.name = 'Имя обязательно.';
+            errors.name = 'Поле обязательно';
         } else if (newUser.name.length > 100) {
-            errors.name = 'Имя должно содержать не более 100 символов.';
+            errors.name = 'Максимум 100 символов';
         }
         if (newUser.patronymic && newUser.patronymic.length > 100) {
-            errors.patronymic = 'Отчество должно содержать не более 100 символов.';
+            errors.patronymic = 'Максимум 100 символов';
         }
         if (!newUser.login?.trim()) {
-            errors.login = 'Логин обязателен.';
+            errors.login = 'Поле обязательно';
         } else if (newUser.login.length < 3 || newUser.login.length > 50) {
-            errors.login = 'Логин должен содержать от 3 до 50 символов.';
+            errors.login = 'От 3 до 50 символов';
         } else if (!/^[a-zA-Z0-9_\-\.]+$/.test(newUser.login)) {
-            errors.login = 'Логин может содержать только латиницу, цифры, подчёркивания, дефисы и точки.';
+            errors.login = 'Только (EN 0..9 - _ .)';
         }
         if (!newUser.password) {
-            errors.password = 'Пароль обязателен.';
+            errors.password = 'Поле обязательно';
         } else if (newUser.password.length < 8) {
-            errors.password = 'Пароль должен содержать минимум 8 символов.';
+            errors.password = 'Минимум 8 символов';
         }
         if (newUser.password !== confirmPassword) {
-            errors.confirmPassword = 'Пароли не совпадают.';
+            errors.confirmPassword = 'Пароли не совпадают';
         }
 
         setAddErrors(errors);
@@ -377,98 +530,103 @@ const UsersLayout: React.FC = () => {
     };
 
     const addTabContent = (
-        <div className="p-3">
-            <h3 className="h5 mb-3">Добавить нового пользователя</h3>
-            <form onSubmit={handleAddUserSubmit}>
-                <div className="row g-3">
-                    <div className="col-md-6">
-                        <InputField
-                            label="Фамилия"
-                            type="text"
-                            name="surname"
-                            value={newUser.surname || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.surname}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <InputField
-                            label="Имя"
-                            type="text"
-                            name="name"
-                            value={newUser.name || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.name}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <InputField
-                            label="Отчество"
-                            type="text"
-                            name="patronymic"
-                            value={newUser.patronymic || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.patronymic}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <InputField
-                            label="Логин"
-                            type="text"
-                            name="login"
-                            value={newUser.login || ''}
-                            onChange={handleAddUserChange}
-                            error={addErrors.login}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <SelectField
-                            label="Роль"
-                            name="roleId"
-                            value={newUser.roleId}
-                            onChange={handleAddUserChange}
-                            options={roleOptions}
-                            error={addErrors.roleId}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <PasswordField
-                            label="Пароль"
-                            name="password"
-                            value={newUser.password}
-                            onChange={handleAddUserChange}
-                            error={addErrors.password}
-                            disabled={isAdding}
-                        />
-                    </div>
-                    <div className="col-md-6">
-                        <PasswordField
-                            label="Подтверждение пароля"
-                            name="confirmPassword"
-                            value={confirmPassword}
-                            onChange={(e) => {
-                                setConfirmPassword(e.target.value);
-                                if (addErrors.confirmPassword) {
-                                    setAddErrors(prev => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.confirmPassword;
-                                        return newErrors;
-                                    });
-                                }
-                            }}
-                            error={addErrors.confirmPassword}
-                            disabled={isAdding}
-                        />
+        <div>
+            <form onSubmit={handleAddUserSubmit} >
+                <div className={styles.formSection}>
+                    <h4 className={styles.formSectionTitle}>Основное</h4>
+                    <div className="row g-3">
+                        <div className="col-md-4">
+                            <InputField
+                                label="Фамилия"
+                                type="text"
+                                name="surname"
+                                value={newUser.surname || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.surname}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Имя"
+                                type="text"
+                                name="name"
+                                value={newUser.name || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.name}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Отчество"
+                                type="text"
+                                name="patronymic"
+                                value={newUser.patronymic || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.patronymic}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <InputField
+                                label="Логин"
+                                type="text"
+                                name="login"
+                                value={newUser.login || ''}
+                                onChange={handleAddUserChange}
+                                error={addErrors.login}
+                                disabled={isAdding}
+                            />
+                        </div>
+
+                        <div className="col-md-4">
+                            <PasswordField
+                                label="Пароль"
+                                name="password"
+                                value={newUser.password}
+                                onChange={handleAddUserChange}
+                                error={addErrors.password}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <PasswordField
+                                label="Подтверждение пароля"
+                                name="confirmPassword"
+                                value={confirmPassword}
+                                onChange={(e) => {
+                                    setConfirmPassword(e.target.value);
+                                    if (addErrors.confirmPassword) {
+                                        setAddErrors(prev => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors.confirmPassword;
+                                            return newErrors;
+                                        });
+                                    }
+                                }}
+                                error={addErrors.confirmPassword}
+                                disabled={isAdding}
+                            />
+                        </div>
+                        <div className="col-md-12">
+                            <SelectField
+                                label="Роль"
+                                name="roleId"
+                                value={newUser.roleId}
+                                onChange={handleAddUserChange}
+                                options={roleOptions}
+                                error={addErrors.roleId}
+                                disabled={isAdding}
+                            />
+                        </div>
                     </div>
                 </div>
-                {/* Кнопки действия */}
-                <div className="d-flex justify-content-end mt-4 pt-2">
+
+                <div className={styles.formSection + ' mt-4 d-flex justify-content-end'}>
                     <ActionButton
+                        size='md'
+                        className={styles.fullWidthMobileButton}
                         variant='secondary'
                         onClick={resetAddForm}
                         disabled={isAdding}
@@ -476,9 +634,11 @@ const UsersLayout: React.FC = () => {
                         Сбросить
                     </ActionButton>
                     <ActionButton
+                        size='md'
+                        className={styles.fullWidthMobileButton + ' ms-2'}
                         type='submit'
                         variant='primary'
-                        className="ms-2"
+                        disabled={isAdding}
                     >
                         Добавить
                     </ActionButton>
@@ -502,13 +662,13 @@ const UsersLayout: React.FC = () => {
     const tabs = [
         {
             id: 'list',
-            title: 'Список пользователей',
+            title: 'Список',
             headerContent: listTabHeader,
             content: listTabContent,
         },
         {
             id: 'add',
-            title: 'Добавить пользователя',
+            title: 'Новый пользователь',
             content: addTabContent,
         }
     ];

@@ -8,6 +8,7 @@ import InputField from '../../../../../components/InputField/InputField';
 import SelectField from '../../../../../components/SelectField/SelectField';
 import ActionButton from '../../../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../../../components/CommonModal/CommonModal';
+import { isPhoneValid } from '../../../../../utils/students';
 import styles from './EditStudentModal.module.css';
 
 interface EditStudentModalProps {
@@ -140,6 +141,13 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
         });
     };
 
+    const handlePendingRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleAddContactField();
+        }
+    };
+
     const validateForm = () => {
         const errors: FormErrors = {};
         let isValid = true;
@@ -198,12 +206,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
         if (!formData.phone?.trim()) {
             errors.phone = 'Телефон обязателен.';
             isValid = false;
-        } else {
-            const phoneRegex = /^8\d{10}$/;
-            if (!phoneRegex.test(formData.phone)) {
-                errors.phone = 'Телефон должен быть в формате 89000000000.';
-                isValid = false;
-            }
+        } else if (!isPhoneValid(formData.phone)) {
+            errors.phone = 'Телефон должен быть в формате 89000000000.';
+            isValid = false;
         }
 
         const contactErrorsArray: { comment?: string; phone?: string }[] = [];
@@ -218,12 +223,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
             if (!contact.phone?.trim()) {
                 contactErrors.phone = 'Телефон обязателен.';
                 contactsValid = false;
-            } else {
-                const phoneRegex = /^8\d{10}$/;
-                if (!phoneRegex.test(contact.phone)) {
-                    contactErrors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
-                    contactsValid = false;
-                }
+            } else if (!isPhoneValid(contact.phone)) {
+                contactErrors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
+                contactsValid = false;
             }
             contactErrorsArray[index] = contactErrors;
         });
@@ -278,162 +280,191 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                     </div>
                 )}
                 <div className={styles.formBody}>
-                    <div className="row g-3 mt-2">
-                        <div className="col-md-4">
-                            <InputField
-                                label="Фамилия"
-                                type="text"
-                                name="surname"
-                                value={formData.surname || ''}
-                                onChange={handleChange}
-                                error={formErrors.surname}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="col-md-4">
-                            <InputField
-                                label="Имя"
-                                type="text"
-                                name="name"
-                                value={formData.name || ''}
-                                onChange={handleChange}
-                                error={formErrors.name}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="col-md-4">
-                            <InputField
-                                label="Отчество"
-                                type="text"
-                                name="patronymic"
-                                value={formData.patronymic || ''}
-                                onChange={handleChange}
-                                error={formErrors.patronymic}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="col-md-4">
-                            <InputField
-                                label="Дата рождения"
-                                type="date"
-                                name="birthday"
-                                value={
-                                    formData.birthday
-                                        ? formData.birthday.includes('.')
-                                            ? formData.birthday.split('.').reverse().join('-')
-                                            : formData.birthday.slice(0, 10)
-                                        : ''
-                                }
-                                onChange={handleChange}
-                                error={formErrors.birthday}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="col-md-4">
-                            <SelectField
-                                label="Пол"
-                                name="gender"
-                                value={formData.gender === true ? 'true' : formData.gender === false ? 'false' : ''}
-                                onChange={handleChange}
-                                options={genderOptions}
-                                error={formErrors.gender}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="col-md-4">
-                            <InputField
-                                label="Откуда приехал"
-                                type="text"
-                                name="origin"
-                                value={formData.origin || ''}
-                                onChange={handleChange}
-                                error={formErrors.origin}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="col-md-4">
-                            <SelectField
-                                label="Группа"
-                                name="groupId"
-                                value={formData.group?.id ?? ''}
-                                onChange={handleChange}
-                                options={groupOptions}
-                                error={formErrors.groupId}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="col-md-4">
-                            <InputField
-                                label="Контактный телефон"
-                                type="tel"
-                                name="phone"
-                                value={formData.phone || ''}
-                                onChange={handleChange}
-                                error={formErrors.phone}
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="additional-contacts-section mt-4 pt-2">
-                            <h4 className="h6 mb-2 pb-2 border-bottom">Дополнительные контакты</h4>
+                    <div className={styles.formSectionsWrapper}>
+                        <section>
+                            <div className="row g-3 mt-0">
+                                <div className="col-md-4">
+                                    <InputField
+                                        label="Фамилия"
+                                        type="text"
+                                        name="surname"
+                                        value={formData.surname || ''}
+                                        onChange={handleChange}
+                                        error={formErrors.surname}
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <InputField
+                                        label="Имя"
+                                        type="text"
+                                        name="name"
+                                        value={formData.name || ''}
+                                        onChange={handleChange}
+                                        error={formErrors.name}
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <InputField
+                                        label="Отчество"
+                                        type="text"
+                                        name="patronymic"
+                                        value={formData.patronymic || ''}
+                                        onChange={handleChange}
+                                        error={formErrors.patronymic}
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <InputField
+                                        label="Дата рождения"
+                                        type="date"
+                                        name="birthday"
+                                        value={
+                                            formData.birthday
+                                                ? formData.birthday.includes('.')
+                                                    ? formData.birthday.split('.').reverse().join('-')
+                                                    : formData.birthday.slice(0, 10)
+                                                : ''
+                                        }
+                                        onChange={handleChange}
+                                        error={formErrors.birthday}
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <SelectField
+                                        label="Пол"
+                                        name="gender"
+                                        value={formData.gender === true ? 'true' : formData.gender === false ? 'false' : ''}
+                                        onChange={handleChange}
+                                        options={genderOptions}
+                                        error={formErrors.gender}
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <InputField
+                                        label="Населенный пункт"
+                                        type="text"
+                                        name="origin"
+                                        value={formData.origin || ''}
+                                        onChange={handleChange}
+                                        error={formErrors.origin}
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <SelectField
+                                        label="Группа"
+                                        name="groupId"
+                                        value={formData.group?.id ?? ''}
+                                        onChange={handleChange}
+                                        options={groupOptions}
+                                        error={formErrors.groupId}
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <InputField
+                                        label="Контактный телефон"
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone || ''}
+                                        onChange={handleChange}
+                                        error={formErrors.phone}
+                                        disabled={loading}
+                                    />
+                                </div>
+                            </div>
+                        </section>
+                        <section>
+                            <div className={styles.contactsWrapper}>
+                                {contactsList.length > 0 && (
+                                    <div className={styles.contactsList}>
+                                        {contactsList.map((contact, index) => (
+                                            <div key={index} className={`${styles.contactRow} ${styles.addedContactRow}`}>
+                                                <div className={styles.contactField}>
+                                                    <InputField
+                                                        label="Комментарий"
+                                                        type="text"
+                                                        value={contact.comment}
+                                                        onChange={e => handleContactChange(index, 'comment', e.target.value)}
+                                                        error={formErrors.contacts?.[index]?.comment}
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className={styles.contactField}>
+                                                    <InputField
+                                                        label="Телефон"
+                                                        type="tel"
+                                                        value={contact.phone}
+                                                        onChange={e => handleContactChange(index, 'phone', e.target.value)}
+                                                        error={formErrors.contacts?.[index]?.phone}
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className={styles.contactButtonCell}>
+                                                    <ActionButton
+                                                        type="button"
+                                                        variant='secondary'
+                                                        size='md'
+                                                        className={styles.contactActionButton}
+                                                        onClick={() => handleRemoveContactField(index)}
+                                                        disabled={loading}
+                                                    >
+                                                        <span aria-hidden="true" className={styles.pendingPlusIconDelete}>-</span>
+                                                        <span className="visually-hidden">Удалить контакт</span>
+                                                    </ActionButton>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
-                            {contactsList.length > 0 && (
-                                <div className={styles.contactFieldsContainer}>
-                                    {contactsList.map((contact, index) => (
-                                        <div key={index} className={styles.contactRow}>
-                                            <div>
+                                {contactsList.length < 5 && (
+                                    <div
+                                        role="button"
+                                        tabIndex={0}
+                                        className={`${styles.contactRow} ${styles.pendingContactRow}`}
+                                        onClick={handleAddContactField}
+                                        onKeyDown={handlePendingRowKeyDown}
+                                        aria-label="Добавить контакт"
+                                    >
+                                        <div className={styles.contactField}>
+                                            <div className={styles.pendingFieldWrapper}>
                                                 <InputField
                                                     label="Комментарий"
                                                     type="text"
-                                                    value={contact.comment}
-                                                    onChange={e => handleContactChange(index, 'comment', e.target.value)}
-                                                    error={formErrors.contacts?.[index]?.comment}
-                                                    disabled={loading}
+                                                    value=""
+                                                    readOnly
                                                 />
-                                            </div>
-                                            <div>
-                                                <InputField
-                                                    label="Телефон"
-                                                    type="tel"
-                                                    value={contact.phone}
-                                                    onChange={e => handleContactChange(index, 'phone', e.target.value)}
-                                                    error={formErrors.contacts?.[index]?.phone}
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                            <div className={styles.contactActions}>
-                                                <ActionButton
-                                                    size='sm'
-                                                    type="button"
-                                                    variant='danger'
-                                                    onClick={() => handleRemoveContactField(index)}
-                                                    disabled={loading}
-                                                >
-                                                    <i className="bi bi-trash"></i>
-                                                </ActionButton>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {contactsList.length < 5 && (
-                                <ActionButton
-                                    className={styles.contactAddButton}
-                                    type="button"
-                                    size='md'
-                                    onClick={handleAddContactField}
-                                    disabled={loading}>
-                                    <i className="bi bi-plus-circle me-1"></i>
-                                    Добавить контакт
-                                </ActionButton>
-                            )}
-                        </div>
+                                        <div className={styles.contactField}>
+                                            <div className={styles.pendingFieldWrapper}>
+                                                <InputField
+                                                    label="Телефон"
+                                                    type="text"
+                                                    value=""
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className={styles.contactButtonCell}>
+                                            <span className={styles.pendingPlusIcon}>+</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
                     </div>
                 </div>
                 <div className={styles.formFooter}>
                     <ActionButton
                         size='md'
-                        className={styles.footerButton}
+                        className={`${styles.footerButton} ${styles.fullWidthMobileButton}`}
                         variant='secondary'
                         onClick={() => {
                             setFormData(student);
@@ -447,7 +478,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                     </ActionButton>
                     <ActionButton
                         size='md'
-                        className={styles.footerButton}
+                        className={`${styles.footerButton} ${styles.fullWidthMobileButton}`}
                         type='submit'
                         variant='primary'
                         disabled={loading}

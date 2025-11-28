@@ -6,3 +6,9 @@ export interface RoomDto {
     currentCapacity: number;
     genderType: boolean | null;
 }
+
+export interface PostRoomDto {
+    floorNumber: number;
+    roomNumber: number;
+    capacity: number;
+}

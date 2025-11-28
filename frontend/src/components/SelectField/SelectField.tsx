@@ -12,10 +12,15 @@ interface SelectFieldProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>,
 const SelectField: React.FC<SelectFieldProps> = ({ label, options, error, ...selectProps }) => {
     return (
         <div className={styles.formGroup}>
-            {label && <label className={styles.formLabel}>{label}</label>}
+            {(label || error) && (
+                <div className={styles.labelRow}>
+                    {label && <label className={styles.formLabel}>{label}</label>}
+                    {error && <span className={styles.inlineError}>{error}</span>}
+                </div>
+            )}
 
             <select
-                className={`${styles.formSelect} ${error ? styles.isInvalid : ''}`} // Добавляем класс при ошибке
+                className={`${styles.formSelect} ${error ? styles.isInvalid : ''}`}
                 {...selectProps}
             >
                 {options.map((option) => (
@@ -24,8 +29,6 @@ const SelectField: React.FC<SelectFieldProps> = ({ label, options, error, ...sel
                     </option>
                 ))}
             </select>
-            {/* Отображаем сообщение об ошибке, если оно есть */}
-            {error && <div className={styles.invalidFeedback}>{error}</div>}
         </div>
     );
 };

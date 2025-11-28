@@ -5,12 +5,19 @@
     position: relative;
 }
 
+.labelRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
 /* Стили для метки */
 .formLabel {
     font-weight: 500;
     color: var(--color-text);
-    margin-bottom: 0.5rem;
-    display: block;
+    margin: 0;
 }
 
 /* Стили для поля ввода */
@@ -48,6 +55,12 @@
     margin-top: 0.25rem;
     font-size: 0.875em;
     color: #dc3545;
+}
+
+.inlineError {
+    font-size: 0.875em;
+    color: #dc3545;
+    white-space: nowrap;
 }
 
 
@@ -90,8 +103,17 @@
     }
 
     .formLabel {
-        margin-bottom: 0.2rem;
         font-size: small;
+    }
+
+    .labelRow {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .inlineError {
+        white-space: normal;
     }
 
     .formControl {

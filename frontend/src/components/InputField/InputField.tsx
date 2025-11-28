@@ -27,7 +27,12 @@ const InputField: React.FC<InputFieldProps> = ({ label, error, inputClassName, c
 
     return (
         <div className={styles.formGroup}>
-            {label && <label className={styles.formLabel}>{label}</label>}
+            {(label || error) && (
+                <div className={styles.labelRow}>
+                    {label && <label className={styles.formLabel}>{label}</label>}
+                    {error && <span className={styles.inlineError}>{error}</span>}
+                </div>
+            )}
             <div className={wrapperClasses}>
                 <input
                     className={inputClasses}
@@ -35,7 +40,6 @@ const InputField: React.FC<InputFieldProps> = ({ label, error, inputClassName, c
                 />
                 {children}
             </div>
-            {error && <div className={styles.invalidFeedback}>{error}</div>}
         </div>
     );
 };
