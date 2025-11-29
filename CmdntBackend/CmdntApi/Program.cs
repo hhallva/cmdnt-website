@@ -7,21 +7,48 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using System.IO;
 using System.Text;
+
+LoadDotEnvIfPresent();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("DefaultConnection is not set.");
+var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"]
+    ?? builder.Configuration["ConnectionStrings__DefaultConnection"]
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-var dbPassword = builder.Configuration["DB_PASSWORD"]
-    ?? throw new InvalidOperationException("DB_PASSWORD is not set.");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    var dbHost = builder.Configuration["DB_HOST"] ?? "localhost";
+    var dbPort = builder.Configuration["DB_PORT"] ?? "3306";
+    var dbName = builder.Configuration["DB_NAME"]
+        ?? throw new InvalidOperationException("DB_NAME is not set in configuration or .env");
+    var dbUser = builder.Configuration["DB_USER"]
+        ?? throw new InvalidOperationException("DB_USER is not set in configuration or .env");
+    var dbPasswordFromEnv = builder.Configuration["DB_PASSWORD"]
+        ?? throw new InvalidOperationException("DB_PASSWORD is not set in configuration or .env");
 
-connectionString = connectionString.Replace("Password=;", $"Password={dbPassword};");
+    connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};User={dbUser};Password={dbPasswordFromEnv};";
+}
+else
+{
+    var dbPassword = builder.Configuration["DB_PASSWORD"];
+    if (connectionString.Contains("Password=;") && !string.IsNullOrWhiteSpace(dbPassword))
+    {
+        connectionString = connectionString.Replace("Password=;", $"Password={dbPassword};");
+    }
+}
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("DefaultConnection is not set.");
+}
 
 //JWT
 var jwtKey = builder.Configuration["JWT:Key"]
-    ?? throw new InvalidOperationException("JWT:Key is not set.");
+    ?? builder.Configuration["JWT_KEY"]
+    ?? throw new InvalidOperationException("JWT key is not set (expected JWT:Key or JWT_KEY).");
 
 builder.Services.AddResponseCompression();
 builder.Services.AddScoped<TokenService, TokenService>();
@@ -141,3 +168,51 @@ app.UseExceptionHandler(errorApp =>
 });
 
 app.Run();
+
+static void LoadDotEnvIfPresent()
+{
+    var possiblePaths = new[]
+    {
+        Path.Combine(Directory.GetCurrentDirectory(), ".env"),
+        Path.Combine(AppContext.BaseDirectory, ".env")
+    };
+
+    string? envPath = null;
+    foreach (var path in possiblePaths)
+    {
+        if (File.Exists(path))
+        {
+            envPath = path;
+            break;
+        }
+    }
+
+    if (string.IsNullOrEmpty(envPath))
+    {
+        return;
+    }
+
+    foreach (var rawLine in File.ReadAllLines(envPath))
+    {
+        var line = rawLine.Trim();
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))
+        {
+            continue;
+        }
+
+        var separatorIndex = line.IndexOf('=');
+        if (separatorIndex <= 0)
+        {
+            continue;
+        }
+
+        var key = line[..separatorIndex].Trim();
+        var value = line[(separatorIndex + 1)..].Trim().Trim('"');
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            continue;
+        }
+
+        Environment.SetEnvironmentVariable(key, value);
+    }
+}
