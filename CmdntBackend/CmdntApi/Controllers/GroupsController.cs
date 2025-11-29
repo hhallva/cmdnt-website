@@ -12,7 +12,7 @@ namespace CmdntApi.Controllers
     [SwaggerTag("Управление группами обучения")]
     [Route("api/v1/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class GroupsController(AppDbContext context) : ControllerBase
     {
         private readonly AppDbContext _context = context;

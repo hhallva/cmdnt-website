@@ -12,7 +12,7 @@ namespace CmdntApi.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class RoomsController(AppDbContext context) : ControllerBase
     {
         private readonly AppDbContext _context = context;
