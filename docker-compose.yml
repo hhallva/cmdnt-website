@@ -4,7 +4,7 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
@@ -33,20 +33,6 @@ services:
     ports:
       - "5000:8080"
 
-  migrations:
-    build:
-      context: .
-      dockerfile: CmdntBackend/Dockerfile.migrations
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      ConnectionStrings__DefaultConnection: Server=db;Port=3306;Database=${DB_NAME};User=${DB_USER};Password=${DB_PASSWORD}
-      DB_PASSWORD: ${DB_PASSWORD}
-    depends_on:
-      db:
-        condition: service_healthy
-    profiles:
-      - migration
-
   frontend:
     build:
       context: .
@@ -59,18 +45,20 @@ services:
     ports:
       - "5173:80"
 
-    phpmyadmin:
-      image: phpmyadmin/phpmyadmin
-      restart: unless-stopped
-      environment:
-        PMA_HOST: db
-        PMA_PORT: 3306
-        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      ports:
-        - "8081:80"
-      depends_on:
-        db:
-          condition: service_healthy
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:

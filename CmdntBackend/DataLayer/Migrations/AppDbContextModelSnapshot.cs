@@ -63,6 +63,44 @@ namespace DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Group", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Course = 4,
+                            Name = "ИСПП-21"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Course = 2,
+                            Name = "ОИБ-41"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Course = 2,
+                            Name = "ИСПВ-42"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Course = 3,
+                            Name = "ИСПВ-21"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Course = 4,
+                            Name = "ИСПВ-22"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Course = 2,
+                            Name = "ССА-41"
+                        });
                 });
 
             modelBuilder.Entity("DataLayer.Models.Note", b =>
@@ -110,6 +148,23 @@ namespace DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Администратор"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Комендант"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Воспитатель"
+                        });
                 });
 
             modelBuilder.Entity("DataLayer.Models.Room", b =>
@@ -220,6 +275,38 @@ namespace DataLayer.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("User", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            HashPassword = "$2a$11$BvKICMIl2hQnMvmn4wai3OQYG71RDX5DBDBS3dltpJkxhCWFalKhC",
+                            Login = "admin",
+                            Name = "Елена",
+                            Patronymic = "Сергеевна",
+                            RoleId = 1,
+                            Surname = "Нестерова"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            HashPassword = "$2a$11$1S9ZmtoRpjbgte.mXxyu2./mf1yjXvr4Yot0cM0c2pq.9Xz.SXYqS",
+                            Login = "cmdnt",
+                            Name = "Нина",
+                            Patronymic = "Альбертовна",
+                            RoleId = 2,
+                            Surname = "Чупова"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            HashPassword = "$2a$11$rG4.DIBr4/gtvIxvk6FBGeTlUM.9G.ug0lqs.C7T5TtcsXg1kjqwi",
+                            Login = "vospit",
+                            Name = "Ольга",
+                            Patronymic = "Вячелсавовна",
+                            RoleId = 3,
+                            Surname = "Едакина"
+                        });
                 });
 
             modelBuilder.Entity("Resettlement", b =>

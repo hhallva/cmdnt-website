@@ -4,6 +4,8 @@ using MySql.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace DataLayer.Migrations
 {
     /// <inheritdoc />
@@ -184,6 +186,39 @@ namespace DataLayer.Migrations
                         onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.InsertData(
+                table: "Group",
+                columns: new[] { "Id", "Course", "Name" },
+                values: new object[,]
+                {
+                    { 1, 4, "ИСПП-21" },
+                    { 2, 2, "ОИБ-41" },
+                    { 3, 2, "ИСПВ-42" },
+                    { 4, 3, "ИСПВ-21" },
+                    { 5, 4, "ИСПВ-22" },
+                    { 6, 2, "ССА-41" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Role",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Администратор" },
+                    { 2, "Комендант" },
+                    { 3, "Воспитатель" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "User",
+                columns: new[] { "Id", "HashPassword", "Login", "Name", "Patronymic", "RoleId", "Surname" },
+                values: new object[,]
+                {
+                    { 1, "$2a$11$BvKICMIl2hQnMvmn4wai3OQYG71RDX5DBDBS3dltpJkxhCWFalKhC", "admin", "Елена", "Сергеевна", 1, "Нестерова" },
+                    { 2, "$2a$11$1S9ZmtoRpjbgte.mXxyu2./mf1yjXvr4Yot0cM0c2pq.9Xz.SXYqS", "cmdnt", "Нина", "Альбертовна", 2, "Чупова" },
+                    { 3, "$2a$11$rG4.DIBr4/gtvIxvk6FBGeTlUM.9G.ug0lqs.C7T5TtcsXg1kjqwi", "vospit", "Ольга", "Вячелсавовна", 3, "Едакина" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contact_StudentId",

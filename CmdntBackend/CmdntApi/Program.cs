@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
@@ -42,8 +43,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
     {
-        options.SuppressModelStateInvalidFilter = true; 
-        options.SuppressMapClientErrors = true;                                               
+        options.SuppressModelStateInvalidFilter = true;
+        options.SuppressMapClientErrors = true;
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -86,6 +87,21 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Не удалось применить миграции базы данных");
+        throw;
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
