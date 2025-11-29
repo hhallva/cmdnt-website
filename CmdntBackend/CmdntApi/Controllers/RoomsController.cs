@@ -29,8 +29,6 @@ namespace CmdntApi.Controllers
                 .Include(r => r.Students)
                 .ToListAsync();
 
-            if (rooms.Count == 0)
-                return NotFound(new ApiErrorDto("Комнаты не найдены", StatusCodes.Status404NotFound));
             return Ok(rooms.Select(r => r.ToDto()));
         }
 

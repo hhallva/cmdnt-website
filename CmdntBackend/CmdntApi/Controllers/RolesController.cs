@@ -32,8 +32,6 @@ namespace CmdntApi.Controllers
                     Name = r.Name,
                 }).ToListAsync();
 
-            if (roles.Count == 0)
-                return NotFound(new ApiErrorDto("Роли не найдены", StatusCodes.Status404NotFound));
             return Ok(roles);
         }
     }

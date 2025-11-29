@@ -33,8 +33,6 @@ namespace CmdntApi.Controllers
                      Course = g.Course
                  }).ToListAsync();
 
-            if (groups.Count == 0)
-                return NotFound(new ApiErrorDto("Группы не найдены", StatusCodes.Status404NotFound));
             return Ok(groups);
         }
 

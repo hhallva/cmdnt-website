@@ -130,6 +130,66 @@ namespace DataLayer.Data
                     .HasConstraintName("FK_User_Role");
             });
 
+            modelBuilder.Entity<Group>().HasData(
+                new Group { Id = 1, Name = "ИСПП-21", Course = 4 },
+                new Group { Id = 2, Name = "ОИБ-41", Course = 2 },
+                new Group { Id = 3, Name = "ИСПВ-42", Course = 2 },
+                new Group { Id = 4, Name = "ИСПВ-21", Course = 3 },
+                new Group { Id = 5, Name = "ИСПВ-22", Course = 4 },
+                new Group { Id = 6, Name = "ССА-41", Course = 2 }
+            );
+
+            modelBuilder.Entity<Role>().HasData(
+                           new Role
+                           {
+                               Id = 1,
+                               Name = "Администратор"
+                           },
+                            new Role
+                            {
+                                Id = 2,
+                                Name = "Комендант"
+                            },
+                            new Role
+                            {
+                                Id = 3,
+                                Name = "Воспитатель"
+                            }
+                       );
+
+            modelBuilder.Entity<User>().HasData(
+                new User
+                {
+                    Id = 1,
+                    Surname = "Нестерова",
+                    Name = "Елена",
+                    Patronymic = "Сергеевна",
+                    Login = "admin",
+                    HashPassword = "$2a$11$BvKICMIl2hQnMvmn4wai3OQYG71RDX5DBDBS3dltpJkxhCWFalKhC", //admin
+                    RoleId = 1
+                },
+                new User
+                {
+                    Id = 2,
+                    Surname = "Чупова",
+                    Name = "Нина",
+                    Patronymic = "Альбертовна",
+                    Login = "cmdnt",
+                    HashPassword = "$2a$11$1S9ZmtoRpjbgte.mXxyu2./mf1yjXvr4Yot0cM0c2pq.9Xz.SXYqS",
+                    RoleId = 2
+                },
+                new User
+                {
+                    Id = 3,
+                    Surname = "Едакина",
+                    Name = "Ольга",
+                    Patronymic = "Вячелсавовна",
+                    Login = "vospit",
+                    HashPassword = "$2a$11$rG4.DIBr4/gtvIxvk6FBGeTlUM.9G.ug0lqs.C7T5TtcsXg1kjqwi",
+                    RoleId = 3
+                }
+            );
+
             OnModelCreatingPartial(modelBuilder);
         }
 
