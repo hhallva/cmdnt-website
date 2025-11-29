@@ -1,0 +1,1258 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Структура общежития - Учет номерного фонда общежития</title>
+    <link rel="icon" href="/cmdnt.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #ffa726;
+            color: white;
+            padding: 1rem;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo {
+            padding: 0.5rem 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.5rem;
+        }
+
+        .sidebar-toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+        }
+
+        .logo p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logo-text {
+            display: block;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .dormitory-structure {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #f57c00;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .floor-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .floor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .floor-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .blocks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .block-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .block-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-color: #ffa726;
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .block-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .block-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-occupied {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-available {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-available-occupied {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .block-type {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+
+        .block-capacity {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .block-occupants {
+            font-size: 0.85rem;
+            color: #495057;
+            line-height: 1.4;
+        }
+
+        .block-occupants strong {
+            color: #2c3e50;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            background: #e9ecef;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .action-btn:hover {
+            background: #dee2e6;
+        }
+
+        .action-btn.primary {
+            background: #ffa726;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #f57c00;
+        }
+
+        .room-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .room-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffa726;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .student-details h5 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
+        }
+
+        .student-details p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .free-place {
+            padding: 0.75rem;
+            border: 1px dashed #28a745;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            color: #28a745;
+            font-style: italic;
+        }
+
+        .block-detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .block-detail-content {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .block-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #6c757d;
+        }
+
+        .students-list {
+            margin-top: 1.5rem;
+        }
+
+        .action-options {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-option {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-option:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .action-option i {
+            font-size: 1.5rem;
+            color: #ffa726;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-option h5 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+        }
+
+        .action-option p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .blocks-container {
+                grid-template-columns: 1fr;
+            }
+
+            .block-detail-content {
+                width: 95%;
+                padding: 1rem;
+            }
+
+            .search-filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="sidebar-toggle-btn" id="sidebarCollapse">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+        </div>
+
+        <div class="logo">
+            <h2 class="logo-text">Общежитие</h2>
+            <p class="logo-text">Система учета</p>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="bi bi-building"></i>
+                    <span class="nav-text">Структура общежития</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <h1>Структура общежития</h1>
+            <div class="user-info">
+                <div class="user-avatar">АД</div>
+                <span>Администратор</span>
+            </div>
+        </div>
+
+        <div class="dormitory-structure">
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">48</div>
+                    <div class="stat-label">Всего мест</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">32</div>
+                    <div class="stat-label">Занято</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">16</div>
+                    <div class="stat-label">Свободно</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Студентов</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dormitory-structure">
+            <!-- Поисковая секция -->
+            <div class="search-section">
+                <h3>Поиск по общежитию</h3>
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label class="form-label">Поиск по ФИО студента</label>
+                        <input type="text" class="form-control" placeholder="Введите ФИО студента...">
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Этаж</label>
+                        <select class="form-select">
+                            <option>Все этажи</option>
+                            <option>1 этаж</option>
+                            <option>2 этаж</option>
+                            <option>3 этаж</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Блок</label>
+                        <select class="form-select">
+                            <option>Все блоки</option>
+                            <option>Блок 101</option>
+                            <option>Блок 102</option>
+                            <option>Блок 103</option>
+                            <option>Блок 104</option>
+                            <option>Блок 201</option>
+                            <option>Блок 202</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Статус заселения</label>
+                        <select class="form-select">
+                            <option>Все статусы</option>
+                            <option>Занят</option>
+                            <option>Свободен</option>
+                            <option>Частично занят</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-secondary me-2">Сбросить</button>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i>
+                        Найти
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Этаж 1 -->
+            <div class="floor-section">
+                <div class="floor-header">
+                    <h3 class="floor-title">1 этаж</h3>
+                    <div class="floor-stats">
+                        <span class="badge bg-primary">12 мест</span>
+                        <span class="badge bg-success">8 свободно</span>
+                    </div>
+                </div>
+
+                <div class="blocks-container">
+                    <!-- Блок 101 -->
+                    <div class="block-card" onclick="showBlockDetails('101')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 101</div>
+                            <div class="block-status status-occupied">Занят</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>4/5</strong></div>
+                        <div class="block-occupants">
+                            Иванов И.И., Петров П.П.,<br>
+                            Сидоров С.С., Волков В.В.
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('101')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 102 -->
+                    <div class="block-card" onclick="showBlockDetails('102')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 102</div>
+                            <div class="block-status status-occupied">Занят</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>2/5</strong></div>
+                        <div class="block-occupants">
+                            Иванова А.А., Петрова Б.Б.
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('102')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 103 -->
+                    <div class="block-card" onclick="showBlockDetails('103')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 103</div>
+                            <div class="block-status status-available-occupied">Доступно 3 места</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>2/5</strong></div>
+                        <div class="block-occupants">
+                            Иванов И.И., Петров П.П.
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('103')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 104 -->
+                    <div class="block-card" onclick="showBlockDetails('104')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 104</div>
+                            <div class="block-status status-occupied">Занят</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>5/5</strong></div>
+                        <div class="block-occupants">
+                            Зайцев З.З., Медведев М.М.,<br>
+                            Белов Б.Б., Орлов О.О., Павлов П.П.
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('104')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 105 -->
+                    <div class="block-card" onclick="showBlockDetails('105')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 105</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('105')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 106 -->
+                    <div class="block-card" onclick="showBlockDetails('106')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 106</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('106')">Подробнее</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Этаж 2 -->
+            <div class="floor-section">
+                <div class="floor-header">
+                    <h3 class="floor-title">2 этаж</h3>
+                    <div class="floor-stats">
+                        <span class="badge bg-primary">16 мест</span>
+                        <span class="badge bg-success">10 свободно</span>
+                    </div>
+                </div>
+
+                <div class="blocks-container">
+                    <!-- Блок 201 -->
+                    <div class="block-card" onclick="showBlockDetails('201')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 201</div>
+                            <div class="block-status status-occupied">Занят</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>3/5</strong></div>
+                        <div class="block-occupants">
+                            Новиков Н.Н., Соколов С.С.,<br>
+                            Волков В.В.
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('201')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 202 -->
+                    <div class="block-card" onclick="showBlockDetails('202')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 202</div>
+                            <div class="block-status status-occupied">Занят</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>4/5</strong></div>
+                        <div class="block-occupants">
+                            Козлова К.К., Морозова М.М.,<br>
+                            Волкова В.В., Зайцева З.З.
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('202')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 203 -->
+                    <div class="block-card" onclick="showBlockDetails('203')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 203</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('203')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 204 -->
+                    <div class="block-card" onclick="showBlockDetails('204')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 204</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('204')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 205 -->
+                    <div class="block-card" onclick="showBlockDetails('205')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 205</div>
+                            <div class="block-status status-available-occupied">Доступно 2 места</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>3/5</strong></div>
+                        <div class="block-occupants">
+                            Сидоров С.С., Волков В.В., Белов Б.Б.
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('205')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 206 -->
+                    <div class="block-card" onclick="showBlockDetails('206')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 206</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('206')">Подробнее</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Этаж 3 -->
+            <div class="floor-section">
+                <div class="floor-header">
+                    <h3 class="floor-title">3 этаж</h3>
+                    <div class="floor-stats">
+                        <span class="badge bg-primary">20 мест</span>
+                        <span class="badge bg-success">14 свободно</span>
+                    </div>
+                </div>
+
+                <div class="blocks-container">
+                    <!-- Блок 301 -->
+                    <div class="block-card" onclick="showBlockDetails('301')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 301</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('301')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 302 -->
+                    <div class="block-card" onclick="showBlockDetails('302')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 302</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('302')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 303 -->
+                    <div class="block-card" onclick="showBlockDetails('303')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 303</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('303')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 304 -->
+                    <div class="block-card" onclick="showBlockDetails('304')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 304</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('304')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 305 -->
+                    <div class="block-card" onclick="showBlockDetails('305')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 305</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Женский, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('305')">Подробнее</button>
+                        </div>
+                    </div>
+
+                    <!-- Блок 306 -->
+                    <div class="block-card" onclick="showBlockDetails('306')">
+                        <div class="block-header">
+                            <div class="block-number">Блок 306</div>
+                            <div class="block-status status-available">Свободен</div>
+                        </div>
+                        <div class="block-type">Мужской, 5 мест</div>
+                        <div class="block-capacity">Заселено: <strong>0/5</strong></div>
+                        <div class="block-occupants">
+                            Свободен для заселения
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary"
+                                onclick="event.stopPropagation(); showBlockActions('306')">Подробнее</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно с деталями блока -->
+    <div class="block-detail-modal" id="blockDetailModal">
+        <div class="block-detail-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Блок 101</h3>
+                <button class="close-btn" onclick="closeBlockDetailModal()">&times;</button>
+            </div>
+
+            <div class="block-info">
+                <div class="info-row">
+                    <span class="info-label">Тип блока:</span>
+                    <span class="info-value">Мужской</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Количество мест:</span>
+                    <span class="info-value">5</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Заселено:</span>
+                    <span class="info-value">4/5</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Статус:</span>
+                    <span class="info-value">Занят</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Этаж:</span>
+                    <span class="info-value">1</span>
+                </div>
+            </div>
+
+            <div class="students-list">
+                <div class="room-section">
+                    <h4 class="room-title">Комната 2 человека</h4>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">ИИ</div>
+                            <div class="student-details">
+                                <h5>Иванов Иван Иванович</h5>
+                                <p>Группа: ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="student-actions">
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Иванов Иван Иванович', 'ИВТ-101', '2', 'Иванов И.И.', '8-999-123-45-67', 'Блок 101')">Карточка</button>
+                        </div>
+                    </div>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">ПП</div>
+                            <div class="student-details">
+                                <h5>Петров Петр Петрович</h5>
+                                <p>Группа: ПИ-102, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="student-actions">
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Петров Петр Петрович', 'ПИ-102', '2', 'Петров П.П.', '8-999-987-65-43', 'Блок 101')">Карточка</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="room-section">
+                    <h4 class="room-title">Комната 3 человека</h4>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">СС</div>
+                            <div class="student-details">
+                                <h5>Сидоров Сидор Сидорович</h5>
+                                <p>Группа: ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="student-actions">
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Сидоров Сидор Сидорович', 'ИВТ-101', '2', 'Сидоров С.С.', '8-999-111-22-33', 'Блок 101')">Карточка</button>
+                        </div>
+                    </div>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">ВВ</div>
+                            <div class="student-details">
+                                <h5>Волков Владимир Владимирович</h5>
+                                <p>Группа: ИВТ-101, 2 курс</p>
+                            </div>
+                        </div>
+                        <div class="student-actions">
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick="showStudentCard('Волков Владимир Владимирович', 'ИВТ-101', '2', 'Волков В.В.', '8-999-444-55-66', 'Блок 101')">Карточка</button>
+                        </div>
+                    </div>
+                    <div class="free-place">
+                        Свободное место<br>
+                        (Для команданта доступно нажатие и переход на Расселение с автозаполнением полей)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Функциональность для бокового меню
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+
+        sidebarCollapse.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+
+            // Меняем иконку при сворачивании/разворачивании
+            const icon = this.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.remove('bi-chevron-double-left');
+                icon.classList.add('bi-chevron-double-right');
+            } else {
+                icon.classList.remove('bi-chevron-double-right');
+                icon.classList.add('bi-chevron-double-left');
+            }
+        });
+
+        // Функция для показа деталей блока
+        function showBlockDetails(blockNumber) {
+            document.getElementById('blockDetailModal').style.display = 'flex';
+            document.querySelector('.modal-title').textContent = `Блок ${blockNumber}`;
+        }
+
+        // Функция для закрытия модального окна
+        function closeBlockDetailModal() {
+            document.getElementById('blockDetailModal').style.display = 'none';
+        }
+
+        // Функция для показа действий с блоком
+        function showBlockActions(blockNumber) {
+            event.stopPropagation();
+            showBlockDetails(blockNumber);
+        }
+
+        // Функция для показа формы замечаний/ремонта
+        function showRepairForm() {
+            alert('Открытие формы для создания заявки на ремонт');
+            closeBlockDetailModal();
+        }
+
+        // Функция для показа карточки студента
+        function showStudentCard(name, group, course, head, contact, block) {
+            alert(`Открытие карточки студента: ${name}\nГруппа: ${group}\nКурс: ${course}`);
+            closeBlockDetailModal();
+        }
+
+        // Закрытие модального окна при клике вне его области
+        window.onclick = function (event) {
+            const modal = document.getElementById('blockDetailModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Добавим функциональность для активных ссылок
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Убираем активный класс со всех ссылок
+                document.querySelectorAll('.nav-link').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                // Добавляем активный класс к текущей ссылке
+                this.classList.add('active');
+
+                // Здесь будет логика переключения контента
+                console.log('Переход к разделу:', this.textContent.trim());
+            });
+        });
+    </script>
+</body>
+
+</html>
+```

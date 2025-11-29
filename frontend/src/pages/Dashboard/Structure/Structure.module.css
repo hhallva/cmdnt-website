@@ -1,0 +1,742 @@
+.structureWrapper {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.desktopTable {
+    display: block;
+}
+
+.mobileCardsWrapper {
+    display: none;
+}
+
+.mobileCard {
+    width: 100%;
+    text-align: left;
+    border-radius: 10px;
+    border: none;
+    padding: 1rem 1.25rem;
+    background: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.mobileCard:not(:first-child) {
+    margin-top: 0.75rem;
+}
+
+.mobileCard:active {
+    transform: scale(0.99);
+}
+
+.mobileCard:focus-visible {
+    outline: 2px solid rgba(13, 110, 253, 0.35);
+    outline-offset: 3px;
+}
+
+.mobileCardTitle {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.mobileCardDivider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0.75rem 0;
+}
+
+.mobileCardRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
+}
+
+.mobileCardsEmpty {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.95rem;
+    padding: 1rem 0;
+}
+
+.topRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.helperText {
+    margin: 0;
+    color: #667085;
+    max-width: 600px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+    gap: 1rem;
+    justify-content: start;
+}
+
+.statCard {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.statLabel {
+    width: 100%;
+    max-width: 320px;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.statNumber {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #fb8c00;
+}
+
+.searchSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.searchControls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.searchInputWrapper {
+    flex: 1 1 320px;
+    min-width: 240px;
+}
+
+.searchButtons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-self: stretch;
+}
+
+.advancedFiltersPanel {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+.filtersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+.resetButton {
+    align-self: end;
+    height: 50px;
+    justify-self: flex;
+    font-size: 1rem;
+}
+
+.emptyState {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.emptyState i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.tableContainer {
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: right;
+}
+
+.fullWidthMobileButton {
+    min-width: 220px;
+}
+
+.settlementCard {
+    padding: 0;
+}
+
+.settlementForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.settlementFormGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.settlementActions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.toastContainer {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 9999;
+}
+
+.toast {
+    min-width: 280px;
+    max-width: 360px;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    border: 1px solid transparent;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-weight: 500;
+    background: #ffffff;
+}
+
+.toastSuccess {
+    background: var(--btn-primary);
+    border-color: var(--btn-primary);
+    color: #ffffff;
+}
+
+.toastError {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.toastCloseButton {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.toastCloseButton:hover {
+    opacity: 1;
+}
+
+.unassignedTableWrapper {
+    margin-top: 1.5rem;
+}
+
+.tablePlain {
+    padding: 0;
+    box-shadow: none;
+}
+
+.tablePlain table {
+    background: transparent;
+}
+
+.tableActionCell {
+    text-align: right;
+}
+
+.tableActionButton {
+    min-width: 120px;
+}
+
+.tableNumericCell {
+    width: 80px;
+    text-align: center;
+}
+
+
+
+.floorSection {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.floorHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.floorTitle {
+    margin: 0;
+    font-size: 1.5rem;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 700;
+    color: #3B4356;
+}
+
+.floorActions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.addRoomButtonIcon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.addRoomButtonText {
+    font-weight: 600;
+}
+
+.addRoomForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.addRoomFormGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.addRoomActions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+
+@media (max-width: 768px) {
+
+    .desktopTable {
+        display: none;
+    }
+
+    .mobileCardsWrapper {
+        display: block;
+    }
+
+    .toastContainer {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    .toast {
+        width: 100%;
+        max-width: none;
+    }
+
+    .addRoomButton {
+        border-radius: 8px !important;
+    }
+
+    .resetButton {
+        align-self: end;
+        height: fit-content;
+        justify-self: flex;
+        font-size: 1rem;
+    }
+
+    .floorTitle {
+        font-size: 1rem;
+    }
+
+    .tableContainer {
+        justify-content: stretch;
+    }
+
+    .fullWidthMobileButton {
+        width: 100%;
+    }
+}
+
+.floorSubtitle {
+    margin: 0;
+    color: #6b7280;
+}
+
+.floorBadge {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+}
+
+.blocksGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+}
+
+.blockCard {
+    background: #fff;
+    border: 2px solid #ffffff;
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.blockCardOccupied {
+    border-color: #fb8c00;
+}
+
+.blockCard:hover {
+    transform: translateY(-6px);
+    box-shadow: none;
+    border-color: #d6d6d6;
+}
+
+.blockHeader {
+    display: flex;
+    justify-content: start;
+    gap: 0.75rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.blockNumber {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--btn-primary);
+}
+
+.blockNumberBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 0.85rem 1.7rem;
+    border-radius: 12px;
+    border: 2px solid var(--btn-primary);
+}
+
+.blockMetaColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+}
+
+.blockMeta {
+    margin: 0.15rem 0 0;
+    color: #6b7280;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 1rem;
+}
+
+.blockMetaLabel {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.blockMetaValue {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.blockMetaSeparator,
+.blockMetaCapacity {
+    color: #6b7280;
+}
+
+.blockCapacity {
+    margin: 0;
+    color: #475467;
+    font-weight: 500;
+}
+
+.blockOccupants {
+    margin: 0;
+    min-height: 42px;
+    line-height: 1.4;
+    align-content: center;
+}
+
+.moreOccupants {
+    color: #fb8c00;
+    font-weight: 600;
+}
+
+.blockActions {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    margin-top: auto;
+}
+
+.blockActionBtn {
+    width: 100%;
+}
+
+.statusBadge {
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.modalContentWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.blockRoomSection {
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.blockRoomHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.blockRoomDeleteButton {
+    margin-left: auto;
+    font-weight: 600;
+}
+
+.blockRoomTitle {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.modalInfoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.infoLabel {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.infoValue {
+    margin: 0.2rem 0 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.studentsList {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.studentRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.studentInfo {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.studentAvatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--btn-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.studentName {
+    margin: 0;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.studentMeta {
+    margin: 0;
+    color: #475467;
+    font-size: 0.85rem;
+}
+
+.freeSlotCard {
+    background: #fff7ed;
+    border-color: #fdba74;
+    border-style: dashed;
+}
+
+.freeSlotCard p {
+    color: var(--btn-primary);
+    font-weight: 500;
+}
+
+.freeSlotAvatar {
+    background: #fed7aa;
+    color: var(--btn-primary);
+}
+
+.studentCardButton {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .topRow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .searchControls {
+        flex-direction: auto;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0.75rem;
+    }
+
+    .searchButtons {
+        width: 100%;
+        justify-content: flex-start;
+        align-self: stretch;
+    }
+
+    .searchInputWrapper {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .filtersGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .floorHeader {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+    }
+
+    .floorActions {
+        margin-left: auto;
+        justify-content: flex-end;
+    }
+
+    .addRoomButton {
+        padding: 0.45rem !important;
+        border-radius: 999px;
+        min-width: 44px;
+        justify-content: center;
+    }
+
+    .addRoomButtonText {
+        display: none;
+    }
+
+    .settlementFormGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .settlementActions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .blockHeader {
+        flex-direction: row;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .blockMetaColumn {
+        width: auto;
+    }
+
+    .blockNumberBadge {
+        width: auto;
+        justify-content: center;
+    }
+
+    .studentRow {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .blockRoomHeader {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .blockCard {
+        border-radius: 12px;
+    }
+}

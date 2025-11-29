@@ -1,0 +1,51 @@
+/* src\index.css */
+/* Сброс и базовые настройки */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-primary: #ffa726;
+  --color-danger: #dc3545;
+  --color-danger-hover: #bb2d3b;
+  --color-accent: #f39c12;
+  --color-text: #333;
+  --color-text-muted: #5a6c7d;
+  --color-border: #e1e8ed;
+  --color-bg: rgba(255, 255, 255, 0.95);
+  --radius-lg: 20px;
+  --radius-md: 10px;
+  --shadow-light: 0 10px 40px rgba(0, 0, 0, 0.1);
+  --box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+  --transition: all 0.3s ease;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  background-color: white;
+  color: var(--color-text);
+  position: relative;
+}
+
+/* --- Переопределение Bootstrap стилей --- */
+.btn-primary {
+  --bs-btn-bg: #ffa726;
+  --bs-btn-border-color: #ffa726;
+  --bs-btn-hover-bg: #f57c00;
+  --bs-btn-hover-border-color: #f57c00;
+  --bs-btn-active-bg: #ffa726;
+  --bs-btn-active-border-color: #ffa726;
+  --bs-btn-disabled-bg: #ffa726;
+  --bs-btn-disabled-border-color: #ffa726;
+  --bs-btn-focus-shadow-rgb: 255, 167, 38;
+}
+
+/* Явно убираем outline и тень при фокусе */
+.btn-primary:focus,
+.btn-primary.focus {
+  outline: 0 !important;
+  box-shadow: none !important;
+}

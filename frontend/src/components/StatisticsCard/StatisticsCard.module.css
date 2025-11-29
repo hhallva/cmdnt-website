@@ -1,0 +1,44 @@
+.statisticsCardContainer {
+    border-radius: 10px;
+    padding: 1rem 0rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.title {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.statsGrid {
+    display: grid;
+    gap: 32px;
+}
+
+.statCard {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.statNumber {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffa726;
+    margin-bottom: 0.25rem;
+}
+
+.statLabel {
+    color: black;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .statisticsCardContainer {
+        display: none;
+    }
+}

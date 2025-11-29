@@ -1,0 +1,179 @@
+.notesSection {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.formSection {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+
+.notesToolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    vertical-align: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+}
+
+.notesHint {
+    font-size: 14px;
+    color: #81818e;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.4;
+}
+
+.notesToolbarButton {
+    flex-shrink: 0;
+}
+
+.noteModalForm {
+    margin: 3px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.noteDivider {
+    padding: 0 4px;
+}
+
+.noteTextarea {
+    width: 100%;
+    min-height: 150px;
+    border: 1px solid #eef0f3;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    resize: none;
+    flex: 1;
+    transition: border-color 0.2s ease;
+}
+
+.noteTextarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+}
+
+.noteTextareaError {
+    border-color: #dc3545;
+}
+
+.noteTextareaError:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.validationMessage {
+    font-size: 13px;
+    color: #ff4d4f;
+    margin-top: 8px;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.notesList {
+    background: #fff;
+    border: 1px solid #eef0f3;
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.notesListWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.noteItem {
+    padding: 16px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.noteItem:last-child {
+    border-bottom: none;
+}
+
+.noteHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.noteAuthor {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.noteDate {
+    color: #81818e;
+    font-size: 13px;
+}
+
+.noteContent {
+    color: #495057;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    margin: 0;
+    word-break: break-word;
+}
+
+.deleteButton {
+    border: none;
+    background: transparent;
+    color: #9da4b0;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    transition: color 0.2s ease;
+}
+
+.deleteButton:hover {
+    color: #dc3545;
+}
+
+.emptyState {
+    border: 1px dashed #ced4da;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    background: #fff;
+    color: #6c757d;
+}
+
+.emptyState i {
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #ffa726;
+}
+
+@media (max-width: 768px) {
+    .modalActions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .modalActions button {
+        width: 100%;
+    }
+}

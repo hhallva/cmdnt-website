@@ -1,0 +1,178 @@
+.modalForm {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 16px;
+}
+
+.alertMessage {
+    margin: 0;
+}
+
+.formBody {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+}
+
+.formSectionsWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.formSection {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+}
+
+.formSectionTitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #495057;
+}
+
+.formFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+
+.contactsWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contactsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contactRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(180px, 1fr)) 56px;
+    gap: 1rem;
+    align-items: end;
+}
+
+
+.pendingContactRow {
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.contactField {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contactButtonCell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contactActionButton {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    display: inline-flex;
+    justify-content: center;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    align-items: center;
+}
+
+.pendingFieldWrapper {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.pendingPlusIconDelete {
+    font-size: 3rem;
+    margin-top: -13px;
+    line-height: 1;
+    color: #50555f;
+}
+
+.pendingPlusIcon {
+    font-size: 3rem;
+    padding-bottom: 6px;
+    line-height: 1;
+    color: #a6aab3;
+}
+
+.pendingContactRow {
+    cursor: pointer;
+}
+
+.pendingContactRow:focus-visible {
+    outline: 2px solid #0d6efd;
+    outline-offset: 3px;
+}
+
+.pendingFieldWrapper {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.formFooter {
+    justify-content: flex-end;
+}
+
+.footerButton {
+    min-width: 160px;
+}
+
+.fullWidthMobileButton {
+    min-width: 180px;
+}
+
+@media (max-width: 768px) {
+    .formBody {
+        padding-right: 0;
+    }
+
+    .contactRow {
+        grid-template-columns: 1fr;
+    }
+
+    .contactButtonCell {
+        justify-content: flex-start;
+    }
+
+    .formFooter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .footerButton {
+        width: 100%;
+    }
+
+    .fullWidthMobileButton {
+        width: 100%;
+    }
+}
