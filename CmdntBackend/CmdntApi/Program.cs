@@ -20,7 +20,12 @@ var connectionString = builder.Configuration["ConnectionStrings:DefaultConnectio
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    var dbHost = builder.Configuration["DB_HOST"] ?? "localhost";
+    var dbHost = builder.Configuration["DB_HOST"];
+    if (string.IsNullOrWhiteSpace(dbHost))
+    {
+        dbHost = builder.Environment.IsDevelopment() ? "localhost" : "db";
+    }
+
     var dbPort = builder.Configuration["DB_PORT"] ?? "3306";
     var dbName = builder.Configuration["DB_NAME"]
         ?? throw new InvalidOperationException("DB_NAME is not set in configuration or .env");
