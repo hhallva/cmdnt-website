@@ -25,6 +25,17 @@ jobs:
           rm: true 
           strip_components: 1                   # убирает лишний уровень вложенности (если был)
           debug: false                          # отключает подробный лог (меньше шума)
+
+      - name: Rebuild and restart containers
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/cmdnt.hhallva.ru
+            docker compose down
+            docker compose up -d --build
             
       - name: Reload Caddy
         uses: appleboy/ssh-action@v1.0.3
