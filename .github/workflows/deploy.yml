@@ -26,6 +26,27 @@ jobs:
           strip_components: 1                   # убирает лишний уровень вложенности (если был)
           debug: false                          # отключает подробный лог (меньше шума)
 
+      - name: Create .env file from secrets
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/cmdnt.hhallva.ru
+            cat > .env << EOF
+            DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            ASPNETCORE_ENVIRONMENT=${{ secrets.ASPNETCORE_ENVIRONMENT }}
+            JWT_KEY=${{ secrets.JWT_KEY }}
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            EOF
+            echo ".env file created successfully"
+            # Проверяем что файл создан (без показа содержимого в логах)
+            ls -la .env
+
       - name: Rebuild and restart containers
         uses: appleboy/ssh-action@v1.0.3
         with:
