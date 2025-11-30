@@ -43,10 +43,14 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isE
         return Array.from(courses).sort((a, b) => a - b);
     }, [groups]);
 
+    const sortedGroups = useMemo(() => (
+        [...groups].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'ru', { sensitivity: 'base' }))
+    ), [groups]);
+
     const groupOptions = useMemo(() => [
         { value: 'all', label: 'Все группы' },
-        ...groups.map(group => ({ value: group.id, label: group.name })),
-    ], [groups]);
+        ...sortedGroups.map(group => ({ value: group.id, label: group.name })),
+    ], [sortedGroups]);
 
     const courseOptions = useMemo(() => [
         { value: 'all', label: 'Все курсы' },

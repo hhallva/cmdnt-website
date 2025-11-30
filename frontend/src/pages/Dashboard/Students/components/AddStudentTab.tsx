@@ -43,10 +43,14 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
     }>({});
     const [isAdding, setIsAdding] = useState(false);
 
+    const sortedGroups = useMemo(() => (
+        [...groups].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'ru', { sensitivity: 'base' }))
+    ), [groups]);
+
     const groupOptions = useMemo(() => [
-        { value: 'all', label: 'Выберите группу' },
-        ...groups.map(group => ({ value: group.id, label: group.name })),
-    ], [groups]);
+        { value: '', label: 'Выберите группу' },
+        ...sortedGroups.map(group => ({ value: group.id, label: group.name })),
+    ], [sortedGroups]);
 
     const genderOptions = [
         { value: '', label: 'Выберите пол' },

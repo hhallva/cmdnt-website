@@ -74,10 +74,14 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
         { value: 'false', label: 'Женский' },
     ];
 
+    const sortedGroups = useMemo(() => (
+        [...groups].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'ru', { sensitivity: 'base' }))
+    ), [groups]);
+
     const groupOptions = useMemo(() => [
         { value: '', label: 'Выберите группу' },
-        ...groups.map(group => ({ value: group.id, label: group.name }))
-    ], [groups]);
+        ...sortedGroups.map(group => ({ value: group.id, label: group.name }))
+    ], [sortedGroups]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
