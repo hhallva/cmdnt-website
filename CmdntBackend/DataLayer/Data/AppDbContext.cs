@@ -131,12 +131,57 @@ namespace DataLayer.Data
             });
 
             modelBuilder.Entity<Group>().HasData(
-                new Group { Id = 1, Name = "ИСПП-21", Course = 4 },
-                new Group { Id = 2, Name = "ОИБ-41", Course = 2 },
-                new Group { Id = 3, Name = "ИСПВ-42", Course = 2 },
-                new Group { Id = 4, Name = "ИСПВ-21", Course = 3 },
-                new Group { Id = 5, Name = "ИСПВ-22", Course = 4 },
-                new Group { Id = 6, Name = "ССА-41", Course = 2 }
+                new Group { Id = 1, Name = "ИСПВ-21", Course = 4 },
+                new Group { Id = 2, Name = "ИСПВ-22", Course = 4 },
+                new Group { Id = 3, Name = "ИСПВ-32", Course = 3 },
+                new Group { Id = 4, Name = "ИСПВ-42", Course = 2 },
+                new Group { Id = 5, Name = "ИСПВ-52", Course = 1 },
+                new Group { Id = 6, Name = "ИСПП-21", Course = 4 },
+                new Group { Id = 7, Name = "ИСПП-31", Course = 3 },
+                new Group { Id = 8, Name = "ИСПП-34", Course = 3 },
+                new Group { Id = 9, Name = "ИСПП-35", Course = 3 },
+                new Group { Id = 10, Name = "ИСПП-41", Course = 2 },
+                new Group { Id = 11, Name = "ИСПП-43", Course = 2 },
+                new Group { Id = 12, Name = "ИСПП-45", Course = 2 },
+                new Group { Id = 13, Name = "ИСПП-51", Course = 1 },
+                new Group { Id = 14, Name = "ИСПП-55", Course = 1 },
+                new Group { Id = 15, Name = "ИСС-11", Course = 5 },
+                new Group { Id = 16, Name = "ИСС-12", Course = 5 },
+                new Group { Id = 17, Name = "ИСС-21", Course = 4 },
+                new Group { Id = 18, Name = "ИСС-22", Course = 4 },
+                new Group { Id = 19, Name = "ИСС-25", Course = 4 },
+                new Group { Id = 20, Name = "ИСС-31", Course = 3 },
+                new Group { Id = 21, Name = "ИСС-32", Course = 3 },
+                new Group { Id = 22, Name = "ИСС-35", Course = 3 },
+                new Group { Id = 23, Name = "ИСС-41", Course = 2 },
+                new Group { Id = 24, Name = "ИСС-45", Course = 2 },
+                new Group { Id = 25, Name = "ИСС-51", Course = 1 },
+                new Group { Id = 26, Name = "ИСС-52", Course = 1 },
+                new Group { Id = 27, Name = "КСК-21", Course = 4 },
+                new Group { Id = 28, Name = "КСК-22", Course = 4 },
+                new Group { Id = 29, Name = "КСК-31", Course = 3 },
+                new Group { Id = 30, Name = "КСК-41", Course = 2 },
+                new Group { Id = 31, Name = "КСК-51", Course = 1 },
+                new Group { Id = 32, Name = "ОИБ-21", Course = 4 },
+                new Group { Id = 33, Name = "ОИБ-31", Course = 3 },
+                new Group { Id = 34, Name = "ОИБ-35", Course = 3 },
+                new Group { Id = 35, Name = "ОИБ-41", Course = 2 },
+                new Group { Id = 36, Name = "ОИБ-51", Course = 1 },
+                new Group { Id = 37, Name = "П-41", Course = 2 },
+                new Group { Id = 38, Name = "Р-21", Course = 4 },
+                new Group { Id = 39, Name = "РМТ-31", Course = 3 },
+                new Group { Id = 40, Name = "РМТ-35", Course = 3 },
+                new Group { Id = 41, Name = "РМТ-41", Course = 2 },
+                new Group { Id = 42, Name = "РМТ-45", Course = 2 },
+                new Group { Id = 43, Name = "РМТ-51", Course = 1 },
+                new Group { Id = 44, Name = "РМТ-52", Course = 1 },
+                new Group { Id = 45, Name = "ССА-21", Course = 4 },
+                new Group { Id = 46, Name = "ССА-22", Course = 4 },
+                new Group { Id = 47, Name = "ССА-31", Course = 3 },
+                new Group { Id = 48, Name = "ССА-35", Course = 3 },
+                new Group { Id = 49, Name = "ССА-41", Course = 2 },
+                new Group { Id = 50, Name = "ССА-51", Course = 1 },
+                new Group { Id = 51, Name = "ССА-55", Course = 1 }
             );
 
             modelBuilder.Entity<Role>().HasData(
@@ -160,33 +205,13 @@ namespace DataLayer.Data
             modelBuilder.Entity<User>().HasData(
                 new User
                 {
-                    Id = 1,
-                    Surname = "Нестерова",
-                    Name = "Елена",
-                    Patronymic = "Сергеевна",
-                    Login = "admin",
-                    HashPassword = "$2a$11$BvKICMIl2hQnMvmn4wai3OQYG71RDX5DBDBS3dltpJkxhCWFalKhC", //admin
+                    Id = 1000,
+                    Surname = "Админов",
+                    Name = "Админ",
+                    Patronymic = "Админович",
+                    Login = "superadmin",
+                    HashPassword = "$2a$11$d8vF3IhihB1tqrQJBD.0FOqi43KZx6OLTMZ49b5DyK.i7yLOa.P", //sdflndsfjdsfe12
                     RoleId = 1
-                },
-                new User
-                {
-                    Id = 2,
-                    Surname = "Чупова",
-                    Name = "Нина",
-                    Patronymic = "Альбертовна",
-                    Login = "cmdnt",
-                    HashPassword = "$2a$11$1S9ZmtoRpjbgte.mXxyu2./mf1yjXvr4Yot0cM0c2pq.9Xz.SXYqS",
-                    RoleId = 2
-                },
-                new User
-                {
-                    Id = 3,
-                    Surname = "Едакина",
-                    Name = "Ольга",
-                    Patronymic = "Вячелсавовна",
-                    Login = "vospit",
-                    HashPassword = "$2a$11$rG4.DIBr4/gtvIxvk6FBGeTlUM.9G.ug0lqs.C7T5TtcsXg1kjqwi",
-                    RoleId = 3
                 }
             );
 

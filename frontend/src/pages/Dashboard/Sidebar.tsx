@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 import Cookies from 'js-cookie';
 
 import styles from './Dashboard.module.css';
 
 import type { UserSession } from '../../types/UserSession';
+
+type MenuItem = {
+    icon: string;
+    label: string;
+    path?: string;
+    action?: () => void;
+};
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -17,6 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 756);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const handleResize = () => {
@@ -37,8 +45,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
         navigate('/');
     };
 
-    const getMenuItems = () => {
-        const items = [];
+    const getMenuItems = (): MenuItem[] => {
+        const items: MenuItem[] = [];
 
         items.push(
             { icon: 'bi-layout-wtf', label: 'Общежитие', path: '/dashboard/accomodation', },
@@ -60,6 +68,69 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
 
     const menuItems = getMenuItems();
 
+    const isPathActive = (path?: string) => {
+        if (!path) {
+            return false;
+        }
+        return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    };
+
+    const buildLinkClasses = (isActiveFromNavLink: boolean) => [
+        styles.navLink,
+        isActiveFromNavLink ? styles.navLinkActive : '',
+    ].filter(Boolean).join(' ');
+
+    const renderMenuItem = (
+        item: MenuItem,
+        index: number,
+        variant: 'mobile' | 'desktop'
+    ) => {
+        const isActive = isPathActive(item.path);
+        const baseClass = variant === 'mobile' ? styles.mobileNavItem : styles.navItem;
+        const activeClass = isActive
+            ? variant === 'mobile'
+                ? styles.mobileNavItemActive
+                : styles.navItemActive
+            : '';
+        const listClasses = [baseClass, activeClass].filter(Boolean).join(' ');
+
+        if (item.path) {
+            return (
+                <li key={index} className={listClasses}>
+                    <NavLink
+                        to={item.path}
+                        className={({ isActive: navLinkActive }) => buildLinkClasses(navLinkActive || isActive)}
+                        onClick={variant === 'mobile' ? () => setIsMobileMenuOpen(false) : undefined}
+                    >
+                        <i className={`bi ${item.icon}`}></i>
+                        <span className={styles.navText}>{item.label}</span>
+                    </NavLink>
+                </li>
+            );
+        }
+
+        const commonButtonClasses = [styles.navLink, styles.navLinkButton]
+            .filter(Boolean)
+            .join(' ');
+
+        const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+            e.preventDefault();
+            if (variant === 'mobile') {
+                setIsMobileMenuOpen(false);
+            }
+            item.action?.();
+        };
+
+        return (
+            <li key={index} className={listClasses}>
+                <button type="button" className={commonButtonClasses} onClick={handleButtonClick}>
+                    <i className={`bi ${item.icon}`}></i>
+                    <span className={styles.navText}>{item.label}</span>
+                </button>
+            </li>
+        );
+    };
+
     if (isMobileView) {
         return (
             <div className={`${styles.mobileSidebar} ${isMobileMenuOpen ? styles.mobileSidebarOpen : ''}`}>
@@ -70,26 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
                 </div>
 
                 <ul className={`${styles.mobileNavMenu} ${isMobileMenuOpen ? styles.mobileNavMenuOpen : ''}`}>
-                    {menuItems.map((item, index) => (
-                        <li key={index} className={styles.mobileNavItem}>
-                            <a
-                                href="#"
-                                className={styles.navLink}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setIsMobileMenuOpen(false);
-                                    if (item.action) {
-                                        item.action();
-                                    } else if (item.path) {
-                                        navigate(item.path);
-                                    }
-                                }}
-                            >
-                                <i className={`bi ${item.icon}`}></i>
-                                <span className={styles.navText}>{item.label}</span>
-                            </a>
-                        </li>
-                    ))}
+                    {menuItems.map((item, index) => renderMenuItem(item, index, 'mobile'))}
                 </ul>
             </div>
         );
@@ -105,25 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
             </div>
 
             <ul className={styles.navMenu}>
-                {menuItems.map((item, index) => (
-                    <li key={index} className={styles.navItem}>
-                        <a
-                            href="#"
-                            className={styles.navLink}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                if (item.action) {
-                                    item.action();
-                                } else if (item.path) {
-                                    navigate(item.path);
-                                }
-                            }}
-                        >
-                            <i className={`bi ${item.icon}`}></i>
-                            <span className={styles.navText}>{item.label}</span>
-                        </a>
-                    </li>
-                ))}
+                {menuItems.map((item, index) => renderMenuItem(item, index, 'desktop'))}
             </ul>
         </div>
     );
