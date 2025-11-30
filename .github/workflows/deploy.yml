@@ -41,7 +41,8 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             ASPNETCORE_ENVIRONMENT=${{ secrets.ASPNETCORE_ENVIRONMENT }}
             JWT_KEY=${{ secrets.JWT_KEY }}
-            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            FRONTEND_API_URL=${{ secrets.FRONTEND_API_URL }}
+            CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             EOF
             echo ".env file created successfully"
             # Проверяем что файл создан (без показа содержимого в логах)
