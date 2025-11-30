@@ -65,7 +65,12 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
     }
 
     if (!room) {
-        return <div className="alert text-center">Студент не заселен.</div>;
+        return <>
+            <div className={styles.emptyState} style={{ marginBottom: '1.5rem' }}>
+                <i className="bi bi-emoji-frown"></i>
+                <p>Студент не заселен</p>
+            </div>
+        </>;
     }
 
     const blockStatus = getRoomStatus(room.currentCapacity, room.capacity);

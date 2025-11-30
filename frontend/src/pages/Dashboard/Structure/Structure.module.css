@@ -5,7 +5,7 @@
     box-shadow: none;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2.5rem;
 }
 
 .desktopTable {
@@ -195,7 +195,7 @@
 
 .settlementFormGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(416px, 1fr));
     gap: 1rem;
 }
 
@@ -259,9 +259,6 @@
     opacity: 1;
 }
 
-.unassignedTableWrapper {
-    margin-top: 1.5rem;
-}
 
 .tablePlain {
     padding: 0;
@@ -291,7 +288,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
 }
 
 .floorHeader {
@@ -406,7 +403,7 @@
 .blocksGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 32px;
+    gap: 2rem;
 }
 
 .blockCard {

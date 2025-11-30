@@ -34,7 +34,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
                 setNotes(response);
             } catch (error) {
                 if (!isMounted) return;
-                const message = error instanceof Error ? error.message : 'Не удалось загрузить заметки.';
+                const message = error instanceof Error ? error.message : 'Не удалось загрузить заметки';
                 setLoadError(message);
             } finally {
                 if (isMounted) {
@@ -70,7 +70,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
         event.preventDefault();
         const trimmedText = noteText.trim();
         if (!trimmedText) {
-            setFormError('Введите текст заметки.');
+            setFormError('Введите текст заметки');
             return;
         }
         setFormError(null);
@@ -98,7 +98,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
             setNoteText('');
             setModalOpen(false);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Не удалось сохранить заметку.';
+            const message = error instanceof Error ? error.message : 'Не удалось сохранить заметку';
             setFormError(message);
         } finally {
             setIsSubmitting(false);
@@ -142,12 +142,9 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
 
         <section className={styles.notesSection}>
             <div className={styles.formSection}>
-
-
                 <div
                     className={styles.notesToolbar}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}
-                >
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
                     <span className={styles.notesHint}>{notesHintText}</span>
                     <ActionButton
                         variant='primary'
@@ -175,7 +172,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
             ) : notes.length === 0 ? (
                 <div className={styles.emptyState}>
                     <i className="bi bi-journal-text" />
-                    <p>У студента пока нет заметок.</p>
+                    <p>У студента пока нет заметок</p>
                 </div>
             ) : (
                 <div className={styles.notesListWrapper}>
@@ -199,7 +196,7 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
                                 await apiClient.deleteNote(targetNote.id);
                                 setNotes(prevNotes => prevNotes.filter(n => n.id !== targetNote.id));
                             } catch (error) {
-                                const message = error instanceof Error ? error.message : 'Не удалось удалить заметку.';
+                                const message = error instanceof Error ? error.message : 'Не удалось удалить заметку';
                                 setLoadError(message);
                             } finally {
                                 setDeletingNoteId(null);

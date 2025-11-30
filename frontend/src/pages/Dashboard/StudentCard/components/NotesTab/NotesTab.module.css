@@ -1,7 +1,7 @@
 .notesSection {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 1.5rem;
 }
 
 .formSection {
@@ -30,6 +30,7 @@
 
 .notesToolbarButton {
     flex-shrink: 0;
+    min-width: 180px;
 }
 
 .noteModalForm {
@@ -100,7 +101,7 @@
 }
 
 .noteItem {
-    padding: 16px;
+    padding: 1.5rem;
     background: white;
     border-radius: 10px;
     display: flex;
@@ -152,19 +153,17 @@
 }
 
 .emptyState {
-    border: 1px dashed #ced4da;
+    background-color: white;
     border-radius: 12px;
-    padding: 24px;
+    padding: 2rem;
     text-align: center;
-    background: #fff;
-    color: #6c757d;
+    color: #64748b;
 }
 
 .emptyState i {
+    font-size: 2rem;
     display: block;
-    font-size: 2.5rem;
     margin-bottom: 0.5rem;
-    color: #ffa726;
 }
 
 @media (max-width: 768px) {
@@ -175,5 +174,10 @@
 
     .modalActions button {
         width: 100%;
+    }
+
+    .notesToolbarButton {
+        flex-shrink: 0;
+        min-width: auto;
     }
 }

@@ -93,10 +93,11 @@ const StudentsLayout: React.FC = () => {
     const canUseImportTab = !isEducator && !isMobileViewport;
 
     const tabs = useMemo(() => {
-        const items: Array<{ id: string; title: string; content: React.ReactNode }> = [
+        const items: Array<{ id: string; title: string; headerContent: React.ReactNode | null, content: React.ReactNode }> = [
             {
                 id: 'list',
                 title: 'Список',
+                headerContent: null,
                 content: (
                     <StudentsListTab
                         students={students}
@@ -112,6 +113,7 @@ const StudentsLayout: React.FC = () => {
             items.push({
                 id: 'add',
                 title: 'Новый студент',
+                headerContent: null,
                 content: (
                     <AddStudentTab
                         groups={groups}
@@ -125,6 +127,7 @@ const StudentsLayout: React.FC = () => {
             items.push({
                 id: 'import',
                 title: 'Импорт студентов',
+                headerContent: null,
                 content: (
                     <ImportStudentsTab
                         groups={groups}
