@@ -43,6 +43,7 @@ jobs:
             JWT_KEY=${{ secrets.JWT_KEY }}
             FRONTEND_API_URL=${{ secrets.FRONTEND_API_URL }}
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+            DB_VOLUME_NAME=${{ secrets.DB_VOLUME_NAME }}
             EOF
             echo ".env file created successfully"
             # Проверяем что файл создан (без показа содержимого в логах)
@@ -56,6 +57,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /var/www/cmdnt.hhallva.ru
+            set -a
+            . ./.env
+            set +a
+            docker volume create "${DB_VOLUME_NAME:-cmdnt_db_data}" >/dev/null 2>&1 || true
             docker compose down
             docker compose up -d --build
             

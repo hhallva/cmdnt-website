@@ -63,3 +63,4 @@ services:
 
 volumes:
   db_data:
+    name: ${DB_VOLUME_NAME:-cmdnt_db_data}
