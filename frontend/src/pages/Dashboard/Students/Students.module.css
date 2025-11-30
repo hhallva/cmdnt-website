@@ -5,7 +5,7 @@
  .searchPanel {
      background: #ffffff;
      border-radius: 12px;
-     padding: 1.25rem;
+     padding: 1rem;
  }
 
  .formSectionsWrapper {
@@ -185,7 +185,6 @@
 
  .blockMetaValue {
      color: #111827;
-     font-weight: 600;
      font-size: 0.9rem;
  }
 

@@ -1,7 +1,7 @@
 .tabsRoot {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 2.5rem;
 }
 
 .tabsSurface {
@@ -19,8 +19,8 @@
 
 .tabsHeader {
     display: flex;
-    margin-bottom: 2rem;
     overflow-x: auto;
+    margin-bottom: 1.5rem;
     overflow-y: hidden;
     scrollbar-width: thin;
     -ms-overflow-style: none;

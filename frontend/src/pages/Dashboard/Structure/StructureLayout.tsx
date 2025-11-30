@@ -1096,7 +1096,7 @@ const StructureLayout: React.FC = () => {
         onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
     };
     const settlementTabContent = (
-        <div className={styles.unassignedTableWrapper}>
+        <>
             <div className={styles.desktopTable}>
                 <CommonTable
                     data={unassignedStudentsSorted}
@@ -1149,7 +1149,7 @@ const StructureLayout: React.FC = () => {
                     <div className={styles.mobileCardsEmpty}>Все студенты уже заселены</div>
                 )}
             </div>
-        </div>
+        </>
     );
 
     const tabs = canManageRooms
