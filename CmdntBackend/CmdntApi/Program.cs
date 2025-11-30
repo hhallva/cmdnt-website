@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 using Microsoft.OpenApi.Models;
-using System.IO;
 using System.Text;
 
 LoadDotEnvIfPresent();
@@ -120,19 +119,40 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+var applyMigrationsOnStartup = builder.Configuration.GetValue("ApplyMigrationsOnStartup", builder.Environment.IsDevelopment());
+
+var applyMigrationsOverride = builder.Configuration["APPLY_MIGRATIONS_ON_STARTUP"];
+if (!string.IsNullOrWhiteSpace(applyMigrationsOverride)
+    && bool.TryParse(applyMigrationsOverride, out var parsedApplyMigrations))
 {
+    applyMigrationsOnStartup = parsedApplyMigrations;
+}
+
+if (applyMigrationsOnStartup)
+{
+    using var scope = app.Services.CreateScope();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         context.Database.Migrate();
     }
+    catch (MySqlException ex) when (ex.Number == 1050)
+    {
+        logger.LogWarning(ex,
+            "Применение миграций пропущено: таблица уже существует. Убедитесь, что база синхронизирована или отключите ApplyMigrationsOnStartup.");
+    }
     catch (Exception ex)
     {
         logger.LogError(ex, "Не удалось применить миграции базы данных");
         throw;
     }
+}
+else
+{
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("ApplyMigrationsOnStartup отключён — миграции не будут запускаться автоматически.");
 }
 
 if (app.Environment.IsDevelopment())
