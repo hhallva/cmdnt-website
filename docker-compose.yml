@@ -27,6 +27,7 @@ services:
       JWT__Key: ${JWT_KEY:-super-secret-key}
       ASPNETCORE_URLS: http://+:8080
       APPLY_MIGRATIONS_ON_STARTUP: "true"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
     depends_on:
       db:
         condition: service_healthy

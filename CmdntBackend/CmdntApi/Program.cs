@@ -107,11 +107,16 @@ builder.Services.AddSwaggerGen(opt =>
     });
 });
 
+var corsOriginsRaw = builder.Configuration["CORS_ORIGINS"];
+var allowedOrigins = !string.IsNullOrWhiteSpace(corsOriginsRaw)
+    ? corsOriginsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    : new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
