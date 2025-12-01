@@ -1,39 +1,28 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import SelectField from '../../../components/SelectField/SelectField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../components/CommonModal/CommonModal';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import InputField from '../../../components/InputField/InputField';
 import Tabs from '../../../components/Tabs/Tabs';
-import CommonTable from '../../../components/CommonTable/CommonTable';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
 import { apiClient } from '../../../api/client';
 import type { RoomDto } from '../../../types/rooms';
 import type { StudentsDto } from '../../../types/students';
 import type { StructureStatisticDto } from '../../../types/structures';
 import type { UserSession } from '../../../types/UserSession';
+import type {
+    BlockWithRooms,
+    FloorWithBlocks,
+    RoomStatus,
+    RoomWithOccupants,
+    SettlementFormErrors,
+    SettlementFormState,
+} from './types';
+import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
+import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
 import styles from './Structure.module.css';
-
-type RoomWithOccupants = RoomDto & { occupants: StudentsDto[] };
-type RoomStatus = 'occupied' | 'free' | 'partial';
-
-type BlockWithRooms = {
-    blockNumber: string;
-    floorNumber: number;
-    rooms: RoomWithOccupants[];
-    capacity: number;
-    currentCapacity: number;
-    genderType: RoomWithOccupants['genderType'];
-};
-
-type FloorWithBlocks = {
-    floor: number;
-    blocks: BlockWithRooms[];
-    total: number;
-    free: number;
-};
 
 type NewRoomFormState = {
     floorNumber: string;
@@ -42,14 +31,6 @@ type NewRoomFormState = {
 };
 
 type NewRoomFormErrors = Partial<Record<keyof NewRoomFormState, string>>;
-
-type SettlementFormState = {
-    studentId: string;
-    floorNumber: string;
-    roomId: string;
-};
-
-type SettlementFormErrors = Partial<Record<'studentId' | 'roomId', string>>;
 
 const settlementFormInitialState: SettlementFormState = {
     studentId: '',
@@ -894,199 +875,55 @@ const StructureLayout: React.FC = () => {
     }
 
     const structureHeaderContent = (
-        <div className={styles.searchSection}>
-            <div className={styles.filtersGrid}>
-                <SelectField
-                    label="Студент"
-                    value={selectedStudentId === 'all' ? 'all' : selectedStudentId.toString()}
-                    onChange={(e) => handleStudentFilterChange(e.target.value)}
-                    options={studentOptions}
-                />
-                <SelectField
-                    label="Этаж"
-                    value={selectedFloor === 'all' ? 'all' : selectedFloor.toString()}
-                    onChange={(e) => handleFloorFilterChange(e.target.value)}
-                    options={floorOptions.map(option => ({ value: option.value.toString(), label: option.label }))}
-                />
-                <SelectField
-                    label="Блок"
-                    value={selectedBlockKey}
-                    onChange={(e) => handleBlockFilterChange(e.target.value)}
-                    options={blockOptions}
-                />
-                <ActionButton
-                    variant='secondary'
-                    size='md'
-                    onClick={resetFilters}
-                    className={styles.resetButton}
-                >
-                    Сбросить
-                </ActionButton>
-            </div>
-        </div>
+        <StructureTabHeader
+            studentValue={selectedStudentId === 'all' ? 'all' : selectedStudentId.toString()}
+            floorValue={selectedFloor === 'all' ? 'all' : selectedFloor.toString()}
+            blockValue={selectedBlockKey}
+            studentOptions={studentOptions}
+            floorOptions={floorOptions.map(option => ({ value: option.value.toString(), label: option.label }))}
+            blockOptions={blockOptions}
+            onStudentChange={handleStudentFilterChange}
+            onFloorChange={handleFloorFilterChange}
+            onBlockChange={handleBlockFilterChange}
+            onReset={resetFilters}
+        />
     );
 
     const structureTabContent = (
-        <>
-            {statsLoading && (
-                <div className="d-flex justify-content-center align-items-center my-3">
-                    <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Загрузка статистики...</span>
-                    </div>
-                </div>
-            )}
-
-            {!statsLoading && statsError && (
-                <div className="alert alert-warning" role="alert">
-                    {statsError}
-                </div>
-            )}
-
-            <div className={styles.structureWrapper}>
-                {floors.length === 0 && (
-                    <div className={styles.emptyState}>
-                        <i className="bi bi-buildings" />
-                        <p>Блоки не найдены</p>
-                    </div>
-                )}
-
-                {floors.length === 0 && canManageRooms && (
-                    <div className={styles.tableContainer}>
-                        <ActionButton
-                            size='md'
-                            variant='primary'
-                            onClick={() => openAddRoomModal()}
-                            className={styles.fullWidthMobileButton}
-                        >
-                            <span className="me-2">+</span>
-                            Добавить комнату
-                        </ActionButton>
-                    </div>
-                )}
-
-                {floors.map(floor => (
-                    <section key={floor.floor} className={styles.floorSection}>
-                        <div className={styles.floorHeader}>
-                            <h3 className={styles.floorTitle}>{floor.floor} этаж</h3>
-                            {canManageRooms && (
-                                <div className={styles.floorActions}>
-                                    <ActionButton
-                                        variant='secondary'
-                                        size='md'
-                                        className={styles.addRoomButton}
-                                        onClick={() => openAddRoomModal(floor.floor)}
-                                    >
-                                        <span className={styles.addRoomButtonIcon}>+</span>
-                                        <span className={styles.addRoomButtonText}>Добавить</span>
-                                    </ActionButton>
-                                </div>
-                            )}
-                        </div>
-                        <div className={styles.blocksGrid}>
-                            {floor.blocks.map(block => {
-                                const blockOccupants = block.rooms.flatMap(room => room.occupants);
-                                const occupantsPreview = blockOccupants.map(formatShortName).filter(Boolean);
-                                const remaining = Math.max(occupantsPreview.length - 3, 0);
-                                const blockStatus = getStatus(block.currentCapacity, block.capacity);
-                                return (
-                                    <article
-                                        key={`${block.floorNumber}-${block.blockNumber}`}
-                                        className={`${styles.blockCard} ${blockStatus === 'occupied' ? styles.blockCardOccupied : ''}`}
-                                        onClick={() => openBlockModal(block)}
-                                    >
-                                        <div className={styles.blockHeader}>
-                                            <p className={styles.blockNumber}>
-                                                <span className={styles.blockNumberBadge}>{block.blockNumber}</span>
-                                            </p>
-                                            <div className={styles.blockMetaColumn}>
-                                                <p className={styles.blockMeta}>
-                                                    <span className={styles.blockMetaLabel}>Тип</span>
-                                                    <span className={styles.blockMetaValue}>{getGenderLabel(block)}</span>
-                                                </p>
-                                                <p className={styles.blockMeta}>
-                                                    <span className={styles.blockMetaLabel}>Заселено</span>
-                                                    <span className={styles.blockMetaValue}>{block.currentCapacity}/{block.capacity}</span>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className={styles.blockOccupants}>
-                                            {occupantsPreview.slice(0, 3).join(', ') || ''}
-                                            {remaining > 0 && <span className={styles.moreOccupants}> + ещё {remaining}</span>}
-                                        </p>
-                                        <div className={styles.blockActions}>
-                                            <ActionButton
-                                                variant='secondary'
-                                                size='md'
-                                                className={styles.blockActionBtn}
-                                                onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    openBlockModal(block);
-                                                }}
-                                            >
-                                                Подробнее
-                                            </ActionButton>
-                                        </div>
-                                    </article>
-                                );
-                            })}
-                        </div>
-                    </section>
-                ))}
-            </div>
-        </>
+        <StructureTabContent
+            statsLoading={statsLoading}
+            statsError={statsError}
+            floors={floors}
+            canManageRooms={canManageRooms}
+            onAddRoom={openAddRoomModal}
+            onOpenBlockModal={openBlockModal}
+            getStatus={getStatus}
+            formatShortName={formatShortName}
+            getGenderLabel={getGenderLabel}
+        />
     );
 
+    const isStudentSelectDisabled = isSettling || unassignedStudents.length === 0;
+    const isRoomSelectDisabled = isSettling || filteredAvailableRooms.length === 0;
+    const isSubmitDisabled = isSettling || !unassignedStudents.length || !filteredAvailableRooms.length;
+
     const settlementHeaderContent = (
-        <section className={styles.settlementCard}>
-            <form className={styles.settlementForm} onSubmit={handleSettlementSubmit}>
-                <div className={styles.settlementFormGrid}>
-                    <SelectField
-                        label="Студент"
-                        value={settlementForm.studentId}
-                        onChange={(e) => handleSettlementStudentChange(e.target.value)}
-                        options={settlementStudentOptions}
-                        disabled={isSettling || unassignedStudents.length === 0}
-                        error={settlementErrors.studentId}
-                    />
-                    <SelectField
-                        label="Этаж"
-                        value={settlementForm.floorNumber}
-                        onChange={(e) => handleSettlementFloorChange(e.target.value)}
-                        options={settlementFloorOptions}
-                        disabled={isSettling || filteredAvailableRooms.length === 0}
-                    />
-                    <SelectField
-                        label="Комната"
-                        value={settlementForm.roomId}
-                        onChange={(e) => handleSettlementRoomChange(e.target.value)}
-                        options={settlementRoomOptions}
-                        disabled={isSettling || filteredAvailableRooms.length === 0}
-                        error={settlementErrors.roomId}
-                    />
-                </div>
-                <div className={styles.settlementActions}>
-                    <ActionButton
-                        variant='secondary'
-                        size='md'
-                        type='button'
-                        className={styles.fullWidthMobileButton}
-                        onClick={handleSettlementReset}
-                        disabled={isSettling}
-                    >
-                        Сбросить
-                    </ActionButton>
-                    <ActionButton
-                        variant='primary'
-                        size='md'
-                        type='submit'
-                        className={styles.fullWidthMobileButton}
-                        disabled={isSettling || !unassignedStudents.length || !filteredAvailableRooms.length}
-                    >
-                        {isSettling ? 'Заселяем…' : 'Заселить студента'}
-                    </ActionButton>
-                </div>
-            </form>
-        </section>
+        <SettlementTabHeader
+            form={settlementForm}
+            errors={settlementErrors}
+            studentOptions={settlementStudentOptions}
+            floorOptions={settlementFloorOptions}
+            roomOptions={settlementRoomOptions}
+            isSettling={isSettling}
+            isStudentDisabled={isStudentSelectDisabled}
+            isRoomDisabled={isRoomSelectDisabled}
+            isSubmitDisabled={isSubmitDisabled}
+            onStudentChange={handleSettlementStudentChange}
+            onFloorChange={handleSettlementFloorChange}
+            onRoomChange={handleSettlementRoomChange}
+            onReset={handleSettlementReset}
+            onSubmit={handleSettlementSubmit}
+        />
     );
 
 
@@ -1096,60 +933,14 @@ const StructureLayout: React.FC = () => {
         onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
     };
     const settlementTabContent = (
-        <>
-            <div className={styles.desktopTable}>
-                <CommonTable
-                    data={unassignedStudentsSorted}
-                    columns={unassignedColumns}
-                    emptyMessage="Все студенты уже заселены"
-                    rowAction={rowAction}
-                    className={styles.tablePlain}
-                />
-            </div>
-            <div className={styles.mobileCardsWrapper}>
-                {unassignedStudentsSorted.length ? (
-                    unassignedStudentsSorted.map(student => (
-                        <button
-                            type="button"
-                            key={student.id}
-                            className={styles.mobileCard}
-                            onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                        >
-                            <p className={styles.mobileCardTitle}>{formatFullName(student) || '—'}</p>
-                            <div className={styles.mobileCardDivider}></div>
-                            <div className={styles.mobileCardRow}>
-                                <div className={styles.blockMetaColumn}>
-                                    <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Группа</span>
-                                        <span className={styles.blockMetaValue}>{student.group?.name ?? '—'}</span>
-                                    </div>
-                                    <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Телефон</span>
-                                        <span className={styles.blockMetaValue}>{student.phone ?? '—'}</span>
-                                    </div>
-                                    <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Рожден</span>
-                                        <span className={styles.blockMetaValue}>{formatBirthday(student.birthday)}</span>
-                                    </div>
-                                </div>
-                                <div className={styles.blockMetaColumn}>
-                                    <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Курс</span>
-                                        <span className={styles.blockMetaValue}>{student.group?.course ?? '—'}</span>
-                                    </div>
-                                    <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Пол</span>
-                                        <span className={styles.blockMetaValue}>{getStudentGenderLabel(student.gender)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </button>
-                    ))
-                ) : (
-                    <div className={styles.mobileCardsEmpty}>Все студенты уже заселены</div>
-                )}
-            </div>
-        </>
+        <SettlementTabContent
+            students={unassignedStudentsSorted}
+            columns={unassignedColumns}
+            rowAction={rowAction}
+            formatFullName={formatFullName}
+            formatBirthday={formatBirthday}
+            getStudentGenderLabel={getStudentGenderLabel}
+        />
     );
 
     const tabs = canManageRooms

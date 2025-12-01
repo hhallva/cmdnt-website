@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './CommonTable.module.css';
 
-interface ColumnDefinition<T> {
+export interface ColumnDefinition<T> {
     key: keyof T | string;
     title: ReactNode;
     sortable?: boolean;
@@ -23,7 +23,7 @@ interface RowActionMenuItem<T> {
     isVisible?: (item: T) => boolean;
 }
 
-interface RowActionConfig<T> {
+export interface RowActionConfig<T> {
     icon: string;
     title?: string;
     onClick?: (item: T) => void;
