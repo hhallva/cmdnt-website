@@ -298,6 +298,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isE
                     totalCount={students.length}
                     columns={columns}
                     rowAction={rowAction}
+                    onRowClick={(student) => onStudentClick(student.id)}
                     enableSorting={true}
                     onSortRequest={requestSort}
                     sortConfig={sortConfig}
