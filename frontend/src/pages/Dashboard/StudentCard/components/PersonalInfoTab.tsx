@@ -47,7 +47,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ student, contacts }) 
             </div>
 
             <div className={styles.infoCard}>
-                <h3 className={styles.mobileCardTitle}>Контактны</h3>
+                <h3 className={styles.mobileCardTitle}>Контакты</h3>
                 <div className={styles.blockMeta}>
                     <div className={styles.blockMetaLabel}>Телефон</div>
                     <div className={styles.blockMetaValue}>{student.phone || 'Нет'}</div>
