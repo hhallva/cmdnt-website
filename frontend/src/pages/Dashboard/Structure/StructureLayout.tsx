@@ -1,23 +1,33 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useDormStructureData } from '../../../hooks/useDormStructureData';
-
-import { apiClient } from '../../../api/client';
-import type { RoomDto } from '../../../types/rooms';
-import type { StudentsDto } from '../../../types/students';
-import type { StructureStatisticDto } from '../../../types/structures';
-import type { UserSession } from '../../../types/UserSession';
-import type { BlockWithRooms, FloorWithBlocks, RoomStatus, RoomWithOccupants, SettlementFormErrors, SettlementFormState } from './types';
-import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
-import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
-import styles from './Structure.module.css';
-
+import { useNavigate } from 'react-router-dom';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../components/CommonModal/CommonModal';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import InputField from '../../../components/InputField/InputField';
 import Tabs from '../../../components/Tabs/Tabs';
+import { useDormStructureData } from '../../../hooks/useDormStructureData';
+import { apiClient } from '../../../api/client';
+import type { StudentsDto } from '../../../types/students';
+import type { StructureStatisticDto } from '../../../types/structures';
+import type { UserSession } from '../../../types/UserSession';
+import type { RoomWithOccupants } from './types';
+import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
+import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
+import styles from './Structure.module.css';
+import {
+    formatBirthday,
+    formatFullName,
+    formatShortName,
+    getGenderLabel,
+    getInitials,
+    getStatus,
+    getStudentGenderLabel,
+} from './utils';
+import { SETTLEMENT_TAB_ID, STRUCTURE_TAB_IDS } from './constants';
+import { useStructureTabs } from './hooks/useStructureTabs';
+import { useStructureFilters } from './hooks/useStructureFilters';
+import { useSettlementForm } from './hooks/useSettlementForm';
 
 type NewRoomFormState = {
     floorNumber: string;
@@ -27,123 +37,8 @@ type NewRoomFormState = {
 
 type NewRoomFormErrors = Partial<Record<keyof NewRoomFormState, string>>;
 
-const settlementFormInitialState: SettlementFormState = {
-    studentId: '',
-    floorNumber: '',
-    roomId: '',
-};
-
-const STRUCTURE_TABS_STORAGE_KEY = 'structure-active-tab';
-const STRUCTURE_TAB_IDS = ['structure', 'settlement'] as const;
-const STRUCTURE_SETTLEMENT_PREFILL_KEY = 'structure-settlement-prefill';
-const SETTLEMENT_TAB_ID = 'settlement';
-
-const getStatus = (currentCapacity: number, capacity: number): RoomStatus => {
-    if (currentCapacity === 0) {
-        return 'free';
-    }
-    if (currentCapacity >= capacity) {
-        return 'occupied';
-    }
-    return 'partial';
-};
-
-const getInitials = (student: StudentsDto): string => {
-    const initials = `${student.surname?.charAt(0) ?? ''}${student.name?.charAt(0) ?? ''}`;
-    return initials || '—';
-};
-
-const formatShortName = (student: StudentsDto): string => {
-    const surname = student.surname?.trim() ?? '';
-    const nameInitial = student.name ? `${student.name.trim().charAt(0)}.` : '';
-    const patronymicInitial = student.patronymic ? `${student.patronymic.trim().charAt(0)}.` : '';
-    const initials = [nameInitial, patronymicInitial].filter(Boolean).join(' ');
-    return [surname, initials].filter(Boolean).join(' ').trim() || `Студент ${student.id}`;
-};
-
-export const formatFullName = (student: StudentsDto): string => {
-    return [student.surname, student.name, student.patronymic].filter(Boolean).join(' ').trim();
-};
-
-const getGenderLabel = (entity: { genderType: RoomWithOccupants['genderType'] }): string => {
-    if (entity.genderType === null) {
-        return '-';
-    }
-    return entity.genderType ? 'Мужской' : 'Женский';
-};
-
-export const getStudentGenderLabel = (gender: StudentsDto['gender']): string => {
-    if (gender === null || gender === undefined) {
-        return 'Не указан';
-    }
-    return gender ? 'Мужской' : 'Женский';
-};
-
-export const formatBirthday = (birthday?: string | null): string => {
-    if (!birthday) {
-        return '—';
-    }
-    const parsed = new Date(birthday);
-    if (Number.isNaN(parsed.getTime())) {
-        return '—';
-    }
-    return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
-};
-
-const deriveGenderTypeFromOccupants = (rooms: RoomWithOccupants[]): RoomWithOccupants['genderType'] => {
-    const genders = rooms
-        .flatMap(room => room.occupants)
-        .map(student => student.gender)
-        .filter((gender): gender is boolean => gender !== null);
-
-    if (genders.length === 0) {
-        return null;
-    }
-
-    const hasMaleStudents = genders.some(gender => gender === true);
-    const hasFemaleStudents = genders.some(gender => gender === false);
-
-    if (hasMaleStudents && hasFemaleStudents) {
-        return null;
-    }
-
-    return hasMaleStudents ? true : false;
-};
-
-const hasGenderValue = (value: boolean | null | undefined): value is boolean => value === true || value === false;
-
-const doesRoomMatchStudentGender = (room: RoomDto, studentGender: StudentsDto['gender'] | null | undefined): boolean => {
-    if (room.currentCapacity >= room.capacity) {
-        return false;
-    }
-
-    if (!hasGenderValue(studentGender)) {
-        return room.currentCapacity === 0;
-    }
-
-    if (room.currentCapacity === 0) {
-        return true;
-    }
-
-    return hasGenderValue(room.genderType) && room.genderType === studentGender;
-};
-
-const doesStudentMatchRoomGender = (
-    studentGender: StudentsDto['gender'] | null | undefined,
-    roomGender: RoomDto['genderType'] | null
-): boolean => {
-    if (!hasGenderValue(roomGender)) {
-        return true;
-    }
-
-    return hasGenderValue(studentGender) && studentGender === roomGender;
-};
-
-const getBlockKey = (floorNumber: number, blockNumber: string): string => `${floorNumber}-${blockNumber}`;
-
 const StructureLayout: React.FC = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { rooms, students, loading, error, refetch } = useDormStructureData();
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
@@ -151,10 +46,6 @@ const StructureLayout: React.FC = () => {
     const isEducator = roleName.includes('воспитатель');
     const canManageRooms = !isEducator;
 
-    const [selectedStudentId, setSelectedStudentId] = useState<'all' | number>('all');
-    const [selectedFloor, setSelectedFloor] = useState<'all' | number>('all');
-    const [selectedBlockKey, setSelectedBlockKey] = useState<'all' | string>('all');
-    const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState<string | null>(null);
@@ -167,64 +58,6 @@ const StructureLayout: React.FC = () => {
     const [newRoomErrors, setNewRoomErrors] = useState<NewRoomFormErrors>({});
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
-    const [settlementForm, setSettlementForm] = useState<SettlementFormState>(settlementFormInitialState);
-    const [settlementErrors, setSettlementErrors] = useState<SettlementFormErrors>({});
-    const [settlementAlert, setSettlementAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-    const [isSettling, setIsSettling] = useState(false);
-    const availableTabIds = canManageRooms ? [...STRUCTURE_TAB_IDS] : ['structure'];
-    const [activeTabId, setActiveTabId] = useState<string>(() => {
-        const fallbackTabId = availableTabIds[0];
-        if (typeof window === 'undefined') {
-            return fallbackTabId;
-        }
-        const storedTabId = sessionStorage.getItem(STRUCTURE_TABS_STORAGE_KEY);
-        return storedTabId && availableTabIds.includes(storedTabId)
-            ? storedTabId
-            : fallbackTabId;
-    });
-    const [pendingSettlementStudentId, setPendingSettlementStudentId] = useState<string | null>(() => {
-        if (typeof window === 'undefined') {
-            return null;
-        }
-        const payload = sessionStorage.getItem(STRUCTURE_SETTLEMENT_PREFILL_KEY);
-        if (!payload) {
-            return null;
-        }
-        sessionStorage.removeItem(STRUCTURE_SETTLEMENT_PREFILL_KEY);
-        try {
-            const parsed = JSON.parse(payload);
-            return parsed?.studentId ? String(parsed.studentId) : null;
-        } catch {
-            return null;
-        }
-    });
-
-    useEffect(() => {
-        const state = location.state as { fromSidebar?: boolean } | null;
-        if (!state || !state.fromSidebar) {
-            return;
-        }
-
-        const fallbackTabId = availableTabIds[0];
-        setActiveTabId(fallbackTabId);
-        if (typeof window !== 'undefined') {
-            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, fallbackTabId);
-        }
-
-        const { fromSidebar, ...restState } = state;
-        const nextState = Object.keys(restState).length ? restState : undefined;
-        navigate(location.pathname, { replace: true, state: nextState });
-    }, [location.state, location.pathname, availableTabIds, navigate]);
-
-    useEffect(() => {
-        if (!settlementAlert) {
-            return;
-        }
-        const timeout = window.setTimeout(() => {
-            setSettlementAlert(null);
-        }, 4000);
-        return () => window.clearTimeout(timeout);
-    }, [settlementAlert]);
 
     const loadStructureStats = useCallback(async () => {
         setStatsLoading(true);
@@ -245,185 +78,67 @@ const StructureLayout: React.FC = () => {
         void loadStructureStats();
     }, [loadStructureStats]);
 
+    const availableTabIds = useMemo(
+        () => (canManageRooms ? [...STRUCTURE_TAB_IDS] : ['structure']),
+        [canManageRooms]
+    );
+    const { activeTabId, setActiveTabId, handleTabChange } = useStructureTabs(availableTabIds);
 
-    const roomsWithOccupants = useMemo<RoomWithOccupants[]>(() => {
-        return rooms
-            .map(room => ({
-                ...room,
-                occupants: students.filter(student => student.roomId === room.id),
-            }))
-            .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber));
-    }, [rooms, students]);
-
-    const floorOptions = useMemo(() => {
-        const floorsSet = new Set<number>();
-        roomsWithOccupants.forEach(room => floorsSet.add(room.floorNumber));
-        const options = Array.from(floorsSet)
-            .sort((a, b) => a - b)
-            .map(floor => ({ value: floor, label: `${floor} этаж` }));
-        return [{ value: 'all', label: 'Все этажи' }, ...options];
-    }, [roomsWithOccupants]);
-
-    const roomsById = useMemo(() => {
-        const map = new Map<number, RoomDto>();
-        rooms.forEach(room => map.set(room.id, room));
-        return map;
-    }, [rooms]);
-
-    const blockOptions = useMemo(() => {
-        const filteredRooms = selectedFloor === 'all'
-            ? roomsWithOccupants
-            : roomsWithOccupants.filter(room => room.floorNumber === selectedFloor);
-        const blockMap = new Map<string, { label: string }>();
-        filteredRooms.forEach(room => {
-            const blockKey = getBlockKey(room.floorNumber, room.roomNumber);
-            if (!blockMap.has(blockKey)) {
-                blockMap.set(blockKey, { label: room.roomNumber });
-            }
-        });
-        const options = Array.from(blockMap.entries())
-            .sort((a, b) => a[1].label.localeCompare(b[1].label, 'ru'))
-            .map(([value, data]) => ({ value, label: `${data.label}` }));
-        const allLabel = selectedFloor === 'all' ? 'Все блоки' : 'Все блоки этажа';
-        return [{ value: 'all', label: allLabel }, ...options];
-    }, [roomsWithOccupants, selectedFloor]);
-
-    const studentOptions = useMemo(() => {
-        const studentsWithRooms = students.filter(student => student.roomId !== null && student.roomId !== undefined);
-        let filtered = studentsWithRooms;
-        if (selectedBlockKey !== 'all') {
-            filtered = filtered.filter(student => {
-                if (student.roomId === null || student.roomId === undefined) {
-                    return false;
-                }
-                const room = roomsById.get(student.roomId);
-                if (!room) {
-                    return false;
-                }
-                return getBlockKey(room.floorNumber, room.roomNumber) === selectedBlockKey;
-            });
-        } else if (selectedFloor !== 'all') {
-            filtered = filtered.filter(student => {
-                if (student.roomId === null || student.roomId === undefined) {
-                    return false;
-                }
-                const room = roomsById.get(student.roomId);
-                return room?.floorNumber === selectedFloor;
-            });
-        }
-        const allLabel = selectedBlockKey !== 'all'
-            ? 'Все студенты блока'
-            : selectedFloor !== 'all'
-                ? 'Все студенты этажа'
-                : 'Все студенты';
-        const uniqueStudents = filtered
-            .map(student => ({ value: student.id.toString(), label: formatShortName(student) }))
-            .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
-        return [{ value: 'all', label: allLabel }, ...uniqueStudents];
-    }, [students, roomsById, selectedBlockKey, selectedFloor]);
+    const {
+        roomsById,
+        floorOptions,
+        blockOptions,
+        studentOptions,
+        selectedStudentId,
+        selectedFloor,
+        selectedBlockKey,
+        handleFloorFilterChange,
+        handleBlockFilterChange,
+        handleStudentFilterChange,
+        resetFilters,
+        floors,
+        activeBlock,
+        openBlockModal,
+        closeBlockModal,
+    } = useStructureFilters({ rooms, students });
 
     const unassignedStudents = useMemo(() => {
         return students.filter(student => student.roomId === null || student.roomId === undefined);
     }, [students]);
 
-    useEffect(() => {
-        if (!canManageRooms) {
-            return;
-        }
-        if (!pendingSettlementStudentId) {
-            return;
-        }
-        const canPrefill = unassignedStudents.some(student => student.id.toString() === pendingSettlementStudentId);
-        if (!canPrefill) {
-            return;
-        }
-        setSettlementForm(prev => ({ ...prev, studentId: pendingSettlementStudentId }));
-        setSettlementErrors(prev => ({ ...prev, studentId: undefined }));
+    const activateSettlementTab = useCallback(() => {
         setActiveTabId(SETTLEMENT_TAB_ID);
-        if (typeof window !== 'undefined') {
-            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, SETTLEMENT_TAB_ID);
-        }
-        setPendingSettlementStudentId(null);
-    }, [pendingSettlementStudentId, unassignedStudents]);
+    }, [setActiveTabId]);
 
-    const availableRooms = useMemo(() => {
-        return rooms.filter(room => room.currentCapacity < room.capacity);
-    }, [rooms]);
-
-    const selectedSettlementStudent = useMemo(() => {
-        if (!settlementForm.studentId) {
-            return null;
-        }
-        return unassignedStudents.find(student => student.id.toString() === settlementForm.studentId) ?? null;
-    }, [settlementForm.studentId, unassignedStudents]);
-
-    const filteredAvailableRooms = useMemo(() => {
-        if (!selectedSettlementStudent) {
-            return availableRooms;
-        }
-        return availableRooms.filter(room => doesRoomMatchStudentGender(room, selectedSettlementStudent.gender));
-    }, [availableRooms, selectedSettlementStudent]);
-
-    const selectedSettlementRoom = useMemo(() => {
-        if (!settlementForm.roomId) {
-            return null;
-        }
-        return rooms.find(room => room.id === Number(settlementForm.roomId)) ?? null;
-    }, [rooms, settlementForm.roomId]);
-
-    const selectedRoomGender = useMemo(() => {
-        if (!selectedSettlementRoom) {
-            return null;
-        }
-        return hasGenderValue(selectedSettlementRoom.genderType) ? selectedSettlementRoom.genderType : null;
-    }, [selectedSettlementRoom]);
-
-    const filteredSettlementStudents = useMemo(() => {
-        if (!hasGenderValue(selectedRoomGender)) {
-            return unassignedStudents;
-        }
-        return unassignedStudents.filter(student => doesStudentMatchRoomGender(student.gender, selectedRoomGender));
-    }, [unassignedStudents, selectedRoomGender]);
-
-    const settlementStudentOptions = useMemo(() => {
-        return [
-            { value: '', label: 'Выберите студента' },
-            ...filteredSettlementStudents
-                .map(student => ({ value: student.id.toString(), label: formatShortName(student) }))
-                .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
-        ];
-    }, [filteredSettlementStudents]);
-
-    const settlementFloorOptions = useMemo(() => {
-        const floorsSet = new Set<number>();
-        filteredAvailableRooms.forEach(room => floorsSet.add(room.floorNumber));
-        const floorOptions = Array.from(floorsSet)
-            .sort((a, b) => a - b)
-            .map(floor => ({ value: floor.toString(), label: `${floor} этаж` }));
-        return [{ value: '', label: 'Выберите этаж' }, ...floorOptions];
-    }, [filteredAvailableRooms]);
-
-    const settlementRoomOptions = useMemo(() => {
-        const targetRooms = settlementForm.floorNumber
-            ? filteredAvailableRooms.filter(room => room.floorNumber === Number(settlementForm.floorNumber))
-            : filteredAvailableRooms;
-
-        const sortedRooms = targetRooms
-            .slice()
-            .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber))
-            .map(room => ({
-                value: room.id.toString(),
-                label: `${room.roomNumber} (${room.currentCapacity}/${room.capacity})`,
-            }));
-
-        return [
-            {
-                value: '',
-                label: sortedRooms.length ? 'Выберите комнату' : 'Нет доступных комнат',
-            },
-            ...sortedRooms,
-        ];
-    }, [filteredAvailableRooms, settlementForm.floorNumber]);
+    const {
+        settlementForm,
+        settlementErrors,
+        settlementAlert,
+        isSettling,
+        settlementStudentOptions,
+        settlementFloorOptions,
+        settlementRoomOptions,
+        handleSettlementStudentChange,
+        handleSettlementFloorChange,
+        handleSettlementRoomChange,
+        handleSettlementReset,
+        handleSettlementSubmit,
+        prefillRoomSelection,
+        setSettlementAlert,
+        isStudentSelectDisabled,
+        isRoomSelectDisabled,
+        isSubmitDisabled,
+    } = useSettlementForm({
+        rooms,
+        roomsById,
+        unassignedStudents,
+        canManageRooms,
+        onSuccess: async () => {
+            await refetch();
+        },
+        refreshStatistics: loadStructureStats,
+        activateSettlementTab,
+    });
 
     const unassignedStudentsSorted = useMemo(() => {
         return unassignedStudents
@@ -464,170 +179,6 @@ const StructureLayout: React.FC = () => {
             render: (student: StudentsDto) => formatBirthday(student.birthday),
         },
     ]), [navigate]);
-
-    const filteredRooms = useMemo(() => {
-        const targetBlockKey = selectedBlockKey === 'all' ? null : selectedBlockKey;
-
-        return roomsWithOccupants.filter(room => {
-            if (selectedFloor !== 'all' && room.floorNumber !== selectedFloor) {
-                return false;
-            }
-            if (selectedStudentId !== 'all' && !room.occupants.some(student => student.id === selectedStudentId)) {
-                return false;
-            }
-
-            if (targetBlockKey) {
-                return getBlockKey(room.floorNumber, room.roomNumber) === targetBlockKey;
-            }
-
-            return true;
-        });
-    }, [roomsWithOccupants, selectedFloor, selectedBlockKey, selectedStudentId]);
-
-    const floors = useMemo<FloorWithBlocks[]>(() => {
-        const floorMap = new Map<number, Map<string, BlockWithRooms>>();
-
-        filteredRooms.forEach(room => {
-            if (!floorMap.has(room.floorNumber)) {
-                floorMap.set(room.floorNumber, new Map());
-            }
-
-            const blocksMap = floorMap.get(room.floorNumber)!;
-            const blockNumber = room.roomNumber;
-
-            if (!blocksMap.has(blockNumber)) {
-                blocksMap.set(blockNumber, {
-                    blockNumber,
-                    floorNumber: room.floorNumber,
-                    rooms: [],
-                    capacity: 0,
-                    currentCapacity: 0,
-                    genderType: room.genderType,
-                });
-            }
-
-            const block = blocksMap.get(blockNumber)!;
-            block.rooms.push(room);
-            block.capacity += room.capacity;
-            block.currentCapacity += room.currentCapacity;
-            block.genderType = deriveGenderTypeFromOccupants(block.rooms);
-        });
-
-        return Array.from(floorMap.entries())
-            .sort((a, b) => a[0] - b[0])
-            .map(([floor, blocksMap]) => {
-                const blocks = Array.from(blocksMap.values())
-                    .sort((a, b) => a.blockNumber.localeCompare(b.blockNumber, 'ru'));
-                const total = blocks.reduce((acc, block) => acc + block.capacity, 0);
-                const free = blocks.reduce((acc, block) => acc + Math.max(block.capacity - block.currentCapacity, 0), 0);
-                return { floor, blocks, total, free };
-            });
-    }, [filteredRooms]);
-
-    const activeBlock = useMemo(() => {
-        if (!activeBlockKey) {
-            return null;
-        }
-
-        for (const floor of floors) {
-            const found = floor.blocks.find(block => getBlockKey(block.floorNumber, block.blockNumber) === activeBlockKey);
-            if (found) {
-                return found;
-            }
-        }
-
-        return null;
-    }, [activeBlockKey, floors]);
-
-    const openBlockModal = (block: BlockWithRooms) => {
-        setActiveBlockKey(getBlockKey(block.floorNumber, block.blockNumber));
-    };
-
-    const closeBlockModal = () => {
-        setActiveBlockKey(null);
-    };
-
-    const resetFilters = () => {
-        setSelectedStudentId('all');
-        setSelectedFloor('all');
-        setSelectedBlockKey('all');
-    };
-
-    const handleFloorFilterChange = useCallback((value: string) => {
-        const nextFloor = value === 'all' ? 'all' : Number(value);
-        setSelectedFloor(nextFloor);
-        if (nextFloor === 'all') {
-            return;
-        }
-        setSelectedBlockKey(prev => {
-            if (prev === 'all') {
-                return prev;
-            }
-            const [floorPart] = prev.split('-');
-            return Number(floorPart) === nextFloor ? prev : 'all';
-        });
-        setSelectedStudentId(prev => {
-            if (prev === 'all') {
-                return prev;
-            }
-            const student = students.find(item => item.id === prev);
-            if (!student?.roomId) {
-                return 'all';
-            }
-            const room = roomsById.get(student.roomId);
-            return room && room.floorNumber === nextFloor ? prev : 'all';
-        });
-    }, [roomsById, students]);
-
-    const handleBlockFilterChange = useCallback((value: string) => {
-        if (value === 'all') {
-            setSelectedBlockKey('all');
-            setSelectedStudentId('all');
-            return;
-        }
-        setSelectedBlockKey(value);
-        const [floorPart] = value.split('-');
-        const floorNumber = Number(floorPart);
-        if (!Number.isNaN(floorNumber)) {
-            setSelectedFloor(floorNumber);
-        }
-        setSelectedStudentId(prev => {
-            if (prev === 'all') {
-                return prev;
-            }
-            const student = students.find(item => item.id === prev);
-            if (!student?.roomId) {
-                return 'all';
-            }
-            const room = roomsById.get(student.roomId);
-            if (!room) {
-                return 'all';
-            }
-            return getBlockKey(room.floorNumber, room.roomNumber) === value ? prev : 'all';
-        });
-    }, [roomsById, students]);
-
-    const handleStudentFilterChange = useCallback((value: string) => {
-        if (value === 'all') {
-            setSelectedStudentId('all');
-            return;
-        }
-        const studentId = Number(value);
-        setSelectedStudentId(studentId);
-        const student = students.find(item => item.id === studentId);
-        if (!student?.roomId) {
-            setSelectedBlockKey('all');
-            return;
-        }
-        const room = roomsById.get(student.roomId);
-        if (room) {
-            setSelectedBlockKey(getBlockKey(room.floorNumber, room.roomNumber));
-            setSelectedFloor(room.floorNumber);
-        } else {
-            setSelectedBlockKey('all');
-        }
-    }, [roomsById, students]);
-
     const openAddRoomModal = (floorNumber?: number) => {
         if (!canManageRooms) {
             return;
@@ -646,109 +197,6 @@ const StructureLayout: React.FC = () => {
         setNewRoomErrors({});
     };
 
-    const handleSettlementStudentChange = (value: string) => {
-        setSettlementForm(prev => {
-            const nextState = { ...prev, studentId: value };
-
-            if (!value || !nextState.roomId) {
-                return nextState;
-            }
-
-            const selectedStudent = unassignedStudents.find(student => student.id.toString() === value);
-            if (!selectedStudent) {
-                return nextState;
-            }
-
-            const room = roomsById.get(Number(nextState.roomId));
-            if (room && !doesRoomMatchStudentGender(room, selectedStudent.gender)) {
-                nextState.roomId = '';
-            }
-
-            return nextState;
-        });
-        if (settlementErrors.studentId) {
-            setSettlementErrors(prev => ({ ...prev, studentId: undefined }));
-        }
-        setSettlementAlert(null);
-    };
-
-    const handleSettlementFloorChange = (value: string) => {
-        setSettlementForm(prev => {
-            const nextState = { ...prev, floorNumber: value };
-            if (value && prev.roomId) {
-                const currentRoom = roomsById.get(Number(prev.roomId));
-                if (currentRoom && currentRoom.floorNumber.toString() !== value) {
-                    nextState.roomId = '';
-                }
-            }
-            return nextState;
-        });
-        setSettlementAlert(null);
-    };
-
-    const handleSettlementRoomChange = (value: string) => {
-        setSettlementForm(prev => {
-            if (!value) {
-                return { ...prev, roomId: '', floorNumber: prev.floorNumber };
-            }
-            const room = roomsById.get(Number(value));
-            const nextState = {
-                ...prev,
-                roomId: value,
-                floorNumber: room ? room.floorNumber.toString() : prev.floorNumber,
-            };
-
-            if (room && prev.studentId) {
-                const student = unassignedStudents.find(item => item.id.toString() === prev.studentId);
-                if (student && !doesRoomMatchStudentGender(room, student.gender)) {
-                    nextState.studentId = '';
-                }
-            }
-
-            return nextState;
-        });
-        if (settlementErrors.roomId) {
-            setSettlementErrors(prev => ({ ...prev, roomId: undefined }));
-        }
-        setSettlementAlert(null);
-    };
-
-    const handleSettlementReset = () => {
-        setSettlementForm(settlementFormInitialState);
-        setSettlementErrors({});
-        setSettlementAlert(null);
-    };
-
-    const handleSettlementSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const errors: SettlementFormErrors = {};
-        if (!settlementForm.studentId) {
-            errors.studentId = 'Выберите студента';
-        }
-        if (!settlementForm.roomId) {
-            errors.roomId = 'Выберите комнату';
-        }
-        setSettlementErrors(errors);
-        if (Object.keys(errors).length > 0) {
-            setSettlementAlert({ type: 'error', message: 'Заполните обязательные поля' });
-            return;
-        }
-
-        setSettlementAlert(null);
-        setIsSettling(true);
-        try {
-            await apiClient.assignStudentToRoom(Number(settlementForm.studentId), Number(settlementForm.roomId));
-            setSettlementForm(settlementFormInitialState);
-            setSettlementErrors({});
-            setSettlementAlert({ type: 'success', message: 'Студент успешно заселён' });
-            refetch();
-            await loadStructureStats();
-        } catch (err: any) {
-            setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось заселить студента' });
-        } finally {
-            setIsSettling(false);
-        }
-    };
 
     const handleNewRoomFieldChange = (field: keyof NewRoomFormState, value: string) => {
         setNewRoomForm(prev => ({ ...prev, [field]: value }));
@@ -833,41 +281,10 @@ const StructureLayout: React.FC = () => {
         }
     };
 
-    const handleTabChange = (tabId: string) => {
-        if (!availableTabIds.includes(tabId)) {
-            return;
-        }
-        setActiveTabId(tabId);
-        if (typeof window !== 'undefined') {
-            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, tabId);
-        }
-    };
-
-    const handleFreeSlotClick = (room: RoomWithOccupants) => {
-        if (!canManageRooms) {
-            return;
-        }
-        handleTabChange(SETTLEMENT_TAB_ID);
-        setSettlementForm(prev => {
-            const nextState = {
-                ...prev,
-                floorNumber: room.floorNumber.toString(),
-                roomId: room.id.toString(),
-            };
-
-            if (prev.studentId) {
-                const student = unassignedStudents.find(item => item.id.toString() === prev.studentId);
-                if (student && !doesRoomMatchStudentGender(room, student.gender)) {
-                    nextState.studentId = '';
-                }
-            }
-
-            return nextState;
-        });
-        setSettlementErrors(prev => ({ ...prev, roomId: undefined }));
-        setSettlementAlert(null);
+    const handleFreeSlotClick = useCallback((room: RoomWithOccupants) => {
+        prefillRoomSelection(room);
         closeBlockModal();
-    };
+    }, [closeBlockModal, prefillRoomSelection]);
 
     if (loading) {
         return (
@@ -915,10 +332,6 @@ const StructureLayout: React.FC = () => {
             getGenderLabel={getGenderLabel}
         />
     );
-
-    const isStudentSelectDisabled = isSettling || unassignedStudents.length === 0;
-    const isRoomSelectDisabled = isSettling || filteredAvailableRooms.length === 0;
-    const isSubmitDisabled = isSettling || !unassignedStudents.length || !filteredAvailableRooms.length;
 
     const settlementHeaderContent = (
         <SettlementTabHeader
