@@ -100,6 +100,7 @@ interface SettlementTabContentProps {
     formatFullName: (student: StudentsDto) => string;
     formatBirthday: (birthday?: string | null) => string;
     getStudentGenderLabel: (gender: StudentsDto['gender']) => string;
+    onStudentSelect?: (student: StudentsDto) => void;
 }
 
 export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
@@ -109,6 +110,7 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
     formatFullName,
     formatBirthday,
     getStudentGenderLabel,
+    onStudentSelect,
 }) => (
     <>
         <div className={styles.desktopTable}>
@@ -118,18 +120,41 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
                 emptyMessage="Все студенты уже заселены"
                 rowAction={rowAction}
                 className={styles.tablePlain}
+                onRowClick={onStudentSelect}
             />
         </div>
         <div className={styles.mobileCardsWrapper}>
             {students.length ? (
                 students.map(student => (
-                    <button
-                        type="button"
+                    <div
                         key={student.id}
                         className={styles.mobileCard}
-                        onClick={() => rowAction.onClick?.(student)}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => onStudentSelect?.(student)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                onStudentSelect?.(student);
+                            }
+                        }}
                     >
-                        <p className={styles.mobileCardTitle}>{formatFullName(student) || '—'}</p>
+                        <div className={styles.mobileCardHeader}>
+                            <p className={styles.mobileCardTitle}>{formatFullName(student) || '—'}</p>
+                            {rowAction.onClick && (
+                                <button
+                                    type="button"
+                                    className={styles.mobileCardActionButton}
+                                    aria-label="Открыть карточку студента"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        rowAction.onClick?.(student);
+                                    }}
+                                >
+                                    <i className={`bi ${rowAction.icon}`}></i>
+                                </button>
+                            )}
+                        </div>
                         <div className={styles.mobileCardDivider}></div>
                         <div className={styles.mobileCardRow}>
                             <div className={styles.blockMetaColumn}>
@@ -157,7 +182,7 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
                                 </div>
                             </div>
                         </div>
-                    </button>
+                    </div>
                 ))
             ) : (
                 <div className={styles.mobileCardsEmpty}>Все студенты уже заселены</div>

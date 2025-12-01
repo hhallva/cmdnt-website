@@ -358,6 +358,10 @@ const StructureLayout: React.FC = () => {
         title: 'Открыть карточку студента',
         onClick: (student: StudentsDto) => navigate(`/dashboard/students/${student.id}`),
     };
+    const handleSettlementStudentSelect = (student: StudentsDto) => {
+        handleSettlementStudentChange(student.id.toString());
+    };
+
     const settlementTabContent = (
         <SettlementTabContent
             students={unassignedStudentsSorted}
@@ -366,6 +370,7 @@ const StructureLayout: React.FC = () => {
             formatFullName={formatFullName}
             formatBirthday={formatBirthday}
             getStudentGenderLabel={getStudentGenderLabel}
+            onStudentSelect={handleSettlementStudentSelect}
         />
     );
 

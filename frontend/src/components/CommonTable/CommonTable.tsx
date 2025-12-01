@@ -41,6 +41,7 @@ interface CommonTableProps<T> {
     onSortRequest?: (key: string) => void;
     sortConfig?: SortConfig | null;
     rowAction?: RowActionConfig<T>;
+    onRowClick?: (item: T) => void;
 }
 
 const MENU_WIDTH = 220;
@@ -55,6 +56,7 @@ const CommonTable = <T extends Record<string, any>>({
     onSortRequest,
     sortConfig,
     rowAction,
+    onRowClick,
 }: CommonTableProps<T>) => {
     // Универсальный резолвер значения по ключу или dot-path (group.name)
     const getValueByPath = (obj: T, path: string | keyof T) =>
@@ -136,6 +138,7 @@ const CommonTable = <T extends Record<string, any>>({
         rowAction?.popupActions?.filter(action => (action.isVisible ? action.isVisible(item) : true)) ?? [];
 
     const handleRowActionClick = (event: React.MouseEvent<HTMLButtonElement>, item: T, rowIndex: number) => {
+        event.stopPropagation();
         if (!rowAction) return;
 
         const visibleMenuActions = getVisibleMenuActions(item);
@@ -194,7 +197,11 @@ const CommonTable = <T extends Record<string, any>>({
                             data.map((item, rowIndex) => {
                                 const visibleMenuActions = getVisibleMenuActions(item);
                                 return (
-                                    <tr key={rowIndex}>
+                                    <tr
+                                        key={rowIndex}
+                                        className={onRowClick ? styles.clickableRow : undefined}
+                                        onClick={onRowClick ? () => onRowClick(item) : undefined}
+                                    >
                                         <td className={styles.indexColumn}>{rowIndex + 1}</td>
                                         {columns.map((column, colIndex) => (
                                             <td key={colIndex} className={column.className}>
