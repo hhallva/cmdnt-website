@@ -1,28 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
-import ActionButton from '../../../components/ActionButton/ActionButton';
-import CommonModal from '../../../components/CommonModal/CommonModal';
-import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
-import InputField from '../../../components/InputField/InputField';
-import Tabs from '../../../components/Tabs/Tabs';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
+
 import { apiClient } from '../../../api/client';
 import type { RoomDto } from '../../../types/rooms';
 import type { StudentsDto } from '../../../types/students';
 import type { StructureStatisticDto } from '../../../types/structures';
 import type { UserSession } from '../../../types/UserSession';
-import type {
-    BlockWithRooms,
-    FloorWithBlocks,
-    RoomStatus,
-    RoomWithOccupants,
-    SettlementFormErrors,
-    SettlementFormState,
-} from './types';
+import type { BlockWithRooms, FloorWithBlocks, RoomStatus, RoomWithOccupants, SettlementFormErrors, SettlementFormState } from './types';
 import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
 import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
 import styles from './Structure.module.css';
+
+import ActionButton from '../../../components/ActionButton/ActionButton';
+import CommonModal from '../../../components/CommonModal/CommonModal';
+import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
+import InputField from '../../../components/InputField/InputField';
+import Tabs from '../../../components/Tabs/Tabs';
 
 type NewRoomFormState = {
     floorNumber: string;
@@ -148,6 +143,7 @@ const getBlockKey = (floorNumber: number, blockNumber: string): string => `${flo
 
 const StructureLayout: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { rooms, students, loading, error, refetch } = useDormStructureData();
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
@@ -202,6 +198,23 @@ const StructureLayout: React.FC = () => {
             return null;
         }
     });
+
+    useEffect(() => {
+        const state = location.state as { fromSidebar?: boolean } | null;
+        if (!state || !state.fromSidebar) {
+            return;
+        }
+
+        const fallbackTabId = availableTabIds[0];
+        setActiveTabId(fallbackTabId);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, fallbackTabId);
+        }
+
+        const { fromSidebar, ...restState } = state;
+        const nextState = Object.keys(restState).length ? restState : undefined;
+        navigate(location.pathname, { replace: true, state: nextState });
+    }, [location.state, location.pathname, availableTabIds, navigate]);
 
     useEffect(() => {
         if (!settlementAlert) {
@@ -1059,6 +1072,7 @@ const StructureLayout: React.FC = () => {
                 activeTabId={activeTabId}
                 onTabChange={handleTabChange}
             />
+
             <CommonModal
                 title={activeBlock && (
                     <div className={styles.blockHeader}>

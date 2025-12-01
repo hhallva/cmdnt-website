@@ -1,6 +1,6 @@
 // src/pages/Dashboard/Students/StudentCardLayout.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
 import { useStudentData } from '../../../hooks/useStudentData';
@@ -45,6 +45,7 @@ const buildInitials = (...parts: Array<string | null | undefined>) => {
 const StudentCardLayout: React.FC = () => {
     const { studentId } = useParams<{ studentId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const studentIdNum = Number(studentId);
     const tabStorageKey = studentId ? `student-card-active-tab-${studentId}` : 'student-card-active-tab';
 
@@ -54,6 +55,22 @@ const StudentCardLayout: React.FC = () => {
     useEffect(() => {
         setActiveTab(getStoredTab(tabStorageKey));
     }, [tabStorageKey]);
+
+    useEffect(() => {
+        const state = location.state as { fromSidebar?: boolean } | null;
+        if (!state?.fromSidebar) {
+            return;
+        }
+
+        setActiveTab(STORAGE_DEFAULT_TAB);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(tabStorageKey, STORAGE_DEFAULT_TAB);
+        }
+
+        const { fromSidebar, ...restState } = state;
+        const nextState = Object.keys(restState).length ? restState : undefined;
+        navigate(location.pathname, { replace: true, state: nextState });
+    }, [location.state, location.pathname, navigate, tabStorageKey]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
