@@ -45,6 +45,17 @@
     font-size: 0.9rem;
 }
 
+.phoneLink {
+    color: #111827;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.phoneLink:hover,
+.phoneLink:focus-visible {
+    text-decoration: underline;
+    color: var(--color-primary);
+}
+
 .emptyState {
     background-color: white;
     border-radius: 12px;
