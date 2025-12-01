@@ -322,7 +322,7 @@
 }
 
 .housingCardOccupied {
-    border-color: #fb8c00;
+    border-color: var(--color-primary);
 }
 
 .housingOccupantsGrid {

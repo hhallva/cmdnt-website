@@ -419,7 +419,7 @@
 }
 
 .blockCardOccupied {
-    border-color: #fb8c00;
+    border-color: var(--color-primary);
 }
 
 .blockCard:hover {
@@ -499,7 +499,7 @@
 }
 
 .moreOccupants {
-    color: #fb8c00;
+    color: var(--color-primary);
     font-weight: 600;
 }
 
