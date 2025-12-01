@@ -56,6 +56,15 @@
     background-color: #f8f9fa;
 }
 
+.clickableRow {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.clickableRow:active {
+    background-color: #eef2ff;
+}
+
 .rowActionColumn {
     width: 3rem;
 }

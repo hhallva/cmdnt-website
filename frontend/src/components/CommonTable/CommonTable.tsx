@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './CommonTable.module.css';
 
-interface ColumnDefinition<T> {
+export interface ColumnDefinition<T> {
     key: keyof T | string;
     title: ReactNode;
     sortable?: boolean;
@@ -23,7 +23,7 @@ interface RowActionMenuItem<T> {
     isVisible?: (item: T) => boolean;
 }
 
-interface RowActionConfig<T> {
+export interface RowActionConfig<T> {
     icon: string;
     title?: string;
     onClick?: (item: T) => void;
@@ -41,6 +41,8 @@ interface CommonTableProps<T> {
     onSortRequest?: (key: string) => void;
     sortConfig?: SortConfig | null;
     rowAction?: RowActionConfig<T>;
+    onRowClick?: (item: T) => void;
+    rowActionOpenOnRowClick?: boolean;
 }
 
 const MENU_WIDTH = 220;
@@ -55,6 +57,8 @@ const CommonTable = <T extends Record<string, any>>({
     onSortRequest,
     sortConfig,
     rowAction,
+    onRowClick,
+    rowActionOpenOnRowClick = false,
 }: CommonTableProps<T>) => {
     // Универсальный резолвер значения по ключу или dot-path (group.name)
     const getValueByPath = (obj: T, path: string | keyof T) =>
@@ -88,7 +92,7 @@ const CommonTable = <T extends Record<string, any>>({
     // Обрабатываем отображение всплывающего меню действий
     const tableWrapperRef = useRef<HTMLDivElement | null>(null);
     const menuRef = useRef<HTMLDivElement | null>(null);
-    const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+    const triggerButtonRef = useRef<HTMLElement | null>(null);
     const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number | null; right: number | null } | null>(null);
 
@@ -135,7 +139,27 @@ const CommonTable = <T extends Record<string, any>>({
     const getVisibleMenuActions = (item: T) =>
         rowAction?.popupActions?.filter(action => (action.isVisible ? action.isVisible(item) : true)) ?? [];
 
+    const openRowActionMenuAt = (anchorRect: DOMRect) => {
+        const viewportWidth = window.innerWidth;
+        const shouldAlignRight = anchorRect.left + MENU_WIDTH > viewportWidth - 16;
+
+        if (shouldAlignRight) {
+            setMenuPosition({
+                top: anchorRect.bottom + 4,
+                left: null,
+                right: Math.max(viewportWidth - anchorRect.right, 8),
+            });
+        } else {
+            setMenuPosition({
+                top: anchorRect.bottom + 4,
+                left: Math.max(anchorRect.left, 8),
+                right: null,
+            });
+        }
+    };
+
     const handleRowActionClick = (event: React.MouseEvent<HTMLButtonElement>, item: T, rowIndex: number) => {
+        event.stopPropagation();
         if (!rowAction) return;
 
         const visibleMenuActions = getVisibleMenuActions(item);
@@ -144,28 +168,37 @@ const CommonTable = <T extends Record<string, any>>({
                 closeRowActionMenu();
             } else {
                 triggerButtonRef.current = event.currentTarget;
-                const buttonRect = event.currentTarget.getBoundingClientRect();
-                const viewportWidth = window.innerWidth;
-                const shouldAlignRight = buttonRect.left + MENU_WIDTH > viewportWidth - 16;
-
-                if (shouldAlignRight) {
-                    setMenuPosition({
-                        top: buttonRect.bottom + 4,
-                        left: null,
-                        right: Math.max(viewportWidth - buttonRect.right, 8),
-                    });
-                } else {
-                    setMenuPosition({
-                        top: buttonRect.bottom + 4,
-                        left: Math.max(buttonRect.left, 8),
-                        right: null,
-                    });
-                }
+                openRowActionMenuAt(event.currentTarget.getBoundingClientRect());
                 setActiveRowIndex(rowIndex);
             }
         } else {
             rowAction.onClick?.(item);
         }
+    };
+
+    const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, item: T, rowIndex: number) => {
+        onRowClick?.(item);
+
+        if (!rowActionOpenOnRowClick || !rowAction) {
+            return;
+        }
+
+        const visibleMenuActions = getVisibleMenuActions(item);
+        if (!visibleMenuActions.length) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (activeRowIndex === rowIndex) {
+            closeRowActionMenu();
+            return;
+        }
+
+        const rowElement = event.currentTarget;
+        triggerButtonRef.current = rowElement;
+        openRowActionMenuAt(rowElement.getBoundingClientRect());
+        setActiveRowIndex(rowIndex);
     };
 
     return (
@@ -194,7 +227,15 @@ const CommonTable = <T extends Record<string, any>>({
                             data.map((item, rowIndex) => {
                                 const visibleMenuActions = getVisibleMenuActions(item);
                                 return (
-                                    <tr key={rowIndex}>
+                                    <tr
+                                        key={rowIndex}
+                                        className={(onRowClick || rowActionOpenOnRowClick) ? styles.clickableRow : undefined}
+                                        onClick={(event) => {
+                                            if (onRowClick || rowActionOpenOnRowClick) {
+                                                handleRowClick(event, item, rowIndex);
+                                            }
+                                        }}
+                                    >
                                         <td className={styles.indexColumn}>{rowIndex + 1}</td>
                                         {columns.map((column, colIndex) => (
                                             <td key={colIndex} className={column.className}>

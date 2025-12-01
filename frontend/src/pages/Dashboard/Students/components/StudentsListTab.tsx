@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import type { StudentsDto } from '../../../../types/students';
 import type { GroupDto } from '../../../../types/groups';
+import type { RoomDto } from '../../../../types/rooms';
 
 import CommonTable from '../../../../components/CommonTable/CommonTable';
 import InputField from '../../../../components/InputField/InputField';
@@ -20,11 +21,12 @@ import styles from '../Students.module.css';
 interface StudentsListTabProps {
     students: StudentsDto[];
     groups: GroupDto[];
+    rooms: RoomDto[];
     isEducator: boolean;
     onStudentClick: (studentId: number) => void;
 }
 
-const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isEducator, onStudentClick }) => {
+const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, rooms, isEducator, onStudentClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
     const [selectedGroupId, setSelectedGroupId] = useState<number | 'all'>('all');
@@ -62,6 +64,22 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isE
         { value: 'male', label: 'Мужской' },
         { value: 'female', label: 'Женский' },
     ];
+
+    const roomCapacityMap = useMemo(() => {
+        const map = new Map<number, number>();
+        rooms.forEach(room => {
+            map.set(room.id, room.capacity);
+        });
+        return map;
+    }, [rooms]);
+
+    const formatResidenceInfo = (student: StudentsDto) => {
+        if (!student.blockNumber) {
+            return '—';
+        }
+        const capacity = student.roomId ? roomCapacityMap.get(student.roomId) : null;
+        return `${student.blockNumber} (${capacity ?? '—'})`;
+    };
 
     const processedStudents = useMemo(() => {
         let result = [...students];
@@ -136,6 +154,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isE
             student.origin ?? '',
             student.phone ?? '',
             formatBirthdayForExport(student.birthday),
+            formatResidenceInfo(student),
         ]));
 
         const worksheet = XLSX.utils.aoa_to_sheet([headerRow, ...bodyRows]);
@@ -208,6 +227,11 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isE
             title: 'День рождения',
             sortable: true,
             render: (student: StudentsDto) => formatBirthday(student.birthday),
+        },
+        {
+            key: 'residence',
+            title: 'Проживание',
+            render: (student: StudentsDto) => formatResidenceInfo(student),
         },
     ];
 
@@ -298,6 +322,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isE
                     totalCount={students.length}
                     columns={columns}
                     rowAction={rowAction}
+                    onRowClick={(student) => onStudentClick(student.id)}
                     enableSorting={true}
                     onSortRequest={requestSort}
                     sortConfig={sortConfig}
@@ -345,6 +370,10 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, isE
                                     <div className={styles.blockMeta}>
                                         <span className={styles.blockMetaLabel}>Блок</span>
                                         <span className={styles.blockMetaValue}>{student.blockNumber || 'Нет'}</span>
+                                    </div>
+                                    <div className={styles.blockMeta}>
+                                        <span className={styles.blockMetaLabel}>Проживание</span>
+                                        <span className={styles.blockMetaValue}>{formatResidenceInfo(student)}</span>
                                     </div>
                                 </div>
                             </div>

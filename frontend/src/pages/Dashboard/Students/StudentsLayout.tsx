@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
 
 import type { StudentsDto } from '../../../types/students';
 import type { GroupDto } from '../../../types/groups';
 import type { UserSession } from '../../../types/UserSession';
+import type { RoomDto } from '../../../types/rooms';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import StudentsListTab from './components/StudentsListTab';
@@ -21,9 +22,11 @@ const StudentsLayout: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [students, setStudents] = useState<StudentsDto[]>([]);
     const [groups, setGroups] = useState<GroupDto[]>([]);
+    const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [isMobileViewport, setIsMobileViewport] = useState(false);
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
@@ -38,8 +41,12 @@ const StudentsLayout: React.FC = () => {
 
     const fetchStudents = useCallback(async () => {
         try {
-            const studentsResponse = await apiClient.getAllStudents();
+            const [studentsResponse, roomsResponse] = await Promise.all([
+                apiClient.getAllStudents(),
+                apiClient.getAllRooms(),
+            ]);
             setStudents(studentsResponse);
+            setRooms(roomsResponse);
             setError(null);
         } catch (err: any) {
             console.error('Ошибка при обновлении списка студентов:', err);
@@ -51,12 +58,14 @@ const StudentsLayout: React.FC = () => {
         const fetchInitialData = async () => {
             try {
                 setLoading(true);
-                const [studentsResponse, groupsResponse] = await Promise.all([
+                const [studentsResponse, groupsResponse, roomsResponse] = await Promise.all([
                     apiClient.getAllStudents(),
                     apiClient.getAllGroups(),
+                    apiClient.getAllRooms(),
                 ]);
                 setStudents(studentsResponse);
                 setGroups(groupsResponse);
+                setRooms(roomsResponse);
                 setError(null);
             } catch (err: any) {
                 console.error('Ошибка при загрузке данных:', err);
@@ -103,6 +112,7 @@ const StudentsLayout: React.FC = () => {
                         students={students}
                         groups={groups}
                         isEducator={isEducator}
+                        rooms={rooms}
                         onStudentClick={handleStudentClick}
                     />
                 ),
@@ -138,7 +148,23 @@ const StudentsLayout: React.FC = () => {
         }
 
         return items;
-    }, [students, groups, isEducator, canUseImportTab, fetchStudents, handleStudentClick]);
+    }, [students, groups, rooms, isEducator, canUseImportTab, fetchStudents, handleStudentClick]);
+
+    useEffect(() => {
+        const state = location.state as { fromSidebar?: boolean } | null;
+        if (!state?.fromSidebar) {
+            return;
+        }
+
+        setActiveTabId(STUDENTS_DEFAULT_TAB_ID);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(STUDENTS_TAB_STORAGE_KEY, STUDENTS_DEFAULT_TAB_ID);
+        }
+
+        const { fromSidebar, ...restState } = state;
+        const nextState = Object.keys(restState).length ? restState : undefined;
+        navigate(location.pathname, { replace: true, state: nextState });
+    }, [location.state, location.pathname, navigate]);
 
     useEffect(() => {
         if (tabs.some(tab => tab.id === activeTabId)) {

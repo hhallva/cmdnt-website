@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getUserSession } from '../../../components/ProtectedRoute';
 import { apiClient } from '../../../api/client';
@@ -23,6 +23,8 @@ import EditUserModal from './components/EditUserModal/EditUserModal';
 import styles from './User.module.css'
 
 const MOBILE_MENU_WIDTH = 220;
+const USERS_TAB_STORAGE_KEY = 'users-active-tab';
+const USERS_DEFAULT_TAB_ID = 'list';
 
 const UsersLayout: React.FC = () => {
     // #region Загрузка данных
@@ -35,6 +37,13 @@ const UsersLayout: React.FC = () => {
     const [users, setUsers] = useState<UserDto[]>([]);
     const [roles, setRoles] = useState<RoleDto[]>([]);
     const navigate = useNavigate();
+    const location = useLocation();
+    const [activeTabId, setActiveTabId] = useState<string>(() => {
+        if (typeof window === 'undefined') {
+            return USERS_DEFAULT_TAB_ID;
+        }
+        return sessionStorage.getItem(USERS_TAB_STORAGE_KEY) || USERS_DEFAULT_TAB_ID;
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -81,6 +90,29 @@ const UsersLayout: React.FC = () => {
         }
     };
     // #endregion
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        sessionStorage.setItem(USERS_TAB_STORAGE_KEY, activeTabId);
+    }, [activeTabId]);
+
+    useEffect(() => {
+        const state = location.state as { fromSidebar?: boolean } | null;
+        if (!state?.fromSidebar) {
+            return;
+        }
+
+        setActiveTabId(USERS_DEFAULT_TAB_ID);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(USERS_TAB_STORAGE_KEY, USERS_DEFAULT_TAB_ID);
+        }
+
+        const { fromSidebar, ...restState } = state;
+        const nextState = Object.keys(restState).length ? restState : undefined;
+        navigate(location.pathname, { replace: true, state: nextState });
+    }, [location.state, location.pathname, navigate]);
 
     // #region Список пользователей 
 
@@ -673,10 +705,20 @@ const UsersLayout: React.FC = () => {
         }
     ];
 
+    const handleTabChange = (tabId: string) => {
+        if (tabs.some(tab => tab.id === tabId)) {
+            setActiveTabId(tabId);
+        }
+    };
+
     return (
         <>
             <StatisticsCard stats={userStats} />
-            <Tabs tabs={tabs} defaultActiveTabId="list" />
+            <Tabs
+                tabs={tabs}
+                activeTabId={activeTabId}
+                onTabChange={handleTabChange}
+            />
 
             {showChangePasswordModal && userForPasswordChange && (
                 <ChangePasswordModal

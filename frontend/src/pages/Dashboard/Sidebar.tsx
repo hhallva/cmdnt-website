@@ -99,6 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
                 <li key={index} className={listClasses}>
                     <NavLink
                         to={item.path}
+                        state={{ fromSidebar: true }}
                         className={({ isActive: navLinkActive }) => buildLinkClasses(navLinkActive || isActive)}
                         onClick={variant === 'mobile' ? () => setIsMobileMenuOpen(false) : undefined}
                     >
