@@ -182,11 +182,13 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
             isValid = false;
         }
 
-        if (newStudent.phone?.trim()) {
-            if (!isPhoneValid(newStudent.phone)) {
-                errors.phone = 'Разрешен формат 8XXXXXXXXXX';
-                isValid = false;
-            }
+        const trimmedPhoneValue = newStudent.phone?.trim() ?? '';
+        if (!trimmedPhoneValue) {
+            errors.phone = 'Поле обязательно';
+            isValid = false;
+        } else if (!isPhoneValid(trimmedPhoneValue)) {
+            errors.phone = 'Разрешен формат 8XXXXXXXXXX';
+            isValid = false;
         }
 
         const contactErrorsArray: { comment?: string; phone?: string }[] = [];
@@ -247,7 +249,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                 ...newStudent,
                 groupId: newStudent.groupId && newStudent.groupId !== 0 ? newStudent.groupId : null,
                 origin: trimmedOrigin ? trimmedOrigin : null,
-                phone: trimmedPhone ? trimmedPhone : null,
+                phone: trimmedPhone,
             };
 
             const createdStudent = await apiClient.createStudent(studentDataToSend);
