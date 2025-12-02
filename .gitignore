@@ -2,3 +2,6 @@
 *.bkp
 *.bak
 ~$_*.docx
+/CmdntBackend
+/frontend
+.env
