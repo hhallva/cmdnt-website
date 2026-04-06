@@ -22,12 +22,12 @@ services:
       context: .
       dockerfile: CmdntBackend/CmdntApi/Dockerfile
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ConnectionStrings__DefaultConnection: Server=db;Port=3306;Database=${DB_NAME};User=${DB_USER};Password=${DB_PASSWORD}
       JWT__Key: ${JWT_KEY:-super-secret-key}
       ASPNETCORE_URLS: http://+:8080
       APPLY_MIGRATIONS_ON_STARTUP: "true"
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      CORS_ORIGINS: ${CORS_ORIGINS}
     depends_on:
       db:
         condition: service_healthy
@@ -39,7 +39,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        VITE_API_URL: ${FRONTEND_API_URL:-http://localhost:5000}
+        VITE_API_URL: ${FRONTEND_API_URL}
     depends_on:
       api:
         condition: service_started
@@ -63,4 +63,4 @@ services:
 
 volumes:
   db_data:
-    name: ${DB_VOLUME_NAME:-cmdnt_db_data}
+    name: ${DB_VOLUME_NAME}

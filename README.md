@@ -52,14 +52,17 @@
 
 ```env
 DB_ROOT_PASSWORD=...
-DB_NAME=cmdnt
-DB_USER=cmdnt_user
+DB_NAME=...
+DB_USER=...
 DB_PASSWORD=...
+DB_VOLUME_NAME=...
+
 ASPNETCORE_ENVIRONMENT=Production
 JWT_KEY=...
-FRONTEND_API_URL=https://api.domain.ru
-CORS_ORIGINS=https://cmdnt.domain.ru
-DB_VOLUME_NAME=cmdnt_db_data
+FRONTEND_API_URL=http://localhost:5000
+
+VITE_API_URL=http://localhost:5173
+CORS_ORIGINS=http://localhost:5173
 ```
 
 Дополнительно для фронтенда нужен `VITE_API_URL` в `frontend/.env`.
