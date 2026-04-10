@@ -19,5 +19,7 @@
         public virtual Role Role { get; set; } = null!;
 
         public virtual ICollection<Note> Notes { get; set; } = [];
+
+        public virtual ICollection<Building> Buildings { get; set; } = [];
     }
 }

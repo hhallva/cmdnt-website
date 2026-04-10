@@ -19,6 +19,8 @@ namespace DataLayer.Data
 
         public virtual DbSet<User> Users { get; set; } = null!;
 
+        public virtual DbSet<Building> Buildings { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Contact>(entity =>
@@ -75,6 +77,9 @@ namespace DataLayer.Data
                 entity.ToTable("Room");
 
                 entity.Property(e => e.RoomNumber).HasColumnName("Room");
+                entity.HasOne(d => d.Building).WithMany(p => p.Rooms)
+                    .HasForeignKey(d => d.BuildingId)
+                    .HasConstraintName("FK_Room_Building");
             });
 
             modelBuilder.Entity<Student>(entity =>
@@ -128,6 +133,31 @@ namespace DataLayer.Data
                     .HasForeignKey(d => d.RoleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_User_Role");
+            });
+
+            modelBuilder.Entity<Building>(entity =>
+            {
+                entity.ToTable("Building");
+
+                entity.Property(e => e.Address).HasMaxLength(300);
+                entity.Property(e => e.Latitude).HasColumnType("decimal(9, 6)");
+                entity.Property(e => e.Longitude).HasColumnType("decimal(9, 6)");
+                entity.Property(e => e.Name).HasMaxLength(100);
+
+                entity.HasMany(d => d.Users).WithMany(p => p.Buildings)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "Distribution",
+                        r => r.HasOne<User>().WithMany()
+                            .HasForeignKey("UserId")
+                            .HasConstraintName("FK_Distribution_User"),
+                        l => l.HasOne<Building>().WithMany()
+                            .HasForeignKey("BuildingId")
+                            .HasConstraintName("FK_Distribution_Building"),
+                        j =>
+                        {
+                            j.HasKey("BuildingId", "UserId");
+                            j.ToTable("Distribution");
+                        });
             });
 
             modelBuilder.Entity<Group>().HasData(
@@ -185,22 +215,10 @@ namespace DataLayer.Data
             );
 
             modelBuilder.Entity<Role>().HasData(
-                           new Role
-                           {
-                               Id = 1,
-                               Name = "Администратор"
-                           },
-                            new Role
-                            {
-                                Id = 2,
-                                Name = "Комендант"
-                            },
-                            new Role
-                            {
-                                Id = 3,
-                                Name = "Воспитатель"
-                            }
-                       );
+                new Role { Id = 1, Name = "Администратор" },
+                new Role { Id = 2, Name = "Комендант" },
+                new Role { Id = 3, Name = "Воспитатель" }
+            );
 
             modelBuilder.Entity<User>().HasData(
                 new User
