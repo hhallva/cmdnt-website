@@ -4,7 +4,7 @@
 
 ## Архитектура
 
-- **Backend:** `CmdntBackend/CmdntApi` – ASP.NET Core 8 Web API + общий слой `DataLayer`. Используется Entity Framework Core, MySQL и JWT-аутентификация. DTO/мапперы хранятся в `DataLayer/DTOs`, миграции – в `DataLayer/Migrations`.
+- **Backend:** `backend/API` – ASP.NET Core 8 Web API + общий слой `Core`. Используется Entity Framework Core, MySQL и JWT-аутентификация. DTO/мапперы хранятся в `Core/DTOs`, миграции – в `Core/Migrations`.
 - **Frontend:** `frontend/` – Vite + React 18 + TypeScript. UI строится на собственных компонентах (ActionButton, CommonTable, Tabs и др.) и CSS‑модулях. Все HTTP-запросы идут через `src/api/client.ts`.
 - **Инфраструктура:** Docker Compose описывает API, фронтенд и БД. GitHub Actions (`.github/workflows/deploy.yml`) копирует артефакты на сервер и собирает контейнеры, после чего перезапускает Caddy.
 
@@ -19,14 +19,14 @@
 
 ### Backend
 
-1. Перейдите в корень backend: `cd CmdntBackend`.
-2. Установите зависимости: `dotnet restore CmdntBackend.sln`.
+1. Перейдите в корень backend: `cd backend`.
+2. Установите зависимости: `dotnet restore backend.sln`.
 3. Примените миграции (укажите пароль БД):
 	 ```powershell
-	 dotnet ef database update --project DataLayer --startup-project CmdntApi
+	 dotnet ef database update --project Core --startup-project API
 	 ```
-4. Создайте `CmdntApi/appsettings.Development.json` (или User Secrets) со значениями подключения MySQL и `JWT:Key`.
-5. Запустите API: `dotnet watch run --project CmdntApi` (по умолчанию http://localhost:5000).
+4. Создайте `API/appsettings.Development.json` (или User Secrets) со значениями подключения MySQL и `JWT:Key`.
+5. Запустите API: `dotnet watch run --project API` (по умолчанию http://localhost:5000).
 
 ### Frontend
 
@@ -85,9 +85,9 @@ Workflow `deploy.yml` делает следующее:
 
 | Цель                   | Команда |
 |-----------------------|---------|
-| Запуск backend        | `dotnet watch run --project CmdntBackend/CmdntApi`
-| EF миграция           | `dotnet ef migrations add <Name> --project CmdntBackend/DataLayer --startup-project CmdntBackend/CmdntApi`
-| Применить миграции    | `dotnet ef database update --project CmdntBackend/DataLayer --startup-project CmdntBackend/CmdntApi`
+| Запуск backend        | `dotnet watch run --project backend/API`
+| EF миграция           | `dotnet ef migrations add <Name> --project backend/Core --startup-project backend/API`
+| Применить миграции    | `dotnet ef database update --project backend/Core --startup-project backend/API`
 | Запуск frontend       | `npm run dev --prefix frontend`
 | Сборка frontend       | `npm run build --prefix frontend`
 | Docker Compose        | `docker compose up -d --build`
@@ -95,9 +95,9 @@ Workflow `deploy.yml` делает следующее:
 ## Структура репозитория
 
 ```
-CmdntBackend/
-	CmdntApi/            # ASP.NET Core API (Controllers, Program.cs, Dockerfile)
-	DataLayer/           # EF Core модели, DTO, миграции
+backend/
+	API/            # ASP.NET Core API (Controllers, Program.cs, Dockerfile)
+	Core/           # EF Core модели, DTO, миграции
 frontend/
 	src/
 		api/               # HTTP-клиент и эндпоинты
