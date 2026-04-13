@@ -11,7 +11,7 @@ namespace Core.Services
     {
         public string GenerateToken(User user)
         {
-            var keyString = config["JWT:Key"];
+            var keyString = config["JWT_KEY"];
             if (string.IsNullOrEmpty(keyString))
                 throw new InvalidOperationException("JWT:Key configuration value is missing or empty.");
 

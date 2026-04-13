@@ -1,6 +1,10 @@
-@CmdntApi_HostAddress = http://localhost:5183
+@Host = https://localhost:5001/api/v1
 
-GET {{CmdntApi_HostAddress}}/weatherforecast/
-Accept: application/json
-
+POST {{Host}}/SignIn
+Accept: text/plain
+Content-Type: application/json
+{
+  "login": "superadmin",
+  "password": "sdflndsfjdsfe12"
+}
 ###

@@ -105,6 +105,7 @@ frontend/
 		hooks/             # Кастомные хуки (структура, расселение, данные)
 		pages/             # Экран “Students”, “Structure”, “Users” и пр.
 docker-compose.yml     # Контейнеры API, фронта и MySQL
+.env				   # Общие переменнеые окружения
 .github/workflows/     # Авто-деплой через GitHub Actions
 ```
 
