@@ -48,7 +48,7 @@ namespace API.Controllers
             var group = await _context.Groups.FindAsync(id);
 
             if (group == null)
-                return NotFound(new ApiErrorDto("Группа не найдены", StatusCodes.Status404NotFound));
+                return NotFound(new ApiErrorDto("Группа не найдена", StatusCodes.Status404NotFound));
 
             var response = new GroupDto
             {
