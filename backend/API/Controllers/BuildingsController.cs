@@ -13,11 +13,12 @@ namespace API.Controllers
     [SwaggerTag("Управление строениями")]
     [Route("api/v1/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class BuildingsController(AppDbContext context) : ControllerBase
     {
         private readonly AppDbContext _context = context;
 
+        #region Здания
         [HttpGet]
         [SwaggerOperation(
             Summary = "Получение списка всех зданий",
@@ -126,5 +127,6 @@ namespace API.Controllers
 
             return NoContent();
         }
+        #endregion
     }
 }
