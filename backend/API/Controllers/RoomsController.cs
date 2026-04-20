@@ -17,21 +17,6 @@ namespace API.Controllers
     {
         private readonly AppDbContext _context = context;
 
-        [HttpGet]
-        [SwaggerOperation(
-            Summary = "Получение списка всех комнат",
-            Description = "Возвращает полный список комнат общежития с информацией о вместимости, текущем заселении и поле проживающих.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Список комнат успешно получен.", Type = typeof(IEnumerable<RoomDto>))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Комнаты не найдены.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<IEnumerable<RoomDto>>> GetAllRooms()
-        {
-            var rooms = await _context.Rooms
-                .Include(r => r.Students)
-                .ToListAsync();
-
-            return Ok(rooms.Select(r => r.ToDto()));
-        }
-
         [HttpGet("{id}")]
         [SwaggerOperation(
             Summary = "Получение информации о комнате по ID",
@@ -108,17 +93,25 @@ namespace API.Controllers
         [HttpPost]
         [SwaggerOperation(
             Summary = "Создание новой комнаты",
-            Description = "Регистрирует новую комнату в общежитии с указанием этажа, номера и вместимости.")]
+            Description = "Регистрирует новую комнату в общежитии с указанием здания, этажа, номера и вместимости.")]
         [SwaggerResponse(StatusCodes.Status201Created, "Комната успешно создана.", Type = typeof(RoomDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Здание не найдено.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<Room>> PostRoom(
             [SwaggerRequestBody("Данные новой комнаты", Required = true)] PostRoomDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
 
+            var buildingExists = await _context.Buildings
+                .AnyAsync(b => b.Id == dto.BuildingId);
+
+            if (!buildingExists)
+                return NotFound(new ApiErrorDto("Здание не найдено", StatusCodes.Status404NotFound));
+
             var room = new Room
             {
+                BuildingId = dto.BuildingId,
                 FloorNumber = dto.FloorNumber,
                 RoomNumber = dto.RoomNumber,
                 Capacity = dto.Capacity,

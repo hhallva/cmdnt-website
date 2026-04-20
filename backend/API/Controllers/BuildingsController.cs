@@ -1,6 +1,7 @@
 ﻿using Core.Data;
 using Core.DTOs;
 using Core.DTOs.Buildings;
+using Core.DTOs.Rooms;
 using Core.DTOs.Students;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -126,6 +127,24 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+        #endregion
+
+        #region Комнаты
+        [HttpGet("{id}/rooms")]
+        [SwaggerOperation(
+            Summary = "Получение списка всех комнат здания",
+            Description = "Возвращает полный список комнат указанного здания с информацией о вместимости, текущем заселении и поле проживающих.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Список комнат успешно получен.", Type = typeof(IEnumerable<RoomDto>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Комнаты не найдены.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<IEnumerable<RoomDto>>> GetAllRooms(int id)
+        {
+            var rooms = await _context.Rooms
+                .Where(predicate => predicate.BuildingId == id)
+                .Include(r => r.Students)
+                .ToListAsync();
+
+            return Ok(rooms.Select(r => r.ToDto()));
         }
         #endregion
     }

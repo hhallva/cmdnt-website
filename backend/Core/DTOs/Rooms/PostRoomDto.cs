@@ -4,6 +4,10 @@ namespace Core.DTOs.Rooms
 {
     public class PostRoomDto
     {
+        [Required(ErrorMessage = "Идентификатор здания обязателен.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Идентификатор здания должен быть положительным числом")]
+        public int BuildingId { get; set; }
+
         [Required(ErrorMessage = "Номер этажа обязателен.")]
         public int FloorNumber { get; set; }
 
