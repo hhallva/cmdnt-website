@@ -15,6 +15,7 @@ const BuildingsLayout: React.FC = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newBuildingName, setNewBuildingName] = useState('');
     const [newBuildingAddress, setNewBuildingAddress] = useState('');
+    const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
         const loadBuildings = async () => {
@@ -141,8 +142,33 @@ const BuildingsLayout: React.FC = () => {
         setNewBuildingAddress('');
     };
 
-    const handleAddSubmit = (event: React.FormEvent) => {
+    const handleAddSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+        const name = newBuildingName.trim();
+        const address = newBuildingAddress.trim();
+        if (!name || !address) {
+            alert('Заполните название и адрес.');
+            return;
+        }
+
+        setIsAdding(true);
+        try {
+            const created = await apiClient.createBuilding({
+                name,
+                address,
+                coordinates: {
+                    latitude: null,
+                    longitude: null,
+                },
+            });
+            setBuildings(prev => [created, ...prev]);
+            handleCloseAddModal();
+        } catch (err: any) {
+            console.error('Ошибка при добавлении здания:', err);
+            alert(err?.message || 'Не удалось добавить здание');
+        } finally {
+            setIsAdding(false);
+        }
     };
 
     return (
@@ -170,16 +196,18 @@ const BuildingsLayout: React.FC = () => {
                             type="text"
                             value={newBuildingName}
                             onChange={(e) => setNewBuildingName(e.target.value)}
+                            disabled={isAdding}
                         />
                         <InputField
                             label="Адрес"
                             type="text"
                             value={newBuildingAddress}
                             onChange={(e) => setNewBuildingAddress(e.target.value)}
+                            disabled={isAdding}
                         />
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <ActionButton size="md" variant="primary" type="submit">
-                                Добавить
+                            <ActionButton size="md" variant="primary" type="submit" disabled={isAdding}>
+                                {isAdding ? 'Добавляем…' : 'Добавить'}
                             </ActionButton>
                         </div>
                     </div>

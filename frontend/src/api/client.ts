@@ -16,7 +16,7 @@ import type { GroupDto } from '../types/groups'
 import type { RoomDto, PostRoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
 import type { StructureStatisticDto } from '../types/structures'
-import type { BuildingDto } from '../types/buildings'
+import type { BuildingDto, PostBuildingDto } from '../types/buildings'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -271,6 +271,16 @@ export const apiClient = {
   //#region Общежития
   getAllBuildings: async (): Promise<BuildingDto[]> => {
     return apiClient.requestWithAuth<BuildingDto[]>('/api/v1/Buildings');
+  },
+
+  createBuilding: async (payload: PostBuildingDto): Promise<BuildingDto> => {
+    return apiClient.requestWithAuth<BuildingDto>('/api/v1/Buildings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
   },
 
   getUserBuildings: async (userId: number): Promise<BuildingDto[]> => {

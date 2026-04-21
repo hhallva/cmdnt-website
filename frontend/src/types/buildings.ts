@@ -9,3 +9,9 @@ export interface BuildingDto {
     address: string;
     coordinates: CoordinatesDto;
 }
+
+export interface PostBuildingDto {
+    name: string;
+    address: string;
+    coordinates: CoordinatesDto;
+}
