@@ -28,6 +28,8 @@ const BuildingsLayout: React.FC = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newBuildingName, setNewBuildingName] = useState('');
     const [newBuildingAddress, setNewBuildingAddress] = useState('');
+    const [nameError, setNameError] = useState<string | null>(null);
+    const [addressError, setAddressError] = useState<string | null>(null);
     const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
@@ -188,14 +190,37 @@ const BuildingsLayout: React.FC = () => {
         setIsAddModalOpen(false);
         setNewBuildingName('');
         setNewBuildingAddress('');
+        setNameError(null);
+        setAddressError(null);
     };
 
     const handleAddSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         const name = newBuildingName.trim();
         const address = newBuildingAddress.trim();
-        if (!name || !address) {
-            alert('Заполните название и адрес.');
+        let hasError = false;
+
+        if (!name) {
+            setNameError('Название обязательно');
+            hasError = true;
+        } else if (name.length > 100) {
+            setNameError('Название не более 100 символов');
+            hasError = true;
+        } else {
+            setNameError(null);
+        }
+
+        if (!address) {
+            setAddressError('Адрес обязателен');
+            hasError = true;
+        } else if (address.length > 300) {
+            setAddressError('Адрес не более 300 символов');
+            hasError = true;
+        } else {
+            setAddressError(null);
+        }
+
+        if (hasError) {
             return;
         }
 
@@ -270,14 +295,26 @@ const BuildingsLayout: React.FC = () => {
                                     label="Название"
                                     type="text"
                                     value={newBuildingName}
-                                    onChange={(e) => setNewBuildingName(e.target.value)}
+                                    onChange={(e) => {
+                                        setNewBuildingName(e.target.value);
+                                        if (nameError) {
+                                            setNameError(null);
+                                        }
+                                    }}
+                                    error={nameError ?? undefined}
                                     disabled={isAdding}
                                 />
                                 <InputField
                                     label="Адрес"
                                     type="text"
                                     value={newBuildingAddress}
-                                    onChange={(e) => setNewBuildingAddress(e.target.value)}
+                                    onChange={(e) => {
+                                        setNewBuildingAddress(e.target.value);
+                                        if (addressError) {
+                                            setAddressError(null);
+                                        }
+                                    }}
+                                    error={addressError ?? undefined}
                                     disabled={isAdding}
                                 />
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
