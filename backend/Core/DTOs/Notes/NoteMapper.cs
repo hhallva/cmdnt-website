@@ -1,5 +1,3 @@
-using System.Linq;
-using Core.DTOs;
 using Core.Models;
 
 namespace Core.DTOs.Notes

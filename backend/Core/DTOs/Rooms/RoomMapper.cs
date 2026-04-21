@@ -8,14 +8,18 @@ namespace Core.DTOs.Rooms
         {
             ArgumentNullException.ThrowIfNull(room);
 
+            var activeResettlements = room.Resettlements
+                .Where(resettlement => resettlement.CheckInDate.HasValue && !resettlement.CheckOutDate.HasValue)
+                .ToList();
+
             return new RoomDto
             {
                 Id = room.Id,
                 FloorNumber = room.FloorNumber,
                 RoomNumber = (room.FloorNumber * 100 + room.RoomNumber).ToString(),
                 Capacity = room.Capacity,
-                CurrentCapacity = room.Students.Count,
-                GenderType = room.Students.Count == 0 ? null : room.Students.First().Gender
+                CurrentCapacity = activeResettlements.Count,
+                GenderType = activeResettlements.Count == 0 ? null : activeResettlements[0].Student.Gender
             };
         }
     }

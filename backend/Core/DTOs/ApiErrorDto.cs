@@ -9,6 +9,7 @@
         public int ErrorCode { get; } = errorCode;
 
         public ApiErrorDto(string message, int errorCode) :
-            this(DateTimeOffset.UtcNow.ToUnixTimeSeconds(), message, errorCode) { }
+            this(DateTimeOffset.UtcNow.ToUnixTimeSeconds(), message, errorCode)
+        { }
     }
 }

@@ -1,13 +1,12 @@
-﻿namespace Core.Models
+﻿namespace Core.Models;
+
+public partial class Group
 {
-    public partial class Group
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public string Name { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
-        public int Course { get; set; }
+    public int Course { get; set; }
 
-        public virtual ICollection<Student> Students { get; set; } = [];
-    }
+    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

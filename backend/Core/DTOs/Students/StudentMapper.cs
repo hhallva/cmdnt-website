@@ -9,6 +9,10 @@ namespace Core.DTOs.Students
         {
             ArgumentNullException.ThrowIfNull(student);
 
+            var activeResettlement = student.Resettlements
+                .FirstOrDefault(resettlement =>
+                    resettlement.CheckInDate.HasValue && !resettlement.CheckOutDate.HasValue);
+
             return new StudentDto
             {
                 Id = student.Id,
@@ -24,12 +28,10 @@ namespace Core.DTOs.Students
                     Course = student.Group.Course,
                     Name = student.Group.Name,
                 },
-                RoomId = student.Rooms.Count != 0
-                               ? student.Rooms.First().Id
-                               : null,
-                BlockNumber = student.Rooms.Count != 0
-                               ? $"{student.Rooms.First().FloorNumber}{student.Rooms.First().RoomNumber:D2}"
-                               : null,
+                RoomId = activeResettlement?.Room.Id,
+                BlockNumber = activeResettlement == null
+                    ? null
+                    : $"{activeResettlement.Room.FloorNumber}{activeResettlement.Room.RoomNumber:D2}",
                 Origin = student.Origin
             };
         }

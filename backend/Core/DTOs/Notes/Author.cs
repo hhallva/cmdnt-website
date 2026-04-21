@@ -1,5 +1,3 @@
-using Core.DTOs;
-
 namespace Core.DTOs.Notes
 {
     public partial class Author

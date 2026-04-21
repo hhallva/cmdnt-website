@@ -1,25 +1,24 @@
-﻿namespace Core.Models
+﻿namespace Core.Models;
+
+public partial class User
 {
-    public partial class User
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public string Surname { get; set; } = null!;
+    public int RoleId { get; set; }
 
-        public string Name { get; set; } = null!;
+    public string Surname { get; set; } = null!;
 
-        public string? Patronymic { get; set; }
+    public string Name { get; set; } = null!;
 
-        public string Login { get; set; } = null!;
+    public string? Patronymic { get; set; }
 
-        public string HashPassword { get; set; } = null!;
+    public string Login { get; set; } = null!;
 
-        public int RoleId { get; set; }
+    public string HashPassword { get; set; } = null!;
 
-        public virtual Role Role { get; set; } = null!;
+    public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
 
-        public virtual ICollection<Note> Notes { get; set; } = [];
+    public virtual Role Role { get; set; } = null!;
 
-        public virtual ICollection<Building> Buildings { get; set; } = [];
-    }
+    public virtual ICollection<Building> Buildings { get; set; } = new List<Building>();
 }

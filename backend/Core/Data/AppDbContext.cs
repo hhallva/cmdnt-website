@@ -21,8 +21,39 @@ namespace Core.Data
 
         public virtual DbSet<Building> Buildings { get; set; } = null!;
 
+        public virtual DbSet<Equipment> Equipment { get; set; } = null!;
+
+        public virtual DbSet<Resettlement> Resettlements { get; set; } = null!;
+
+        public virtual DbSet<RoomEquipment> RoomEquipments { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Building>(entity =>
+            {
+                entity.ToTable("Building");
+
+                entity.Property(e => e.Address).HasMaxLength(300);
+                entity.Property(e => e.Latitude).HasColumnType("decimal(9, 6)");
+                entity.Property(e => e.Longitude).HasColumnType("decimal(9, 6)");
+                entity.Property(e => e.Name).HasMaxLength(100);
+
+                entity.HasMany(d => d.Users).WithMany(p => p.Buildings)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "Distribution",
+                        r => r.HasOne<User>().WithMany()
+                            .HasForeignKey("UserId")
+                            .HasConstraintName("FK_Distribution_User"),
+                        l => l.HasOne<Building>().WithMany()
+                            .HasForeignKey("BuildingId")
+                            .HasConstraintName("FK_Distribution_Building"),
+                        j =>
+                        {
+                            j.HasKey("BuildingId", "UserId");
+                            j.ToTable("Distribution");
+                        });
+            });
+
             modelBuilder.Entity<Contact>(entity =>
             {
                 entity.ToTable("Contact");
@@ -36,6 +67,11 @@ namespace Core.Data
                     .HasForeignKey(d => d.StudentId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Contact_Student");
+            });
+
+            modelBuilder.Entity<Equipment>(entity =>
+            {
+                entity.Property(e => e.Name).HasMaxLength(300);
             });
 
             modelBuilder.Entity<Group>(entity =>
@@ -63,6 +99,21 @@ namespace Core.Data
                     .HasConstraintName("FK_Note_User");
             });
 
+            modelBuilder.Entity<Resettlement>(entity =>
+            {
+                entity.HasKey(e => new { e.StudentId, e.RoomId });
+
+                entity.ToTable("Resettlement");
+
+                entity.HasOne(d => d.Room).WithMany(p => p.Resettlements)
+                    .HasForeignKey(d => d.RoomId)
+                    .HasConstraintName("FK_Resettlement_Room");
+
+                entity.HasOne(d => d.Student).WithMany(p => p.Resettlements)
+                    .HasForeignKey(d => d.StudentId)
+                    .HasConstraintName("FK_Resettlement_Student");
+            });
+
             modelBuilder.Entity<Role>(entity =>
             {
                 entity.ToTable("Role");
@@ -82,10 +133,26 @@ namespace Core.Data
                     .HasConstraintName("FK_Room_Building");
             });
 
+            modelBuilder.Entity<RoomEquipment>(entity =>
+            {
+                entity.HasKey(e => new { e.RoomId, e.EquipmentId });
+
+                entity.ToTable("RoomEquipment");
+
+                entity.HasOne(d => d.Equipment).WithMany(p => p.RoomEquipments)
+                    .HasForeignKey(d => d.EquipmentId)
+                    .HasConstraintName("FK_RoomEquipment_Equipment");
+
+                entity.HasOne(d => d.Room).WithMany(p => p.RoomEquipments)
+                    .HasForeignKey(d => d.RoomId)
+                    .HasConstraintName("FK_RoomEquipment_Room");
+            });
+
             modelBuilder.Entity<Student>(entity =>
             {
                 entity.ToTable("Student");
 
+                entity.Property(e => e.Image).IsUnicode(false);
                 entity.Property(e => e.Name).HasMaxLength(100);
                 entity.Property(e => e.Origin).HasMaxLength(300);
                 entity.Property(e => e.Patronymic).HasMaxLength(100);
@@ -98,23 +165,6 @@ namespace Core.Data
                     .HasForeignKey(d => d.GroupId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Student_Group");
-
-                entity.HasMany(d => d.Rooms).WithMany(p => p.Students)
-                    .UsingEntity<Dictionary<string, object>>(
-                        "Resettlement",
-                        r => r.HasOne<Room>().WithMany()
-                            .HasForeignKey("RoomId")
-                            .OnDelete(DeleteBehavior.Cascade)
-                            .HasConstraintName("FK_Resettlement_Room"),
-                        l => l.HasOne<Student>().WithMany()
-                            .HasForeignKey("StudentId")
-                            .OnDelete(DeleteBehavior.Cascade)
-                            .HasConstraintName("FK_Resettlement_Student"),
-                        j =>
-                        {
-                            j.HasKey("StudentId", "RoomId");
-                            j.ToTable("Resettlement");
-                        });
             });
 
             modelBuilder.Entity<User>(entity =>
