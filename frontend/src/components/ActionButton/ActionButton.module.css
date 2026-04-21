@@ -18,6 +18,9 @@
 }
 
 .actionButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin: 0;
     padding: 1.25rem 0.75rem;
     border-radius: 0.75rem;
@@ -119,6 +122,8 @@
 
 .actionButton.size-md {
     padding: 0.75rem 1.25rem;
+    height: 2.5rem;
+
     font-size: 14px;
 }
 

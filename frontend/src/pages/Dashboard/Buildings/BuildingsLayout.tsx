@@ -33,10 +33,6 @@ const BuildingsLayout: React.FC = () => {
     const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            sessionStorage.removeItem(ACTIVE_BUILDING_STORAGE_KEY);
-        }
-
         const loadBuildings = async () => {
             try {
                 setLoading(true);
@@ -53,6 +49,26 @@ const BuildingsLayout: React.FC = () => {
 
         loadBuildings();
     }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const stored = sessionStorage.getItem(ACTIVE_BUILDING_STORAGE_KEY);
+        if (!stored) {
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { id: number };
+            if (parsed?.id) {
+                navigate(`/dashboard/accomodation/${parsed.id}`);
+            }
+        } catch {
+            // Ignore invalid session storage.
+        }
+    }, [navigate]);
 
     useEffect(() => {
         const loadSummary = async () => {
@@ -94,6 +110,33 @@ const BuildingsLayout: React.FC = () => {
         }
         navigate(`/dashboard/accomodation/${building.id}`, { state: { building } });
     }, [navigate]);
+
+    const searchBar = (
+        <div className={tabsStyles.tabsSurface} style={{ marginBottom: '2.75rem' }}>
+            <div className={structureStyles.searchSection}>
+                <div className={structureStyles.searchControls} style={{ gap: '1.75rem' }}>
+                    <div className={structureStyles.searchInputWrapper}>
+                        <InputField
+                            type="text"
+                            placeholder="Поиск по названию или адресу..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className={structureStyles.searchButtons}>
+                        <ActionButton
+                            size="md"
+                            variant="secondary"
+                            onClick={() => setSearchTerm('')}
+                            style={{ width: '13.25rem' }}
+                        >
+                            Сбросить
+                        </ActionButton>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     const filteredTiles = useMemo(() => {
         return filteredBuildings.map((building, index) => (
@@ -154,33 +197,6 @@ const BuildingsLayout: React.FC = () => {
 
         return <div className={structureStyles.blocksGrid}>{filteredTiles}</div>;
     }, [buildings.length, error, filteredBuildings.length, filteredTiles]);
-
-    const searchBar = (
-        <div className={tabsStyles.tabsSurface} style={{ marginBottom: '2.75rem' }}>
-            <div className={structureStyles.searchSection}>
-                <div className={structureStyles.searchControls} style={{ gap: '1.75rem' }}>
-                    <div className={structureStyles.searchInputWrapper}>
-                        <InputField
-                            type="text"
-                            placeholder="Поиск по названию или адресу..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className={structureStyles.searchButtons}>
-                        <ActionButton
-                            size="md"
-                            variant="secondary"
-                            onClick={() => setSearchTerm('')}
-                            style={{ width: '13.25rem' }}
-                        >
-                            Сбросить
-                        </ActionButton>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 
     const handleOpenAddModal = () => {
         setIsAddModalOpen(true);
@@ -278,8 +294,10 @@ const BuildingsLayout: React.FC = () => {
                     <div className={tabsStyles.tabsSurface} style={{ padding: '1.5rem', marginTop: '2.75rem', borderRadius: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <ActionButton size="md" variant="primary" onClick={handleOpenAddModal}>
-                                <span className="me-2">+</span>
-                                Добавить
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                    <i className="bi bi-plus"></i>
+                                    <span>Добавить</span>
+                                </div>
                             </ActionButton>
                         </div>
                     </div>
@@ -326,7 +344,8 @@ const BuildingsLayout: React.FC = () => {
                         </form>
                     </CommonModal>
                 </>
-            )}
+            )
+            }
         </>
     );
 };
