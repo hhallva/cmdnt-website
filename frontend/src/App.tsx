@@ -4,6 +4,7 @@ import UsersLayout from './pages/Dashboard/Users/UserLayout';
 import StudentsLayout from './pages/Dashboard/Students/StudentsLayout';
 import StudentCardLayout from './pages/Dashboard/StudentCard/StudentCardLayout';
 import StructureLayout from './pages/Dashboard/Structure/StructureLayout';
+import BuildingsLayout from './pages/Dashboard/Buildings/BuildingsLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
 import NotFoundLayout from './pages/NotFound/NotFoundLayout';
@@ -22,6 +23,7 @@ export const routes = [
         <DashboardLayout />
       </ProtectedRoute>
     ),
+
     // Мета-данные для маршрута
     handle: { title: 'Панель управления' },
     // Вложенные маршруты внутри дашборда
@@ -30,6 +32,8 @@ export const routes = [
       { path: "accomodation", element: <StructureLayout />, handle: { title: 'Общежитие', requiredRole: 'educator' } },
       { path: "students", element: <StudentsLayout />, handle: { title: 'Студенты', requiredRole: 'educator' } },
       { path: "students/:studentId", element: <StudentCardLayout />, handle: { title: 'Карточка студента', requiredRole: 'educator' } },
+
+      { path: "buildings", element: <BuildingsLayout />, handle: { title: 'Здания', requiredRole: 'commandant' } },
 
       // Раздел пользователей (требуется роль admin)
       { path: "users", element: <UsersLayout />, handle: { title: 'Пользователи', requiredRole: 'admin' } },
