@@ -13,6 +13,4 @@ public partial class Building
     public decimal? Longitude { get; set; }
 
     public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
-
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

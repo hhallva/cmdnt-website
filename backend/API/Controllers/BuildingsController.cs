@@ -14,7 +14,7 @@ namespace API.Controllers
     [SwaggerTag("Управление строениями")]
     [Route("api/v1/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class BuildingsController(AppDbContext context) : ControllerBase
     {
         private readonly AppDbContext _context = context;
@@ -141,7 +141,8 @@ namespace API.Controllers
         {
             var rooms = await _context.Rooms
                 .Where(predicate => predicate.BuildingId == id)
-                .Include(r => r.Students)
+                .Include(r => r.Resettlements)
+                .ThenInclude(resettlement => resettlement.Student)
                 .ToListAsync();
 
             return Ok(rooms.Select(r => r.ToDto()));

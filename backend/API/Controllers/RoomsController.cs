@@ -27,7 +27,8 @@ namespace API.Controllers
             [SwaggerParameter(Description = "Уникальный идентификатор комнаты", Required = true)] int id)
         {
             var room = await _context.Rooms
-                .Include(r => r.Students)
+                .Include(r => r.Resettlements)
+                .ThenInclude(resettlement => resettlement.Student)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (room == null)
@@ -46,48 +47,24 @@ namespace API.Controllers
             [SwaggerParameter(Description = "Уникальный идентификатор комнаты", Required = true)] int id)
         {
             var room = await _context.Rooms
-                .Include(r => r.Students)
-                    .ThenInclude(s => s.Group)
+                .Include(r => r.Resettlements)
+                    .ThenInclude(resettlement => resettlement.Student)
+                        .ThenInclude(student => student.Group)
+                .Include(r => r.Resettlements)
+                    .ThenInclude(resettlement => resettlement.Student)
+                        .ThenInclude(student => student.Resettlements)
+                            .ThenInclude(resettlement => resettlement.Room)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (room == null)
                 return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
 
-            return Ok(room.Students.Select(s => s.ToDto()));
-        }
+            var activeStudents = room.Resettlements
+                .Where(resettlement => resettlement.CheckInDate.HasValue && !resettlement.CheckOutDate.HasValue)
+                .Select(resettlement => resettlement.Student)
+                .ToList();
 
-        [HttpPatch("{id}")]
-        [SwaggerOperation(
-            Summary = "Обновление вместимости комнаты",
-            Description = "Изменяет максимальную вместимость комнаты (поле Capacity).")]
-        [SwaggerResponse(StatusCodes.Status204NoContent, "Вместимость успешно обновлена.")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные в запросе.", Type = typeof(ApiErrorDto))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Комната не найдена.", Type = typeof(ApiErrorDto))]
-        [SwaggerResponse(StatusCodes.Status409Conflict, "Конфликт параллельного редактирования.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> PatchCapacity(
-            [SwaggerParameter(Description = "Уникальный идентификатор комнаты", Required = true)] int id,
-            [SwaggerRequestBody("Новое значение вместимости", Required = true)] UpdateCapacityDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
-
-            var room = await _context.Rooms.FindAsync(id);
-
-            if (room == null)
-                return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
-
-            room.Capacity = dto.Capacity;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return StatusCode(StatusCodes.Status409Conflict, new ApiErrorDto("Конфликт параллельного редактирования", StatusCodes.Status409Conflict));
-            }
-
-            return NoContent();
+            return Ok(activeStudents.Select(s => s.ToDto()));
         }
 
         [HttpPost]
@@ -121,7 +98,8 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
 
             await _context.Rooms
-                .Include(r => r.Students)
+                .Include(r => r.Resettlements)
+                .ThenInclude(resettlement => resettlement.Student)
                 .FirstOrDefaultAsync(r => r.Id == room.Id);
 
 
@@ -138,13 +116,13 @@ namespace API.Controllers
             [SwaggerParameter(Description = "Уникальный идентификатор комнаты", Required = true)] int id)
         {
             var room = await _context.Rooms
-                  .Include(g => g.Students)
+                .Include(r => r.Resettlements)
                   .FirstOrDefaultAsync(u => u.Id == id);
 
             if (room == null)
                 return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
 
-            room.Students.Clear();
+            _context.Resettlements.RemoveRange(room.Resettlements);
 
             _context.Rooms.Remove(room);
             await _context.SaveChangesAsync();

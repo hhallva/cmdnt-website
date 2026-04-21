@@ -1,9 +1,7 @@
 ﻿using Core.Data;
 using Core.DTOs;
-using Core.DTOs.Buildings;
 using Core.DTOs.Users;
 using Core.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
@@ -259,86 +257,6 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-        #endregion
-
-        #region Доступы
-        [HttpGet("{id}/buildings")]
-        [SwaggerOperation(
-            Summary = "Получение списка доступных зданий сотрудника",
-            Description = "Возвращает полный список зданий в системе.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Список зданий успешно получен.", Type = typeof(IEnumerable<BuildingDto>))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Здания не найдены.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<IEnumerable<BuildingDto>>> GetBuildings(
-            [SwaggerParameter(Description = "Уникальный идентификатор пользователя")] int id)
-        {
-            var user = await _context.Users
-                .Include(u => u.Buildings)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user == null)
-                return NotFound(new ApiErrorDto("Сотрудник не найден", StatusCodes.Status404NotFound));
-
-            var buildings = user.Buildings.Select(b => b.ToDto());
-
-            return Ok(buildings);
-        }
-
-        [HttpPatch("{id}/buildings/{buildingId}")]
-        [SwaggerOperation(
-            Summary = "Предоставить доступ к зданию",
-            Description = "Позволяет выдать сотруднику разрешение на доступ к управлению зданием")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Доступ успешно предоставлен.", Type = typeof(IEnumerable<BuildingDto>))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Объект не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<IEnumerable<BuildingDto>>> AddBuilding(
-            [SwaggerParameter(Description = "Уникальный идентификатор пользователя")] int id,
-            [SwaggerParameter(Description = "Уникальный идентификатор здания")] int buildingId)
-        {
-            var user = await _context.Users
-                .Include(u => u.Buildings)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user == null)
-                return NotFound(new ApiErrorDto("Сотрудник не найден", StatusCodes.Status404NotFound));
-            if (user.Buildings.Any(b => b.Id == buildingId))
-                return NotFound(new ApiErrorDto("Доступ к этому зданию был выдан ранее", StatusCodes.Status400BadRequest));
-
-            var building = await _context.Buildings.FindAsync(buildingId);
-
-            if (building == null)
-                return NotFound(new ApiErrorDto("Здание не найдено", StatusCodes.Status404NotFound));
-
-            user.Buildings.Add(building);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetBuildings), new { id = user.Id }, user.Buildings.Select(b => b.ToDto()));
-        }
-
-        [HttpDelete("{id}/buildings/{buildingId}")]
-        [SwaggerOperation(
-            Summary = "Забрать доступ к зданию",
-            Description = "Позволяет забрать разрешение на доступ к управлению зданием у сотрудниа")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Доступ успешно анулирован.", Type = typeof(IEnumerable<BuildingDto>))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Объект не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<IEnumerable<BuildingDto>>> DeleteBuilding(
-            [SwaggerParameter(Description = "Уникальный идентификатор пользователя")] int id,
-            [SwaggerParameter(Description = "Уникальный идентификатор здания")] int buildingId)
-        {
-            var user = await _context.Users
-                .Include(u => u.Buildings)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user == null)
-                return NotFound(new ApiErrorDto("Сотрудник не найден", StatusCodes.Status404NotFound));
-            if (!user.Buildings.Any(b => b.Id == buildingId))
-                return CreatedAtAction(nameof(GetBuildings), new { id = user.Id }, user.Buildings.Select(b => b.ToDto()));
-
-            var building = user.Buildings.First(b => b.Id == buildingId);
-            
-            user.Buildings.Remove(building);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetBuildings), new { id = user.Id }, user.Buildings.Select(b => b.ToDto()));
         }
         #endregion
     }

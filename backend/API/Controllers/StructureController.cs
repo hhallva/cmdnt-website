@@ -23,47 +23,15 @@ namespace API.Controllers
         {
             var totalCapacity = await _context.Rooms.SumAsync(r => r.Capacity);
 
-            var occupiedCount = await _context.Rooms
-                .SelectMany(r => r.Students)
-                .CountAsync();
+            var activeResettlements = _context.Resettlements
+                .Where(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue);
+
+            var occupiedCount = await activeResettlements.CountAsync();
 
             var freeCount = totalCapacity - occupiedCount;
 
-            var studentCount = await _context.Rooms
-                .SelectMany(r => r.Students)
-                .Select(s => s.Id)
-                .Distinct()
-                .CountAsync();
-
-            var statistic = new StructureStatisticDto
-            {
-                TotalCopacity = totalCapacity,
-                OccupiedCount = occupiedCount,
-                FreeCount = freeCount,
-                StudentCount = studentCount
-            };
-
-            return Ok(statistic);
-        }
-
-        [HttpGet]
-        [SwaggerOperation(
-           Summary = "Получение данных структуре общежития",
-           Description = "Возвращает данные по этажам и комнатам общежития")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Данные успешно получены.", Type = typeof(StructureStatisticDto))]
-        public async Task<ActionResult<StructureStatisticDto>> GetStructure()
-        {
-            var totalCapacity = await _context.Rooms.SumAsync(r => r.Capacity);
-
-            var occupiedCount = await _context.Rooms
-                .SelectMany(r => r.Students)
-                .CountAsync();
-
-            var freeCount = totalCapacity - occupiedCount;
-
-            var studentCount = await _context.Rooms
-                .SelectMany(r => r.Students)
-                .Select(s => s.Id)
+            var studentCount = await activeResettlements
+                .Select(r => r.StudentId)
                 .Distinct()
                 .CountAsync();
 

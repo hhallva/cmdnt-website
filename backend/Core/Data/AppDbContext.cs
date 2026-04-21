@@ -37,21 +37,6 @@ namespace Core.Data
                 entity.Property(e => e.Latitude).HasColumnType("decimal(9, 6)");
                 entity.Property(e => e.Longitude).HasColumnType("decimal(9, 6)");
                 entity.Property(e => e.Name).HasMaxLength(100);
-
-                entity.HasMany(d => d.Users).WithMany(p => p.Buildings)
-                    .UsingEntity<Dictionary<string, object>>(
-                        "Distribution",
-                        r => r.HasOne<User>().WithMany()
-                            .HasForeignKey("UserId")
-                            .HasConstraintName("FK_Distribution_User"),
-                        l => l.HasOne<Building>().WithMany()
-                            .HasForeignKey("BuildingId")
-                            .HasConstraintName("FK_Distribution_Building"),
-                        j =>
-                        {
-                            j.HasKey("BuildingId", "UserId");
-                            j.ToTable("Distribution");
-                        });
             });
 
             modelBuilder.Entity<Contact>(entity =>
@@ -185,31 +170,6 @@ namespace Core.Data
                     .HasConstraintName("FK_User_Role");
             });
 
-            modelBuilder.Entity<Building>(entity =>
-            {
-                entity.ToTable("Building");
-
-                entity.Property(e => e.Address).HasMaxLength(300);
-                entity.Property(e => e.Latitude).HasColumnType("decimal(9, 6)");
-                entity.Property(e => e.Longitude).HasColumnType("decimal(9, 6)");
-                entity.Property(e => e.Name).HasMaxLength(100);
-
-                entity.HasMany(d => d.Users).WithMany(p => p.Buildings)
-                    .UsingEntity<Dictionary<string, object>>(
-                        "Distribution",
-                        r => r.HasOne<User>().WithMany()
-                            .HasForeignKey("UserId")
-                            .HasConstraintName("FK_Distribution_User"),
-                        l => l.HasOne<Building>().WithMany()
-                            .HasForeignKey("BuildingId")
-                            .HasConstraintName("FK_Distribution_Building"),
-                        j =>
-                        {
-                            j.HasKey("BuildingId", "UserId");
-                            j.ToTable("Distribution");
-                        });
-            });
-
             modelBuilder.Entity<Group>().HasData(
                 new Group { Id = 1, Name = "ИСПВ-21", Course = 4 },
                 new Group { Id = 2, Name = "ИСПВ-22", Course = 4 },
@@ -268,19 +228,6 @@ namespace Core.Data
                 new Role { Id = 1, Name = "Администратор" },
                 new Role { Id = 2, Name = "Комендант" },
                 new Role { Id = 3, Name = "Воспитатель" }
-            );
-
-            modelBuilder.Entity<User>().HasData(
-                new User
-                {
-                    Id = 1000,
-                    Surname = "Админов",
-                    Name = "Админ",
-                    Patronymic = "Админович",
-                    Login = "superadmin",
-                    HashPassword = "$2a$11$d8vF3IhihB1tqrQJBD.0FOqi43KZx6OLTMZ49b5DyK.i7yLOa.P", //sdflndsfjdsfe12 
-                    RoleId = 1
-                }
             );
 
             OnModelCreatingPartial(modelBuilder);

@@ -20,5 +20,4 @@ public partial class User
 
     public virtual Role Role { get; set; } = null!;
 
-    public virtual ICollection<Building> Buildings { get; set; } = new List<Building>();
 }

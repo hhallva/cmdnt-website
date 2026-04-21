@@ -25,12 +25,12 @@ namespace API.Controllers
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudents()
         {
             var students = await _context.Students
-                .Include(s => s.Rooms)
+                .Include(s => s.Resettlements)
+                    .ThenInclude(r => r.Room)
                 .Include(s => s.Group)
                 .ToListAsync();
 
             return Ok(students.Select(s => s.ToDto()));
-
         }
 
         [HttpGet("{id}")]
@@ -44,7 +44,8 @@ namespace API.Controllers
                 return BadRequest(new ApiErrorDto("Неверный идентификатор студента", StatusCodes.Status400BadRequest));
 
             var student = await _context.Students
-                .Include(s => s.Rooms)
+                .Include(s => s.Resettlements)
+                    .ThenInclude(r => r.Room)
                 .Include(s => s.Group)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -104,7 +105,8 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
 
             await _context.Students
-                 .Include(s => s.Rooms)
+                .Include(s => s.Resettlements)
+                    .ThenInclude(r => r.Room)
                  .Include(s => s.Contacts)
                  .Include(s => s.Group)
                  .FirstOrDefaultAsync(s => s.Id == student.Id);
@@ -130,7 +132,8 @@ namespace API.Controllers
 
             var student = await _context.Students
                 .Include(s => s.Contacts)
-                .Include(s => s.Rooms)
+                .Include(s => s.Resettlements)
+                    .ThenInclude(r => r.Room)
                 .Include(s => s.Group)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -172,7 +175,11 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
 
             await _context.Entry(student).Reference(s => s.Group).LoadAsync();
-            await _context.Entry(student).Collection(s => s.Rooms).LoadAsync();
+            await _context.Entry(student).Collection(s => s.Resettlements).LoadAsync();
+            foreach (var resettlement in student.Resettlements)
+            {
+                await _context.Entry(resettlement).Reference(r => r.Room).LoadAsync();
+            }
 
             return Ok(student.ToDto());
         }
@@ -186,7 +193,8 @@ namespace API.Controllers
         {
             var student = await _context.Students
                 .Include(s => s.Contacts)
-                .Include(s => s.Rooms)
+                .Include(s => s.Resettlements)
+                    .ThenInclude(r => r.Room)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (student == null)
@@ -260,30 +268,45 @@ namespace API.Controllers
                 return BadRequest(new ApiErrorDto("Некорректный идентификатор студента или комнаты", StatusCodes.Status400BadRequest));
 
             var student = await _context.Students
-                .Include(s => s.Rooms)
+                .Include(s => s.Resettlements)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (student == null)
                 return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
 
-            if (student.Rooms.Any())
+            var hasActiveResettlement = student.Resettlements.Any(r =>
+                r.CheckInDate.HasValue && !r.CheckOutDate.HasValue);
+            if (hasActiveResettlement)
                 return BadRequest(new ApiErrorDto("Студент уже привязан к комнате", StatusCodes.Status400BadRequest));
 
             var room = await _context.Rooms
-                .Include(r => r.Students)
+                .Include(r => r.Resettlements)
+                    .ThenInclude(r => r.Student)
                 .FirstOrDefaultAsync(r => r.Id == roomId);
 
             if (room == null)
                 return NotFound(new ApiErrorDto("Комната не найдена", StatusCodes.Status404NotFound));
 
-            if (room.Students.Count >= room.Capacity)
+            var activeRoomResettlements = room.Resettlements
+                .Where(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue)
+                .ToList();
+
+            if (activeRoomResettlements.Count >= room.Capacity)
                 return BadRequest(new ApiErrorDto("Комната переполнена", StatusCodes.Status400BadRequest));
 
-            var hasGenderConflict = room.Students.Any(s => s.Gender != student.Gender);
+            var hasGenderConflict = activeRoomResettlements.Any(r => r.Student.Gender != student.Gender);
             if (hasGenderConflict)
                 return BadRequest(new ApiErrorDto("Студент не может быть заселен в комнату с жильцами другого пола", StatusCodes.Status400BadRequest));
 
-            room.Students.Add(student);
+            var resettlement = new Resettlement
+            {
+                StudentId = student.Id,
+                RoomId = room.Id,
+                CheckInDate = DateTime.Now,
+                CheckOutDate = null
+            };
+
+            _context.Resettlements.Add(resettlement);
             await _context.SaveChangesAsync();
 
             return Ok(new { Message = "Студент успешно привязан к комнате" });
@@ -299,18 +322,17 @@ namespace API.Controllers
                 return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
 
             var student = await _context.Students
-                .Include(s => s.Rooms)
+                .Include(s => s.Resettlements)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (student == null)
                 return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
 
-            if (student.Rooms.Count != 0)
+            var activeResettlement = student.Resettlements
+                .FirstOrDefault(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue);
+            if (activeResettlement != null)
             {
-                foreach (var room in student.Rooms.ToList())
-                {
-                    room.Students.Remove(student);
-                }
+                activeResettlement.CheckOutDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
 
