@@ -53,13 +53,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
             { icon: 'bi-people', label: 'Студенты', path: '/dashboard/students' },
         );
 
-        const roleName = userSession.role?.name?.toLowerCase() ?? '';
-        if (roleName.includes('администратор') || roleName.includes('комендант')) {
-            items.push(
-                { icon: 'bi-building', label: 'Здания', path: '/dashboard/buildings' },
-            );
-        }
-
         if (userSession.role?.name?.includes('Администратор')) {
             items.push(
                 { icon: 'bi-people-fill', label: 'Пользователи', path: '/dashboard/users' },

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../../api/client';
 import InputField from '../../../components/InputField/InputField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
@@ -7,7 +8,10 @@ import type { BuildingDto } from '../../../types/buildings';
 import structureStyles from '../Structure/Structure.module.css';
 import tabsStyles from '../../../components/Tabs/Tabs.module.css';
 
+const ACTIVE_BUILDING_STORAGE_KEY = 'active-building';
+
 const BuildingsLayout: React.FC = () => {
+    const navigate = useNavigate();
     const [buildings, setBuildings] = useState<BuildingDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -18,6 +22,10 @@ const BuildingsLayout: React.FC = () => {
     const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem(ACTIVE_BUILDING_STORAGE_KEY);
+        }
+
         const loadBuildings = async () => {
             try {
                 setLoading(true);
@@ -47,9 +55,32 @@ const BuildingsLayout: React.FC = () => {
         });
     }, [buildings, searchTerm]);
 
+    const handleOpenBuilding = useCallback((building: BuildingDto) => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem(ACTIVE_BUILDING_STORAGE_KEY, JSON.stringify({
+                id: building.id,
+                name: building.name,
+                address: building.address,
+            }));
+        }
+        navigate(`/dashboard/accomodation/${building.id}`, { state: { building } });
+    }, [navigate]);
+
     const filteredTiles = useMemo(() => {
         return filteredBuildings.map((building, index) => (
-            <article key={building.id} className={structureStyles.blockCard}>
+            <article
+                key={building.id}
+                className={structureStyles.blockCard}
+                onClick={() => handleOpenBuilding(building)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleOpenBuilding(building);
+                    }
+                }}
+            >
                 <div className={structureStyles.blockHeader}>
                     <p className={structureStyles.blockNumber}>
                         <span className={structureStyles.blockNumberBadge}>{index + 1}</span>
@@ -67,7 +98,7 @@ const BuildingsLayout: React.FC = () => {
                 </div>
             </article>
         ));
-    }, [filteredBuildings]);
+    }, [filteredBuildings, handleOpenBuilding]);
 
     const listContent = useMemo(() => {
         if (loading) {

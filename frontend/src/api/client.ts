@@ -273,6 +273,10 @@ export const apiClient = {
     return apiClient.requestWithAuth<BuildingDto[]>('/api/v1/Buildings');
   },
 
+  getBuildingById: async (id: number): Promise<BuildingDto> => {
+    return apiClient.requestWithAuth<BuildingDto>(`/api/v1/Buildings/${id}`);
+  },
+
   createBuilding: async (payload: PostBuildingDto): Promise<BuildingDto> => {
     return apiClient.requestWithAuth<BuildingDto>('/api/v1/Buildings', {
       method: 'POST',
