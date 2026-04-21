@@ -4,3 +4,10 @@ export interface StructureStatisticDto {
     freeCount: number;
     studentCount: number;
 }
+
+export interface OverallStructureStatisticDto {
+    totalBuildings: number;
+    totalStudents: number;
+    totalCapacity: number;
+    occupiedStudents: number;
+}

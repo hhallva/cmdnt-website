@@ -15,7 +15,7 @@ import type { PostStudentDto, StudentsDto, ContactDto, UpdateStudentPayload } fr
 import type { GroupDto } from '../types/groups'
 import type { RoomDto, PostRoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
-import type { StructureStatisticDto } from '../types/structures'
+import type { StructureStatisticDto, OverallStructureStatisticDto } from '../types/structures'
 import type { BuildingDto, PostBuildingDto } from '../types/buildings'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -325,6 +325,10 @@ export const apiClient = {
   //#region Структура
   getStructureStatistics: async (): Promise<StructureStatisticDto> => {
     return apiClient.requestWithAuth<StructureStatisticDto>('/api/v1/Structure/statistic');
+  },
+
+  getOverallStructureStatistics: async (): Promise<OverallStructureStatisticDto> => {
+    return apiClient.requestWithAuth<OverallStructureStatisticDto>('/api/v1/Structure/summary');
   },
 
 

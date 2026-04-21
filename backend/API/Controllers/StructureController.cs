@@ -45,5 +45,33 @@ namespace API.Controllers
 
             return Ok(statistic);
         }
+
+        [HttpGet("summary")]
+        [SwaggerOperation(
+           Summary = "Получение общей статистики по общежитиям",
+           Description = "Возвращает сводную статистику: количество зданий, студентов, мест и заселенных студентов.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Общая статистика успешно получена.", Type = typeof(OverallStructureStatisticDto))]
+        public async Task<ActionResult<OverallStructureStatisticDto>> GetOverallStatistic()
+        {
+            var totalBuildings = await _context.Buildings.CountAsync();
+            var totalStudents = await _context.Students.CountAsync();
+            var totalCapacity = await _context.Rooms.SumAsync(r => r.Capacity);
+
+            var occupiedStudents = await _context.Resettlements
+                .Where(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue)
+                .Select(r => r.StudentId)
+                .Distinct()
+                .CountAsync();
+
+            var statistic = new OverallStructureStatisticDto
+            {
+                TotalBuildings = totalBuildings,
+                TotalStudents = totalStudents,
+                TotalCapacity = totalCapacity,
+                OccupiedStudents = occupiedStudents
+            };
+
+            return Ok(statistic);
+        }
     }
 }

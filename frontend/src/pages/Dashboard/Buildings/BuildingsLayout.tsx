@@ -4,17 +4,26 @@ import { apiClient } from '../../../api/client';
 import InputField from '../../../components/InputField/InputField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../components/CommonModal/CommonModal';
+import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import type { BuildingDto } from '../../../types/buildings';
+import type { OverallStructureStatisticDto } from '../../../types/structures';
 import structureStyles from '../Structure/Structure.module.css';
 import tabsStyles from '../../../components/Tabs/Tabs.module.css';
 
 const ACTIVE_BUILDING_STORAGE_KEY = 'active-building';
 
 const BuildingsLayout: React.FC = () => {
+    const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
+    const userSession = userSessionStr ? JSON.parse(userSessionStr) : null;
+    const roleName = userSession?.role?.name?.toLowerCase() ?? '';
+    const isAdmin = roleName.includes('администратор');
     const navigate = useNavigate();
     const [buildings, setBuildings] = useState<BuildingDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [summaryStats, setSummaryStats] = useState<OverallStructureStatisticDto | null>(null);
+    const [summaryLoading, setSummaryLoading] = useState(true);
+    const [summaryError, setSummaryError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newBuildingName, setNewBuildingName] = useState('');
@@ -41,6 +50,24 @@ const BuildingsLayout: React.FC = () => {
         };
 
         loadBuildings();
+    }, []);
+
+    useEffect(() => {
+        const loadSummary = async () => {
+            try {
+                setSummaryLoading(true);
+                const response = await apiClient.getOverallStructureStatistics();
+                setSummaryStats(response);
+                setSummaryError(null);
+            } catch (err: any) {
+                console.error('Ошибка при загрузке общей статистики:', err);
+                setSummaryError(err?.message || 'Не удалось загрузить статистику');
+            } finally {
+                setSummaryLoading(false);
+            }
+        };
+
+        loadSummary();
     }, []);
 
     const filteredBuildings = useMemo(() => {
@@ -81,7 +108,7 @@ const BuildingsLayout: React.FC = () => {
                     }
                 }}
             >
-                <div className={structureStyles.blockHeader}>
+                <div className={structureStyles.blockHeader} style={{ flexWrap: 'nowrap' }}>
                     <p className={structureStyles.blockNumber}>
                         <span className={structureStyles.blockNumberBadge}>{index + 1}</span>
                     </p>
@@ -101,16 +128,6 @@ const BuildingsLayout: React.FC = () => {
     }, [filteredBuildings, handleOpenBuilding]);
 
     const listContent = useMemo(() => {
-        if (loading) {
-            return (
-                <div className="d-flex justify-content-center align-items-center" style={{ height: '40vh' }}>
-                    <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Загрузка...</span>
-                    </div>
-                </div>
-            );
-        }
-
         if (error) {
             return <div className="alert alert-danger m-3">{error}</div>;
         }
@@ -134,7 +151,7 @@ const BuildingsLayout: React.FC = () => {
         }
 
         return <div className={structureStyles.blocksGrid}>{filteredTiles}</div>;
-    }, [buildings.length, error, filteredBuildings.length, filteredTiles, loading]);
+    }, [buildings.length, error, filteredBuildings.length, filteredTiles]);
 
     const searchBar = (
         <div className={tabsStyles.tabsSurface} style={{ marginBottom: '2.75rem' }}>
@@ -202,48 +219,77 @@ const BuildingsLayout: React.FC = () => {
         }
     };
 
-    return (
-        <>
-            {searchBar}
-            {listContent}
-            <div className={tabsStyles.tabsSurface} style={{ padding: '1.5rem', marginTop: '2.75rem', borderRadius: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <ActionButton size="md" variant="primary" onClick={handleOpenAddModal}>
-                        <span className="me-2">+</span>
-                        Добавить
-                    </ActionButton>
+    const isLoading = loading || summaryLoading;
+
+    if (isLoading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '40vh' }}>
+                <div className="spinner-border" role="status">
+                    <span className="visually-hidden">Загрузка...</span>
                 </div>
             </div>
-            <CommonModal
-                title="Новое здание"
-                isOpen={isAddModalOpen}
-                onClose={handleCloseAddModal}
-                minWidth={520}
-            >
-                <form onSubmit={handleAddSubmit}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-                        <InputField
-                            label="Название"
-                            type="text"
-                            value={newBuildingName}
-                            onChange={(e) => setNewBuildingName(e.target.value)}
-                            disabled={isAdding}
-                        />
-                        <InputField
-                            label="Адрес"
-                            type="text"
-                            value={newBuildingAddress}
-                            onChange={(e) => setNewBuildingAddress(e.target.value)}
-                            disabled={isAdding}
-                        />
+        );
+    }
+
+    return (
+        <>
+            {!summaryLoading && summaryError && (
+                <div className="alert alert-danger m-3">{summaryError}</div>
+            )}
+            {!summaryLoading && !summaryError && summaryStats && (
+                <StatisticsCard
+                    stats={[
+                        { value: summaryStats.totalBuildings, label: 'Всего зданий' },
+                        { value: summaryStats.totalStudents, label: 'Всего студентов' },
+                        { value: summaryStats.totalCapacity, label: 'Всего мест' },
+                        { value: summaryStats.occupiedStudents, label: 'Заселено студентов' },
+                    ]}
+                />
+            )}
+            {searchBar}
+            {listContent}
+            {isAdmin && (
+                <>
+                    <div className={tabsStyles.tabsSurface} style={{ padding: '1.5rem', marginTop: '2.75rem', borderRadius: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <ActionButton size="md" variant="primary" type="submit" disabled={isAdding}>
-                                {isAdding ? 'Добавляем…' : 'Добавить'}
+                            <ActionButton size="md" variant="primary" onClick={handleOpenAddModal}>
+                                <span className="me-2">+</span>
+                                Добавить
                             </ActionButton>
                         </div>
                     </div>
-                </form>
-            </CommonModal>
+                    <CommonModal
+                        title="Новое здание"
+                        isOpen={isAddModalOpen}
+                        onClose={handleCloseAddModal}
+                        minWidth={520}
+                    >
+                        <form onSubmit={handleAddSubmit}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+                                <InputField
+                                    label="Название"
+                                    type="text"
+                                    value={newBuildingName}
+                                    onChange={(e) => setNewBuildingName(e.target.value)}
+                                    disabled={isAdding}
+                                />
+                                <InputField
+                                    label="Адрес"
+                                    type="text"
+                                    value={newBuildingAddress}
+                                    onChange={(e) => setNewBuildingAddress(e.target.value)}
+                                    disabled={isAdding}
+                                />
+                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                    <ActionButton size="md" variant="primary" type="submit" disabled={isAdding}>
+                                        {isAdding ? 'Добавляем…' : 'Добавить'}
+                                    </ActionButton>
+                                </div>
+                            </div>
+                        </form>
+                    </CommonModal>
+                </>
+            )}
         </>
     );
 };
