@@ -16,6 +16,7 @@ import type { GroupDto } from '../types/groups'
 import type { RoomDto, PostRoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
 import type { StructureStatisticDto } from '../types/structures'
+import type { BuildingDto } from '../types/buildings'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -267,9 +268,19 @@ export const apiClient = {
   },
   //#endregion 
 
+  //#region Общежития
+  getAllBuildings: async (): Promise<BuildingDto[]> => {
+    return apiClient.requestWithAuth<BuildingDto[]>('/api/v1/Buildings');
+  },
+
+  getUserBuildings: async (userId: number): Promise<BuildingDto[]> => {
+    return apiClient.requestWithAuth<BuildingDto[]>(`/api/v1/Users/${userId}/buildings`);
+  },
+  //#endregion
+
   //#region Коммнаты
-  getAllRooms: async (): Promise<RoomDto[]> => {
-    return apiClient.requestWithAuth<RoomDto[]>('/api/v1/Rooms');
+  getRoomsByBuildingId: async (buildingId: number): Promise<RoomDto[]> => {
+    return apiClient.requestWithAuth<RoomDto[]>(`/api/v1/Buildings/${buildingId}/Rooms`);
   },
 
   getRoomById: async (id: number): Promise<RoomDto> => {

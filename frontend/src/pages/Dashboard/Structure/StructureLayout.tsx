@@ -404,9 +404,7 @@ const StructureLayout: React.FC = () => {
 
     return (
         <>
-
             {settlementToast}
-
 
             {canManageRooms && (
                 <CommonModal

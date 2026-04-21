@@ -13,9 +13,9 @@
 
 .modalContent {
     background: #fff;
-    border-radius: 8px;
+    border-radius: 1.25rem;
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
-    padding: 24px;
+    padding: 1.25rem 1.5rem;
     min-width: min(var(--modal-min-width, 480px), 90vw);
     width: min(720px, 90vw);
     max-width: 90vw;

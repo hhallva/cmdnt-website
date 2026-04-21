@@ -1,58 +1,191 @@
-import React, { useEffect, useState } from 'react';
-import { getUserSession } from '../../../components/ProtectedRoute';
-import Tabs from '../../../components/Tabs/Tabs';
-
-const BUILDINGS_TAB_STORAGE_KEY = 'buildings-active-tab';
-const BUILDINGS_DEFAULT_TAB_ID = 'list';
+import React, { useEffect, useMemo, useState } from 'react';
+import { apiClient } from '../../../api/client';
+import InputField from '../../../components/InputField/InputField';
+import ActionButton from '../../../components/ActionButton/ActionButton';
+import CommonModal from '../../../components/CommonModal/CommonModal';
+import type { BuildingDto } from '../../../types/buildings';
+import structureStyles from '../Structure/Structure.module.css';
+import tabsStyles from '../../../components/Tabs/Tabs.module.css';
 
 const BuildingsLayout: React.FC = () => {
-    const userSession = getUserSession();
-    const roleName = userSession?.role?.name?.toLowerCase() ?? '';
-    const isAdmin = roleName.includes('администратор');
-    const isCommandant = roleName.includes('комендант');
-    const shouldShowTabs = isAdmin || !isCommandant;
-
-    const tabs = [
-        {
-            id: 'list',
-            title: 'Список',
-            content: <div>Здесь будет отображаться список зданий</div>,
-        },
-        {
-            id: 'create',
-            title: 'Новое здание',
-            content: <div>Здесь будет форма для создания нового здания</div >,
-        },
-    ];
-
-    const [activeTabId, setActiveTabId] = useState<string>(() => {
-        if (typeof window === 'undefined') {
-            return BUILDINGS_DEFAULT_TAB_ID;
-        }
-        return sessionStorage.getItem(BUILDINGS_TAB_STORAGE_KEY) || BUILDINGS_DEFAULT_TAB_ID;
-    });
+    const [buildings, setBuildings] = useState<BuildingDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newBuildingName, setNewBuildingName] = useState('');
+    const [newBuildingAddress, setNewBuildingAddress] = useState('');
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-        sessionStorage.setItem(BUILDINGS_TAB_STORAGE_KEY, activeTabId);
-    }, [activeTabId]);
+        const loadBuildings = async () => {
+            try {
+                setLoading(true);
+                const response = await apiClient.getAllBuildings();
+                setBuildings(response);
+                setError(null);
+            } catch (err: any) {
+                console.error('Ошибка при загрузке зданий:', err);
+                setError(err?.message || 'Не удалось загрузить здания');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const handleTabChange = (tabId: string) => {
-        if (tabs.some(tab => tab.id === tabId)) {
-            setActiveTabId(tabId);
+        loadBuildings();
+    }, []);
+
+    const filteredBuildings = useMemo(() => {
+        const normalized = searchTerm.trim().toLowerCase();
+        if (!normalized) {
+            return buildings;
         }
+        return buildings.filter(building => {
+            const name = building.name?.toLowerCase() ?? '';
+            const address = building.address?.toLowerCase() ?? '';
+            return name.includes(normalized) || address.includes(normalized);
+        });
+    }, [buildings, searchTerm]);
+
+    const filteredTiles = useMemo(() => {
+        return filteredBuildings.map((building, index) => (
+            <article key={building.id} className={structureStyles.blockCard}>
+                <div className={structureStyles.blockHeader}>
+                    <p className={structureStyles.blockNumber}>
+                        <span className={structureStyles.blockNumberBadge}>{index + 1}</span>
+                    </p>
+                    <div className={structureStyles.blockMetaColumn}>
+                        <p className={structureStyles.blockMeta}>
+                            <span className={structureStyles.blockMetaLabel}>Здание</span>
+                            <span className={structureStyles.blockMetaValue}>{building.name}</span>
+                        </p>
+                        <p className={structureStyles.blockMeta}>
+                            <span className={structureStyles.blockMetaLabel}>Адрес</span>
+                            <span className={structureStyles.blockMetaValue}>{building.address}</span>
+                        </p>
+                    </div>
+                </div>
+            </article>
+        ));
+    }, [filteredBuildings]);
+
+    const listContent = useMemo(() => {
+        if (loading) {
+            return (
+                <div className="d-flex justify-content-center align-items-center" style={{ height: '40vh' }}>
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Загрузка...</span>
+                    </div>
+                </div>
+            );
+        }
+
+        if (error) {
+            return <div className="alert alert-danger m-3">{error}</div>;
+        }
+
+        if (!buildings.length) {
+            return (
+                <div className={structureStyles.emptyState}>
+                    <i className="bi bi-building"></i>
+                    Здания не найдены.
+                </div>
+            );
+        }
+
+        if (!filteredBuildings.length) {
+            return (
+                <div className={structureStyles.emptyState}>
+                    <i className="bi bi-search"></i>
+                    Ничего не найдено.
+                </div>
+            );
+        }
+
+        return <div className={structureStyles.blocksGrid}>{filteredTiles}</div>;
+    }, [buildings.length, error, filteredBuildings.length, filteredTiles, loading]);
+
+    const searchBar = (
+        <div className={tabsStyles.tabsSurface} style={{ marginBottom: '2.75rem' }}>
+            <div className={structureStyles.searchSection}>
+                <div className={structureStyles.searchControls} style={{ gap: '1.75rem' }}>
+                    <div className={structureStyles.searchInputWrapper}>
+                        <InputField
+                            type="text"
+                            placeholder="Поиск по названию или адресу..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className={structureStyles.searchButtons}>
+                        <ActionButton
+                            size="md"
+                            variant="secondary"
+                            onClick={() => setSearchTerm('')}
+                            style={{ width: '13.25rem' }}
+                        >
+                            Сбросить
+                        </ActionButton>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const handleOpenAddModal = () => {
+        setIsAddModalOpen(true);
     };
 
-    return shouldShowTabs ? (
-        <Tabs
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabChange={handleTabChange}
-        />
-    ) : (
-        <div>Здесь будет отображаться список зданий</div>
+    const handleCloseAddModal = () => {
+        setIsAddModalOpen(false);
+        setNewBuildingName('');
+        setNewBuildingAddress('');
+    };
+
+    const handleAddSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+    };
+
+    return (
+        <>
+            {searchBar}
+            {listContent}
+            <div className={tabsStyles.tabsSurface} style={{ padding: '1.5rem', marginTop: '2.75rem', borderRadius: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <ActionButton size="md" variant="primary" onClick={handleOpenAddModal}>
+                        <span className="me-2">+</span>
+                        Добавить
+                    </ActionButton>
+                </div>
+            </div>
+            <CommonModal
+                title="Новое здание"
+                isOpen={isAddModalOpen}
+                onClose={handleCloseAddModal}
+                minWidth={520}
+            >
+                <form onSubmit={handleAddSubmit}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+                        <InputField
+                            label="Название"
+                            type="text"
+                            value={newBuildingName}
+                            onChange={(e) => setNewBuildingName(e.target.value)}
+                        />
+                        <InputField
+                            label="Адрес"
+                            type="text"
+                            value={newBuildingAddress}
+                            onChange={(e) => setNewBuildingAddress(e.target.value)}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <ActionButton size="md" variant="primary" type="submit">
+                                Добавить
+                            </ActionButton>
+                        </div>
+                    </div>
+                </form>
+            </CommonModal>
+        </>
     );
 };
 
