@@ -73,7 +73,7 @@ interface StructureTabContentProps {
     onOpenBlockModal: (block: BlockWithRooms) => void;
     getStatus: (currentCapacity: number, capacity: number) => RoomStatus;
     formatShortName: (student: StudentsDto) => string;
-    getGenderLabel: (entity: { genderType: BlockWithRooms['genderType'] }) => string;
+    getGenderLabel: (entity: BlockWithRooms) => string;
 }
 
 export const StructureTabContent: React.FC<StructureTabContentProps> = ({
