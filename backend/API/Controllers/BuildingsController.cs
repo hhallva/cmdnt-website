@@ -51,6 +51,40 @@ namespace API.Controllers
             return Ok(building.ToDto());
         }
 
+        [HttpGet("{id}/summary")]
+        [SwaggerOperation(
+            Summary = "Получение сводки по зданию",
+            Description = "Возвращает информацию для модального окна здания: количество этажей, мест и заселенных мест.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Сводка по зданию успешно получена.", Type = typeof(BuildingSummaryDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Здание с указанным ID не найдено.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<BuildingSummaryDto>> GetBuildingSummary(
+            [SwaggerParameter(Description = "Уникальный идентификатор здания", Required = true)] int id)
+        {
+            var building = await _context.Buildings
+                .Include(b => b.Rooms)
+                .ThenInclude(room => room.Resettlements)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (building == null)
+                return NotFound(new ApiErrorDto("Здание не найдено", StatusCodes.Status404NotFound));
+
+            var totalCapacity = building.Rooms.Sum(room => room.Capacity);
+            var totalFloors = building.Rooms
+                .Select(room => room.FloorNumber)
+                .Distinct()
+                .Count();
+            var occupiedCount = building.Rooms
+                .Sum(room => room.Resettlements.Count(resettlement =>
+                    resettlement.CheckInDate.HasValue && !resettlement.CheckOutDate.HasValue));
+
+            return Ok(new BuildingSummaryDto
+            {
+                TotalCapacity = totalCapacity,
+                TotalFloors = totalFloors,
+                OccupiedCount = occupiedCount,
+            });
+        }
+
         [HttpPost]
         [SwaggerOperation(
             Summary = "Создание нового здания",

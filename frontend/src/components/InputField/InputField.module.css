@@ -15,26 +15,27 @@
 
 /* Стили для метки */
 .formLabel {
-    font-weight: 500;
-    color: var(--color-text);
+    font-weight: 400;
+    font-size: 14px;
+    color: #737C89;
     margin: 0;
 }
 
 /* Стили для поля ввода */
 .formControl {
     width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    height: 2.5rem;
+    border: 1px solid #DADFE4;
+    border-radius: 0.75rem;
+    font-size: 14px;
     transition: all 0.3s ease;
     position: relative;
 }
 
 .formControl:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+    border: 1px solid var(--color-primary);
 }
 
 /* --- Стили для невалидного состояния --- */
@@ -117,11 +118,11 @@
     }
 
     .formControl {
-        font-size: 1rem;
+        font-size: 14px;
     }
 
     .formSelect {
-        font-size: 1rem;
+        font-size: 14px;
     }
 }
 

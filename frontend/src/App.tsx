@@ -29,11 +29,10 @@ export const routes = [
     // Вложенные маршруты внутри дашборда
     children: [
       // Раздел структуры общежития (требуется роль educator)
-      { path: "accomodation", element: <StructureLayout />, handle: { title: 'Общежитие', requiredRole: 'educator' } },
+      { path: "accomodation", element: <BuildingsLayout />, handle: { title: 'Здания', requiredRole: 'educator' } },
+      { path: "accomodation/:buildingId", element: <StructureLayout />, handle: { title: '', requiredRole: 'educator' } },
       { path: "students", element: <StudentsLayout />, handle: { title: 'Студенты', requiredRole: 'educator' } },
       { path: "students/:studentId", element: <StudentCardLayout />, handle: { title: 'Карточка студента', requiredRole: 'educator' } },
-
-      { path: "buildings", element: <BuildingsLayout />, handle: { title: 'Здания', requiredRole: 'commandant' } },
 
       // Раздел пользователей (требуется роль admin)
       { path: "users", element: <UsersLayout />, handle: { title: 'Пользователи', requiredRole: 'admin' } },

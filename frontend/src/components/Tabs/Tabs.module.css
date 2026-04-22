@@ -6,9 +6,10 @@
 
 .tabsSurface {
     background: #ffffff;
-    border-radius: 10px;
-    padding: 1rem;
+    border-radius: 1rem;
+    padding: 1.5rem;
 }
+
 
 .tabsHeaderWrapper {
     width: 100%;

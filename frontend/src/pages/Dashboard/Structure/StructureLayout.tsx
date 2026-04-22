@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../components/CommonModal/CommonModal';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
@@ -39,12 +39,42 @@ type NewRoomFormErrors = Partial<Record<keyof NewRoomFormState, string>>;
 
 const StructureLayout: React.FC = () => {
     const navigate = useNavigate();
-    const { rooms, students, loading, error, refetch } = useDormStructureData();
+    const location = useLocation();
+    const { buildingId } = useParams<{ buildingId: string }>();
+    const buildingIdNum = buildingId ? Number(buildingId) : null;
+    const { rooms, students, loading, error, refetch } = useDormStructureData(buildingIdNum ?? undefined);
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
     const roleName = userSession?.role?.name?.toLowerCase() ?? '';
     const isEducator = roleName.includes('воспитатель');
     const canManageRooms = !isEducator;
+
+    useEffect(() => {
+        if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
+            return;
+        }
+
+        const stateBuilding = (location.state as { building?: { id: number; name: string; address: string } } | null)?.building;
+        if (stateBuilding && stateBuilding.id === buildingIdNum) {
+            sessionStorage.setItem('active-building', JSON.stringify(stateBuilding));
+            return;
+        }
+
+        const loadBuilding = async () => {
+            try {
+                const building = await apiClient.getBuildingById(buildingIdNum);
+                sessionStorage.setItem('active-building', JSON.stringify({
+                    id: building.id,
+                    name: building.name,
+                    address: building.address,
+                }));
+            } catch (err: any) {
+                console.error('Ошибка при загрузке здания:', err);
+            }
+        };
+
+        loadBuilding();
+    }, [buildingIdNum, location.state]);
 
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -196,7 +226,6 @@ const StructureLayout: React.FC = () => {
         setIsAddRoomModalOpen(false);
         setNewRoomErrors({});
     };
-
 
     const handleNewRoomFieldChange = (field: keyof NewRoomFormState, value: string) => {
         setNewRoomForm(prev => ({ ...prev, [field]: value }));
@@ -404,9 +433,7 @@ const StructureLayout: React.FC = () => {
 
     return (
         <>
-
             {settlementToast}
-
 
             {canManageRooms && (
                 <CommonModal

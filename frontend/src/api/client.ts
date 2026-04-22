@@ -15,7 +15,8 @@ import type { PostStudentDto, StudentsDto, ContactDto, UpdateStudentPayload } fr
 import type { GroupDto } from '../types/groups'
 import type { RoomDto, PostRoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
-import type { StructureStatisticDto } from '../types/structures'
+import type { StructureStatisticDto, OverallStructureStatisticDto } from '../types/structures'
+import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/buildings'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -267,9 +268,53 @@ export const apiClient = {
   },
   //#endregion 
 
+  //#region Общежития
+  getAllBuildings: async (): Promise<BuildingDto[]> => {
+    return apiClient.requestWithAuth<BuildingDto[]>('/api/v1/Buildings');
+  },
+
+  getBuildingById: async (id: number): Promise<BuildingDto> => {
+    return apiClient.requestWithAuth<BuildingDto>(`/api/v1/Buildings/${id}`);
+  },
+
+  getBuildingSummary: async (id: number): Promise<BuildingSummaryDto> => {
+    return apiClient.requestWithAuth<BuildingSummaryDto>(`/api/v1/Buildings/${id}/summary`);
+  },
+
+  createBuilding: async (payload: PostBuildingDto): Promise<BuildingDto> => {
+    return apiClient.requestWithAuth<BuildingDto>('/api/v1/Buildings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateBuilding: async (id: number, payload: BuildingDto): Promise<BuildingDto> => {
+    return apiClient.requestWithAuth<BuildingDto>(`/api/v1/Buildings/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteBuilding: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Buildings/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getUserBuildings: async (userId: number): Promise<BuildingDto[]> => {
+    return apiClient.requestWithAuth<BuildingDto[]>(`/api/v1/Users/${userId}/buildings`);
+  },
+  //#endregion
+
   //#region Коммнаты
-  getAllRooms: async (): Promise<RoomDto[]> => {
-    return apiClient.requestWithAuth<RoomDto[]>('/api/v1/Rooms');
+  getRoomsByBuildingId: async (buildingId: number): Promise<RoomDto[]> => {
+    return apiClient.requestWithAuth<RoomDto[]>(`/api/v1/Buildings/${buildingId}/Rooms`);
   },
 
   getRoomById: async (id: number): Promise<RoomDto> => {
@@ -300,6 +345,10 @@ export const apiClient = {
   //#region Структура
   getStructureStatistics: async (): Promise<StructureStatisticDto> => {
     return apiClient.requestWithAuth<StructureStatisticDto>('/api/v1/Structure/statistic');
+  },
+
+  getOverallStructureStatistics: async (): Promise<OverallStructureStatisticDto> => {
+    return apiClient.requestWithAuth<OverallStructureStatisticDto>('/api/v1/Structure/summary');
   },
 
 

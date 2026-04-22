@@ -181,6 +181,36 @@
     text-shadow: none
 }
 
+.headerTitleGroup {
+    display: flex;
+    align-items: center;
+}
+
+.headerBackButton {
+    border: none;
+    background: none;
+    color: #2c3e50;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.headerBackButton:hover {
+    transform: translateY(-1px);
+}
+
+.headerBackButton i {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+}
+
 .userInfo {
     display: flex;
     align-items: center;
