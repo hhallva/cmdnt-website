@@ -15,3 +15,9 @@ export interface PostBuildingDto {
     address: string;
     coordinates: CoordinatesDto;
 }
+
+export interface BuildingSummaryDto {
+    totalCapacity: number;
+    totalFloors: number;
+    occupiedCount: number;
+}

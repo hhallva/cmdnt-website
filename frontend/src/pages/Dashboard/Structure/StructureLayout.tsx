@@ -50,12 +50,6 @@ const StructureLayout: React.FC = () => {
     const canManageRooms = !isEducator;
 
     useEffect(() => {
-        if (buildingIdNum === null || Number.isNaN(buildingIdNum)) {
-            navigate('/dashboard/accomodation', { replace: true });
-        }
-    }, [buildingIdNum, navigate]);
-
-    useEffect(() => {
         if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
             return;
         }

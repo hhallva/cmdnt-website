@@ -16,7 +16,7 @@ import type { GroupDto } from '../types/groups'
 import type { RoomDto, PostRoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
 import type { StructureStatisticDto, OverallStructureStatisticDto } from '../types/structures'
-import type { BuildingDto, PostBuildingDto } from '../types/buildings'
+import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/buildings'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -277,6 +277,10 @@ export const apiClient = {
     return apiClient.requestWithAuth<BuildingDto>(`/api/v1/Buildings/${id}`);
   },
 
+  getBuildingSummary: async (id: number): Promise<BuildingSummaryDto> => {
+    return apiClient.requestWithAuth<BuildingSummaryDto>(`/api/v1/Buildings/${id}/summary`);
+  },
+
   createBuilding: async (payload: PostBuildingDto): Promise<BuildingDto> => {
     return apiClient.requestWithAuth<BuildingDto>('/api/v1/Buildings', {
       method: 'POST',
@@ -284,6 +288,22 @@ export const apiClient = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+    });
+  },
+
+  updateBuilding: async (id: number, payload: BuildingDto): Promise<BuildingDto> => {
+    return apiClient.requestWithAuth<BuildingDto>(`/api/v1/Buildings/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteBuilding: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Buildings/${id}`, {
+      method: 'DELETE',
     });
   },
 
