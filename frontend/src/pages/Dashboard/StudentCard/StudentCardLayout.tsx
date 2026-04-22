@@ -222,7 +222,7 @@ const StudentCardLayout: React.FC = () => {
 
             </div >
 
-            <div className='mt-4'>
+            <div className='mt-4 mb-4'>
                 {/* Контент */}
                 {renderTabContent()}
             </div>
@@ -240,7 +240,7 @@ const StudentCardLayout: React.FC = () => {
                                         className={styles.actionButtonFullWidth}
                                         size='md'
                                         variant="danger" onClick={handleDeleteClick}>
-                                        Удалить студента
+                                        Удалить
                                     </ActionButton>
                                 )}
                             </div>
@@ -268,8 +268,10 @@ const StudentCardLayout: React.FC = () => {
                                     className={styles.actionButtonFullWidth}
                                     size='md'
                                     onClick={() => setEditModalOpen(true)}>
-                                    <i className="bi bi-pencil me-1"></i>
-                                    Редактировать данные
+                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                        <i className="bi bi-pencil me-1"></i>
+                                        Редактировать
+                                    </div>
                                 </ActionButton>
                             )}
 

@@ -23,7 +23,7 @@
     scrollbar-width: thin;
     -ms-overflow-style: none;
     padding-bottom: 2px;
-    gap: 0.5rem;
+    gap: 0.25rem;
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
 }

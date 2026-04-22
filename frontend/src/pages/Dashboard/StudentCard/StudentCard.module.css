@@ -9,16 +9,24 @@
     box-shadow: 0 2px 10px var(--color-shadow-10);
 }
 
-.blockMetaColumn {
+
+
+
+.mobileCardTitle {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-dark);
+}
+
+.groupMeta {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-    text-align: left;
+    gap: 0.5rem;
 }
 
 .blockMeta {
-    margin: 0.15rem 0 0;
     color: var(--color-text-light);
     display: flex;
     align-items: baseline;
@@ -26,18 +34,9 @@
     font-size: 1rem;
 }
 
-
-.mobileCardTitle {
-    font-family: 'Inter', 'Segoe UI', sans-serif;
-    font-size: 1.2rem;
-    font-weight: 400;
-    color: var(--color-text-dark);
-    margin-bottom: 0.75rem;
-}
-
 .blockMetaLabel {
     color: var(--color-text-light);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .blockMetaValue {
@@ -75,8 +74,6 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
-    padding-bottom: 1.5rem;
 }
 
 .studentBasicInfo {
@@ -159,7 +156,7 @@
 /* --- Навигация по вкладкам --- */
 .profileNavigation {
     display: flex;
-    gap: 1rem;
+    gap: 0.25rem;
 }
 
 .navItemProfile {
@@ -184,14 +181,15 @@
 .infoGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    gap: 2rem;
 }
 
 /* --- Карточка информации --- */
 .infoCard {
+    display: flex;
+    flex-direction: column;
     background: var(--color-white);
-    border-radius: 10px;
+    border-radius: 1rem;
     padding: 1.5rem;
 }
 
@@ -473,17 +471,20 @@
 }
 
 .actionButtonFullWidth {
-    min-width: 180px;
+    min-width: 100px;
 }
 
 .formSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
     background: var(--color-white);
-    border-radius: 12px;
+    border-radius: 1rem;
     padding: 1.5rem;
 }
 
 
-/* --- РђРґР°РїС‚РёРІРЅРѕСЃС‚СЊ --- */
+
 @media (max-width: 768px) {
     .studentProfile {
         padding: 1rem;
