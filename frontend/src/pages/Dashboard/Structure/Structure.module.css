@@ -708,7 +708,7 @@
 
 .freeSlotAvatar {
     background: var(--color-accent);
-    color: var(--btn-primary);
+    color: var(--color-white);
 }
 
 .studentCardButton {

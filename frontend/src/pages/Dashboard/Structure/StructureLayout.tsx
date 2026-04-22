@@ -258,11 +258,28 @@ const StructureLayout: React.FC = () => {
 
     const handleAddRoomSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const storedBuilding = typeof window !== 'undefined' ? sessionStorage.getItem('active-building') : null;
+        const storedBuildingId = storedBuilding ? (() => {
+            try {
+                const parsed = JSON.parse(storedBuilding) as { id?: number };
+                return typeof parsed?.id === 'number' ? parsed.id : null;
+            } catch {
+                return null;
+            }
+        })() : null;
+        const activeBuildingId = storedBuildingId ?? buildingIdNum;
+
+        if (!activeBuildingId) {
+            alert('Не удалось определить выбранное здание. Попробуйте открыть общежитие заново.');
+            return;
+        }
+
         if (!validateNewRoomForm()) {
             return;
         }
 
         const payload = {
+            buildingId: activeBuildingId,
             floorNumber: Number(newRoomForm.floorNumber),
             roomNumber: Number(newRoomForm.roomNumber),
             capacity: Number(newRoomForm.capacity),
@@ -610,7 +627,9 @@ const StructureLayout: React.FC = () => {
                                                 }}
                                             >
                                                 <div className={styles.studentInfo}>
-                                                    <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>+</div>
+                                                    <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>
+                                                        <i className="bi bi-plus"></i>
+                                                    </div>
                                                     <div>
                                                         <p className={styles.studentName}>Свободное место</p>
                                                     </div>

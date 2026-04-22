@@ -28,8 +28,6 @@
   --color-text-light: #737C89;
   --color-text-light-60: rgba(115, 124, 137, 0.6);
 
-
-
   --color-border: #DADFE4;
   --color-white: #FFFFFF;
   --color-black: #000000;
@@ -47,6 +45,7 @@
   --color-shadow-20: rgba(0, 0, 0, 0.2);
   --color-shadow-30: rgba(0, 0, 0, 0.3);
   --color-shadow-50: rgba(0, 0, 0, 0.5);
+  --color-shadow-60: rgba(0, 0, 0, 0.6);
   --color-primary: var(--color-accent);
   --color-primary-hover: var(--color-accent-hover);
   --color-text: var(--color-text-dark);

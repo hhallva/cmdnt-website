@@ -4,7 +4,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--color-shadow-30);
+    background: var(--color-shadow-60);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,7 +14,6 @@
 .modalContent {
     background: var(--color-white);
     border-radius: 1.25rem;
-    box-shadow: 0 2px 16px var(--color-shadow-15);
     padding: 1.25rem 1.5rem;
     min-width: min(var(--modal-min-width, 480px), 90vw);
     width: min(720px, 90vw);
