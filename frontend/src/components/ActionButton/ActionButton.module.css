@@ -1,20 +1,20 @@
 /* src/components/ActionButton/ActionButton.module.css */
 
 :root {
-    --btn-transparent: transparent;
-    --btn-white: #ffffff;
-    --btn-primary: #F59431;
-    --btn-primary-hover: #f57c00;
-    --btn-secondary: #E7EDF5;
-    --btn-secondary-hover: #d9dfe8;
-    --btn-dark: #9ea2a8;
-    --btn-dark-hover: #6e7075;
+    --btn-transparent: var(--color-transparent);
+    --btn-white: var(--color-white);
+    --btn-primary: var(--color-primary);
+    --btn-primary-hover: var(--color-primary-hover);
+    --btn-secondary: var(--color-e7edf5);
+    --btn-secondary-hover: var(--color-d9dfe8);
+    --btn-dark: var(--color-gray-400);
+    --btn-dark-hover: var(--color-6e7075);
     --btn-danger: var(--color-danger);
     --btn-danger-hover: var(--color-danger-hover);
-    --btn-success: #28a745;
-    --btn-success-hover: #157347;
-    --btn-info: #0d6efd;
-    --btn-info-hover: #0b59ce;
+    --btn-success: var(--color-success);
+    --btn-success-hover: var(--color-success-dark);
+    --btn-info: var(--color-info);
+    --btn-info-hover: var(--color-info-hover);
 }
 
 .actionButton {
@@ -70,7 +70,7 @@
 }
 
 .actionButton.variant-secondary {
-    color: #424242;
+    color: var(--color-text-strong-6);
     background-color: var(--btn-secondary);
     border-color: var(--btn-secondary);
 }
@@ -80,7 +80,7 @@
 }
 
 .actionButton.variant-dark {
-    color: #424242;
+    color: var(--color-text-strong-6);
     background-color: var(--btn-dark);
 }
 

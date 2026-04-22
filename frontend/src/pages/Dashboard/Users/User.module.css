@@ -11,12 +11,12 @@
 }
 
 .actionBtnEdit {
-    background: #dc3545;
-    color: white;
+    background: var(--color-danger);
+    color: var(--color-white);
 }
 
 .actionBtnDelete:hover {
-    background: #c82333;
+    background: var(--color-danger-strong);
 }
 
 .mobileCardRow {
@@ -27,7 +27,7 @@
 }
 
 .actionBtnPassword:hover {
-    background: #e0a800;
+    background: var(--color-warning-dark);
 }
 
 .filterBar {
@@ -72,7 +72,7 @@
     width: 100%;
     border-radius: 10px;
     padding: 1rem;
-    background: #ffffff;
+    background: var(--color-surface);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -89,13 +89,13 @@
     margin: 0;
     font-size: 1.05rem;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--color-text-strong-3);
 }
 
 
 .mobileCardDivider {
     height: 1px;
-    background: #e5e7eb;
+    background: var(--color-surface-line);
     margin: 0.5rem 0;
 }
 
@@ -107,14 +107,14 @@
 
 .mobileCardLabel {
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--color-text-muted-4);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .mobileCardValue {
     font-size: 0.95rem;
-    color: #0f172a;
+    color: var(--color-text-strong-3);
     font-weight: 500;
 }
 
@@ -126,7 +126,7 @@
 .mobileCardActionTrigger {
     border: none;
     background: transparent;
-    color: #94a3b8;
+    color: var(--color-text-muted-10);
     font-size: 1.4rem;
     padding: 0.15rem 0.35rem;
     border-radius: 999px;
@@ -143,10 +143,10 @@
 .mobileCardActionMenu {
     position: fixed;
     min-width: 200px;
-    background: #ffffff;
-    border: 1px solid #dee2e6;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
     border-radius: 0.5rem;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 10px 25px var(--color-shadow-black-12);
     padding: 0.25rem;
     z-index: 1200;
 }
@@ -161,14 +161,14 @@
     padding: 0.45rem 0.5rem;
     border-radius: 0.4rem;
     cursor: pointer;
-    color: #212529;
+    color: var(--color-text-strong-5);
     font-size: 0.9rem;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .formSection {
     padding: 1.5rem;
-    background: #ffffff;
+    background: var(--color-surface);
     border-radius: 10px;
     margin-bottom: 1.5rem;
 }
@@ -176,12 +176,12 @@
 .formSectionTitle {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--color-text-strong-3);
     margin-bottom: 1rem;
 }
 
 .mobileCardActionMenuItem:hover {
-    background-color: #f1f3f5;
+    background-color: var(--color-surface-subtle);
 }
 
 .mobileCardActionMenuItem i {
@@ -189,17 +189,17 @@
 }
 
 .mobileCardActionMenuItemDanger {
-    color: #c53030;
+    color: var(--color-danger-deep);
 }
 
 .mobileCardActionMenuItemDanger:hover {
-    background-color: #ffe3e3;
-    color: #a61b1b;
+    background-color: var(--color-ffe3e3);
+    color: var(--color-danger-darker);
 }
 
 .mobileCardsEmpty {
     text-align: center;
-    color: #6b7280;
+    color: var(--color-text-muted-4);
     font-size: 0.95rem;
     padding: 1.25rem 0;
 }
