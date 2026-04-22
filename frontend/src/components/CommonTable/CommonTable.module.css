@@ -1,6 +1,6 @@
 .tableWrapper {
     background: var(--color-surface);
-    border-radius: 12px;
+    border-radius: 0.75rem;
 }
 
 .tableResponsive {
@@ -13,7 +13,7 @@
 .table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 10px;
+    border-radius: 0.625rem;
     background-color: var(--color-surface);
 }
 
@@ -26,8 +26,17 @@
 }
 
 .indexColumn {
-    width: 3rem;
+    width: 60px;
     text-align: center;
+}
+
+.table th.indexColumn,
+.table td.indexColumn {
+    text-align: center;
+}
+
+.table tbody .indexColumn {
+    font-weight: 600;
 }
 
 .tableTitle {
@@ -39,8 +48,9 @@
 
 .table th,
 .table td {
-    padding: 0.75rem;
-    vertical-align: top;
+    padding: 0.75rem 1rem;
+    height: 3rem;
+    vertical-align: center;
     border-bottom: 1px solid var(--color-border);
     text-align: left;
 }
@@ -69,6 +79,11 @@
     width: 3rem;
 }
 
+.table th.rowActionColumn,
+.table td.rowActionCell {
+    padding-right: 1.5rem;
+}
+
 .rowActionCell {
     text-align: center;
     position: relative;
@@ -91,8 +106,8 @@
 }
 
 .rowActionButton:focus-visible {
-    outline: 2px solid var(--color-focus-outline);
-    outline-offset: 2px;
+    outline: 0.125rem solid var(--color-focus-outline);
+    outline-offset: 0.125rem;
 }
 
 .rowActionMenu {
@@ -101,7 +116,6 @@
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
-    box-shadow: 0 10px 25px var(--color-shadow-10);
     padding: 0.25rem;
     z-index: 1100;
 }

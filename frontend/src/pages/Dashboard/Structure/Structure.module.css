@@ -176,7 +176,7 @@
 
 .filtersGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr)) 212px;
     gap: 1rem;
     align-items: start;
 }
@@ -184,8 +184,9 @@
 .resetButton {
     align-self: end;
     height: 50px;
-    justify-self: flex;
+    justify-self: end;
     font-size: 1rem;
+    width: 212px;
 }
 
 .emptyState {
@@ -225,7 +226,7 @@
 
 .settlementFormGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(416px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
 }
 

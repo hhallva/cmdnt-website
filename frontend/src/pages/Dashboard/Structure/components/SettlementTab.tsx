@@ -83,10 +83,11 @@ export const SettlementTabHeader: React.FC<SettlementTabHeaderProps> = ({
                     variant='primary'
                     size='md'
                     type='submit'
+                    style={{ minWidth: '212px' }}
                     className={styles.fullWidthMobileButton}
                     disabled={isSubmitDisabled}
                 >
-                    {isSettling ? 'Заселяем…' : 'Заселить студента'}
+                    {isSettling ? 'Заселяем…' : 'Заселить'}
                 </ActionButton>
             </div>
         </form>
