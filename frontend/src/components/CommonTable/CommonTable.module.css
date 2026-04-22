@@ -6,7 +6,7 @@
 .tableResponsive {
     overflow-x: auto;
     overflow-y: visible;
-    border-radius: 10px;
+    border-radius: 1rem;
 }
 
 /* Сама таблица */
@@ -34,21 +34,21 @@
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--color-text-heading);
+    color: var(--color-text-dark);
 }
 
 .table th,
 .table td {
     padding: 0.75rem;
     vertical-align: top;
-    border-bottom: 1px solid var(--color-border-light);
+    border-bottom: 1px solid var(--color-border);
     text-align: left;
 }
 
 .table th {
     vertical-align: bottom;
     font-weight: 600;
-    color: var(--color-text-subtle);
+    color: var(--color-text-dark);
     text-align: left;
 }
 
@@ -62,7 +62,7 @@
 }
 
 .clickableRow:active {
-    background-color: var(--color-surface-alt);
+    background-color: var(--color-bg);
 }
 
 .rowActionColumn {
@@ -76,18 +76,18 @@
 
 .rowActionButton {
     border: none;
-    background: transparent;
+    background: var(--color-transparent);
     padding: 0.25rem;
     border-radius: 50%;
-    color: var(--color-text-muted-9);
+    color: var(--color-text-light);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .rowActionButton:hover,
 .rowActionButton:focus-visible {
-    background-color: transparent;
-    color: var(--color-text-strong-4);
+    background-color: var(--color-transparent);
+    color: var(--color-text-dark);
 }
 
 .rowActionButton:focus-visible {
@@ -99,9 +99,9 @@
     position: fixed;
     min-width: 200px;
     background: var(--color-surface);
-    border: 1px solid var(--color-border-light);
+    border: 1px solid var(--color-border);
     border-radius: 0.5rem;
-    box-shadow: 0 10px 25px var(--color-shadow-black-12);
+    box-shadow: 0 10px 25px var(--color-shadow-10);
     padding: 0.25rem;
     z-index: 1100;
 }
@@ -109,14 +109,14 @@
 .rowActionMenuItem {
     width: 100%;
     border: none;
-    background: transparent;
+    background: var(--color-transparent);
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.4rem 0.5rem;
     border-radius: 0.4rem;
     cursor: pointer;
-    color: var(--color-text-strong-5);
+    color: var(--color-text-dark);
     font-size: 0.9rem;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -130,12 +130,12 @@
 }
 
 .rowActionMenuItemDanger {
-    color: var(--color-danger-deep);
+    color: var(--color-danger);
 }
 
 .rowActionMenuItemDanger:hover {
-    background-color: var(--color-ffe3e3);
-    color: var(--color-danger-darker);
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
 }
 
 @media (max-width: 768px) {

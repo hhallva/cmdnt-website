@@ -25,7 +25,7 @@
 }
 
 .content {
-    background: var(--color-bg);
+    background: var(--color-white);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
@@ -44,7 +44,7 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 1.5rem;
-    color: white;
+    color: var(--color-white);
     font-size: 1.75rem;
 }
 
@@ -53,8 +53,7 @@ h1 {
     font-size: clamp(1.5rem, 4vw, 2rem);
     font-weight: 700;
     margin-bottom: 1rem;
-    color: var(--color-text-heading);
-    text-shadow: 0 2px 4px var(--color-shadow-black-10);
+    color: var(--color-text-dark);
 }
 
 .systemname {
@@ -101,7 +100,7 @@ h1 {
 
 .formLabel {
     font-weight: 500;
-    color: var(--color-text-heading);
+    color: var(--color-text-dark);
 }
 
 .errorMessageInline {
@@ -120,7 +119,7 @@ h1 {
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--color-text-muted-2);
+    color: var(--color-text-light);
     pointer-events: none;
     z-index: 2;
 }
@@ -138,7 +137,6 @@ h1 {
 .form-control:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-shadow-primary-10);
 }
 
 .passwordToggleBtn {
@@ -146,9 +144,9 @@ h1 {
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    background: transparent;
+    background: var(--color-transparent);
     border: none;
-    color: var(--color-text-muted-2);
+    color: var(--color-text-light);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -163,10 +161,10 @@ h1 {
 /* Кнопка */
 .btn {
     width: 100%;
-    padding: 0.85rem;
+    padding: 0.75rem;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -176,12 +174,10 @@ h1 {
 .btnPrimary {
     background-color: var(--color-primary);
     color: var(--color-white);
-    box-shadow: 0 4px 15px var(--color-shadow-primary-30);
 }
 
 .btnPrimary:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px var(--color-shadow-primary-40);
 }
 
 .btn:disabled {
@@ -211,19 +207,19 @@ h1 {
     .decoration:nth-child(1) {
         top: 10%;
         left: 5%;
-        background: radial-gradient(circle, var(--color-shadow-primary-10) 0%, transparent 70%);
+        background: radial-gradient(circle, var(--color-accent-10) 0%, var(--color-transparent) 70%);
     }
 
     .decoration:nth-child(2) {
         bottom: 15%;
         right: 5%;
-        background: radial-gradient(circle, var(--color-shadow-blue-10) 0%, transparent 70%);
+        background: radial-gradient(circle, var(--color-accent-10) 0%, var(--color-transparent) 70%);
     }
 
     .decoration:nth-child(3) {
         top: 40%;
         left: 10%;
-        background: radial-gradient(circle, var(--color-shadow-primary-10) 0%, transparent 70%);
+        background: radial-gradient(circle, var(--color-accent-10) 0%, var(--color-transparent) 70%);
     }
 }
 

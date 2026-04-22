@@ -137,7 +137,7 @@ const LoginPage: React.FC = () => {
 
                     {/* Общая ошибка */}
                     {errorMessage && (
-                        <div className="alert alert-danger mt-3" role="alert" style={{ color: '#e74c3c' }}>
+                        <div className="alert alert-danger mt-3" role="alert" style={{ color: 'var(--color-danger)' }}>
                             {errorMessage}
                         </div>
                     )}

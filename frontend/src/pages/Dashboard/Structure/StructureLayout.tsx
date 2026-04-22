@@ -441,6 +441,7 @@ const StructureLayout: React.FC = () => {
                     isOpen={isAddRoomModalOpen}
                     onClose={closeAddRoomModal}
                     minWidth={520}
+                    minHeight={380}
                 >
                     <form className={styles.addRoomForm} onSubmit={handleAddRoomSubmit}>
                         <div className={styles.addRoomFormGrid}>
@@ -586,7 +587,7 @@ const StructureLayout: React.FC = () => {
                                                 </div>
                                                 <ActionButton
                                                     variant='secondary'
-                                                    size='sm'
+                                                    size='md'
                                                     className={styles.studentCardButton}
                                                     onClick={() => navigate(`/dashboard/students/${student.id}`)}
                                                 >

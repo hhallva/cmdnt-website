@@ -4,7 +4,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--color-shadow-black-30);
+    background: var(--color-shadow-30);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,7 +14,7 @@
 .modalContent {
     background: var(--color-white);
     border-radius: 1.25rem;
-    box-shadow: 0 2px 16px var(--color-shadow-black-15);
+    box-shadow: 0 2px 16px var(--color-shadow-15);
     padding: 1.25rem 1.5rem;
     min-width: min(var(--modal-min-width, 480px), 90vw);
     width: min(720px, 90vw);
@@ -55,7 +55,7 @@
     font-size: 2rem;
     line-height: 1;
     cursor: pointer;
-    color: var(--color-555555);
+    color: var(--color-text-dark);
     transition: color 0.2s, transform 0.2s;
     padding: 0.15rem 0.35rem;
     align-self: flex-start;

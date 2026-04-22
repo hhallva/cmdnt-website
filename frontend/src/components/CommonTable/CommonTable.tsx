@@ -84,7 +84,7 @@ const CommonTable = <T extends Record<string, any>>({
                 style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', width: '100%' }}
             >
                 <span>{column.title}</span>
-                <i className={`bi ${icon}`} style={{ color: isActive ? '#0d6efd' : '#686868', opacity: isActive ? 1 : 0.5, transition: 'opacity 0.2s ease', marginLeft: '0.5rem', }}></i>
+                <i className={`bi ${icon}`} style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-light)', opacity: isActive ? 1 : 0.5, transition: 'opacity 0.2s ease', marginLeft: '0.5rem', }}></i>
             </div>
         );
     };

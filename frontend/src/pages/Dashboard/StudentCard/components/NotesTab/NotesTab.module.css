@@ -5,7 +5,7 @@
 }
 
 .formSection {
-    background: #ffffff;
+    background: var(--color-white);
     border-radius: 12px;
     padding: 1.5rem;
 }
@@ -22,7 +22,7 @@
 
 .notesHint {
     font-size: 14px;
-    color: #81818e;
+    color: var(--color-text-light);
     flex: 1;
     min-width: 0;
     line-height: 1.4;
@@ -48,7 +48,7 @@
 .noteTextarea {
     width: 100%;
     min-height: 150px;
-    border: 1px solid #eef0f3;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     padding: 12px;
     font-size: 14px;
@@ -60,21 +60,21 @@
 .noteTextarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(255, 167, 38, 0.1);
+    box-shadow: 0 0 0 3px var(--color-accent-10);
 }
 
 .noteTextareaError {
-    border-color: #dc3545;
+    border-color: var(--color-danger);
 }
 
 .noteTextareaError:focus {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 0.2rem var(--color-danger-25);
 }
 
 .validationMessage {
     font-size: 13px;
-    color: #ff4d4f;
+    color: var(--color-danger);
     margin-top: 8px;
 }
 
@@ -86,8 +86,8 @@
 }
 
 .notesList {
-    background: #fff;
-    border: 1px solid #eef0f3;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 8px;
     display: flex;
@@ -102,7 +102,7 @@
 
 .noteItem {
     padding: 1.5rem;
-    background: white;
+    background: var(--color-white);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
@@ -122,16 +122,16 @@
 
 .noteAuthor {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--color-text-dark);
 }
 
 .noteDate {
-    color: #81818e;
+    color: var(--color-text-light);
     font-size: 13px;
 }
 
 .noteContent {
-    color: #495057;
+    color: var(--color-text-dark);
     line-height: 1.5;
     white-space: pre-wrap;
     margin: 0;
@@ -140,8 +140,8 @@
 
 .deleteButton {
     border: none;
-    background: transparent;
-    color: #9da4b0;
+    background: var(--color-transparent);
+    color: var(--color-text-light);
     cursor: pointer;
     font-size: 1.1rem;
     padding: 4px;
@@ -149,15 +149,15 @@
 }
 
 .deleteButton:hover {
-    color: #dc3545;
+    color: var(--color-danger);
 }
 
 .emptyState {
-    background-color: white;
+    background-color: var(--color-white);
     border-radius: 12px;
     padding: 2rem;
     text-align: center;
-    color: #64748b;
+    color: var(--color-text-light);
 }
 
 .emptyState i {

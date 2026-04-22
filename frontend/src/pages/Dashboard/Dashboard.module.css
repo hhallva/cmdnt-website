@@ -9,14 +9,13 @@
 /* Десктопная боковая панель */
 .sidebar {
     width: 280px;
-    height: 100vh;
+    height: 100;
     border-bottom: 1px solid var(--color-white-20);
     top: 0;
     left: 0;
     background: var(--color-primary);
     color: var(--color-white);
     padding: 1rem;
-    box-shadow: 2px 0 10px var(--color-shadow-black-10);
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -100,7 +99,7 @@
     transition: all 0.3s ease;
     white-space: nowrap;
     border: none;
-    background: transparent;
+    background: var(--color-transparent);
     width: 100%;
 }
 
@@ -153,14 +152,9 @@
 
 /* Основной контент */
 .mainContentDesktop {
-    margin-left: 280px;
     padding: 2rem;
     transition: margin-left 0.3s ease;
     flex: 1;
-}
-
-.mainContentDesktop.expanded {
-    margin-left: 90px;
 }
 
 /* Заголовок */
@@ -176,7 +170,7 @@
     font-family: 'Inter', 'Segoe UI', sans-serif;
     font-size: 1.5rem;
     font-weight: bold;
-    color: var(--color-text-heading);
+    color: var(--color-text-dark);
     margin: 0;
     text-shadow: none
 }
@@ -189,7 +183,7 @@
 .headerBackButton {
     border: none;
     background: none;
-    color: var(--color-text-heading);
+    color: var(--color-text-dark);
     width: 40px;
     height: 40px;
     border-radius: 10px;
@@ -239,7 +233,7 @@
     background: var(--color-primary);
     color: var(--color-white);
     z-index: 1000;
-    box-shadow: 0 2px 10px var(--color-shadow-black-10);
+    box-shadow: 0 2px 10px var(--color-shadow-10);
     max-height: 60px;
     overflow: hidden;
     transition: max-height 0.3s ease;
@@ -297,7 +291,7 @@
 
 .mobileNavItem {
     width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--color-white-20);
     position: relative;
 }
 

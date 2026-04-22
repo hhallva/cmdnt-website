@@ -12,35 +12,23 @@
 
 .formLabel {
     font-weight: 500;
+    font-size: 14px;
     color: var(--color-text);
     margin: 0;
 }
 
-.formControl {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.formControl:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: var(--box-shadow);
-}
-
 .formSelect {
     width: 100%;
-    padding: 0.75rem;
-    padding-right: 2.5rem;
+    padding-left: 1rem;
+    height: 2.5rem;
     border: 1px solid var(--color-border);
-    border-radius: 5px;
-    font-size: 1rem;
+    border-radius: 0.75rem;
+    font-size: 14px;
     transition: all 0.3s ease;
-    background-color: var(--color-bg);
-    color: var(--color-text-subtle);
+    color: var(--color-text-dark);
+    position: relative;
+    text-decoration: none;
+
     appearance: none;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
@@ -50,36 +38,16 @@
 
 .formSelect:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-shadow-primary-10);
-}
-
-.formTextarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--color-border-muted);
-    border-radius: 5px;
-    font-size: 1rem;
-    min-height: 120px;
-    resize: vertical;
-    transition: all 0.3s ease;
-}
-
-.formTextarea:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-shadow-primary-10);
+    border: 1px solid var(--color-primary);
 }
 
 /* --- Стили для невалидного состояния --- */
-.formControl.isInvalid,
 .formSelect.isInvalid {
     border-color: var(--color-danger);
 }
 
-.formControl.isInvalid:focus,
 .formSelect.isInvalid:focus {
-    border-color: var(--color-danger-dark);
+    border-color: var(--color-danger-hover);
     box-shadow: 0 0 0 0.2rem var(--color-shadow-danger-25);
 }
 
