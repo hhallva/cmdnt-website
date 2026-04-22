@@ -343,8 +343,8 @@ export const apiClient = {
   //#endregion
 
   //#region Структура
-  getStructureStatistics: async (): Promise<StructureStatisticDto> => {
-    return apiClient.requestWithAuth<StructureStatisticDto>('/api/v1/Structure/statistic');
+  getStructureStatistics: async (buildingId: number): Promise<StructureStatisticDto> => {
+    return apiClient.requestWithAuth<StructureStatisticDto>(`/api/v1/Structure/statistic/${buildingId}`);
   },
 
   getOverallStructureStatistics: async (): Promise<OverallStructureStatisticDto> => {

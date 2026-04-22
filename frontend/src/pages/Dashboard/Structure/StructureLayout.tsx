@@ -90,10 +90,17 @@ const StructureLayout: React.FC = () => {
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
 
     const loadStructureStats = useCallback(async () => {
+        if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
+            setStructureStats(null);
+            setStatsError('Не удалось определить здание для статистики');
+            setStatsLoading(false);
+            return;
+        }
+
         setStatsLoading(true);
         setStatsError(null);
         try {
-            const data = await apiClient.getStructureStatistics();
+            const data = await apiClient.getStructureStatistics(buildingIdNum);
             setStructureStats(data);
         } catch (err: any) {
             const message = err?.message || 'Не удалось загрузить статистику общежития';
@@ -102,7 +109,7 @@ const StructureLayout: React.FC = () => {
         } finally {
             setStatsLoading(false);
         }
-    }, []);
+    }, [buildingIdNum]);
 
     useEffect(() => {
         void loadStructureStats();
@@ -518,21 +525,20 @@ const StructureLayout: React.FC = () => {
                 </CommonModal>
             )}
 
-            {!statsLoading && !statsError && structureStats && (
-                <StatisticsCard
-                    stats={[
-                        { value: students.length, label: 'Всего студентов' },
-                        { value: structureStats.studentCount, label: 'Заселено студентов' },
-                        { value: Math.max(students.length - structureStats.studentCount, 0), label: 'Свободно студентов' },
-                        { value: structureStats.totalCopacity, label: 'Всего мест' },
-                        { value: structureStats.freeCount, label: 'Свободных мест' },
-                    ]}
-                />
+            {!statsLoading && !statsError && structureStats && (<StatisticsCard
+                stats={[
+                    { value: structureStats.totalCopacity, label: 'мест' },
+                    { value: structureStats.occupiedCount, label: 'заселено' },
+                    { value: structureStats.freeCount, label: 'свободно' },
+                    { value: structureStats.studentCount, label: 'всего студентов' },
+                ]}
+            />
             )}
 
             <Tabs
                 tabs={tabs}
                 activeTabId={activeTabId}
+
                 onTabChange={handleTabChange}
             />
 
