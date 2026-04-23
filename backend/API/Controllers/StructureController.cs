@@ -43,9 +43,7 @@ namespace API.Controllers
 
             var freeCount = totalCapacity - occupiedCount;
 
-            var studentCount = await activeResettlements
-                .Select(r => r.StudentId)
-                .Distinct()
+            var studentCount = await _context.Students
                 .CountAsync();
 
             var statistic = new StructureStatisticDto
