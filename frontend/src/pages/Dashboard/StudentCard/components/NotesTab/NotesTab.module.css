@@ -16,21 +16,28 @@
     justify-content: space-between;
     align-items: flex-start;
     vertical-align: center;
-    gap: 12px;
+    gap: 0.5rem;
     flex-wrap: nowrap;
 }
 
 .notesHint {
-    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
     color: var(--color-text-light);
     flex: 1;
     min-width: 0;
     line-height: 1.4;
 }
 
-.notesToolbarButton {
-    flex-shrink: 0;
-    min-width: 180px;
+.notesHintLabel {
+    color: var(--color-text-light);
+}
+
+.notesHintValue {
+    color: var(--color-text-dark);
+    font-weight: 600;
 }
 
 .noteModalForm {
@@ -88,10 +95,14 @@
 .notesList {
     background: var(--color-white);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: 0.75rem;
     padding: 8px;
     display: flex;
     flex-direction: column;
+}
+
+.noteDateText {
+    color: var(--color-text-light);
 }
 
 .notesListWrapper {
@@ -103,10 +114,10 @@
 .noteItem {
     padding: 1.5rem;
     background: var(--color-white);
-    border-radius: 10px;
+    border-radius: 0.75rem;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0.75rem;
 }
 
 .noteItem:last-child {
