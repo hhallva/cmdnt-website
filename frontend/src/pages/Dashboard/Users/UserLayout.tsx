@@ -704,6 +704,7 @@ const UsersLayout: React.FC = () => {
                         <div className="col-md-12">
                             <SelectField
                                 label="Роль"
+                                labelClassName={styles.roleSelectLabel}
                                 name="roleId"
                                 value={newUser.roleId}
                                 onChange={handleAddUserChange}

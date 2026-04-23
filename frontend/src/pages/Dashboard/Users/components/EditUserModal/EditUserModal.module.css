@@ -67,6 +67,24 @@
     gap: 0.5rem;
 }
 
+.formLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 576px) {
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* --- Адаптивность --- */
 @media (max-width: 576px) {
     .modalContent {

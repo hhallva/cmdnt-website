@@ -7,6 +7,7 @@ import InputField from '../../../../../components/InputField/InputField';
 import SelectField from '../../../../../components/SelectField/SelectField';
 import CommonModal from '../../../../../components/CommonModal/CommonModal';
 import ActionButton from '../../../../../components/ActionButton/ActionButton';
+import styles from './EditUserModal.module.css';
 
 interface FormErrors {
     roleId?: string | null;
@@ -135,7 +136,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, roles, onClose, onS
 
     return (
         <CommonModal title="Редактирование пользователя" isOpen onClose={onClose} minWidth={520}>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className={styles.formLayout}>
                 <InputField
                     label="Фамилия"
                     type="text"
@@ -163,24 +164,26 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, roles, onClose, onS
                     disabled={loading}
                     error={errors.patronymic || undefined}
                 />
-                <InputField
-                    label="Логин"
-                    type="text"
-                    name="login"
-                    value={formData.login || ''}
-                    onChange={handleChange}
-                    disabled={loading}
-                    error={errors.login || undefined}
-                />
-                <SelectField
-                    label="Роль"
-                    name="roleId"
-                    value={formData.roleId}
-                    onChange={handleChange}
-                    options={roleOptions}
-                    disabled={loading}
-                    error={errors.roleId || undefined}
-                />
+                <div className={styles.formRow}>
+                    <InputField
+                        label="Логин"
+                        type="text"
+                        name="login"
+                        value={formData.login || ''}
+                        onChange={handleChange}
+                        disabled={loading}
+                        error={errors.login || undefined}
+                    />
+                    <SelectField
+                        label="Роль"
+                        name="roleId"
+                        value={formData.roleId}
+                        onChange={handleChange}
+                        options={roleOptions}
+                        disabled={loading}
+                        error={errors.roleId || undefined}
+                    />
+                </div>
 
                 {errors.form && <div className="alert alert-danger mb-3">{errors.form}</div>}
 

@@ -4,6 +4,7 @@ import type { UserDto } from '../../../../../types/UserDto';
 import PasswordField from '../../../../../components/PasswordField/PasswordField';
 import CommonModal from '../../../../../components/CommonModal/CommonModal';
 import ActionButton from '../../../../../components/ActionButton/ActionButton';
+import styles from './ChangePasswordModal.module.css';
 
 export interface ChangePasswordModalProps {
     user: UserDto;
@@ -57,7 +58,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
 
     return (
         <CommonModal title="Изменение пароля" isOpen onClose={onClose} minWidth={480}>
-            <div className="border rounded bg-light p-3 mb-3">
+            <div className={styles.infoPanel}>
                 <div className="mb-2">
                     <span className="text-muted me-2">Пользователь:</span>
                     <strong>
@@ -70,7 +71,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ user, onClose
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className={styles.formLayout}>
                 <PasswordField
                     label="Новый пароль"
                     name="password"
