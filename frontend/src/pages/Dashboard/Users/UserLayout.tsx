@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -119,6 +119,10 @@ const UsersLayout: React.FC = () => {
     // #region Поиск и фильтрация
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
+    });
 
     const roleOptions = [
         { value: 'all', label: 'Все роли' },
@@ -140,10 +144,22 @@ const UsersLayout: React.FC = () => {
     const handleResetFilters = () => {
         setSearchTerm('');
         setSelectedRoleId('all');
+        setSortConfig({ key: 'fullName', direction: 'asc' });
     };
 
+    const requestSort = (key: string) => {
+        setSortConfig(prevConfig => {
+            if (prevConfig && prevConfig.key === key) {
+                return {
+                    key,
+                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
+                };
+            }
+            return { key, direction: 'asc' };
+        });
+    };
 
-    const filteredUsers = users.filter(user => {
+    const filteredUsers = useMemo(() => users.filter(user => {
         const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (user.surname?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (user.patronymic?.toLowerCase() || '').includes(searchTerm.toLowerCase());
@@ -151,7 +167,7 @@ const UsersLayout: React.FC = () => {
         const matchesRole = selectedRoleId === 'all' || user.role?.id === selectedRoleId;
 
         return matchesSearch && matchesRole;
-    });
+    }), [users, searchTerm, selectedRoleId]);
 
     // #endregion
 
@@ -220,15 +236,18 @@ const UsersLayout: React.FC = () => {
         {
             key: 'fullName',
             title: 'ФИО',
+            sortable: true,
             render: (user: UserDto) => getUserFullName(user),
         },
         {
             key: 'login',
             title: 'Логин',
+            sortable: true,
         },
         {
             key: 'role.name',
             title: 'Роль',
+            sortable: true,
             render: (user: UserDto) => user.role?.name ?? "Нет",
         },
     ];
@@ -328,6 +347,44 @@ const UsersLayout: React.FC = () => {
         setActiveMobileMenuUserId(userId);
     };
 
+    const sortedUsers = useMemo(() => {
+        const result = [...filteredUsers];
+        if (!sortConfig) {
+            return result;
+        }
+
+        const { key, direction } = sortConfig;
+        const dirMultiplier = direction === 'asc' ? 1 : -1;
+
+        result.sort((a, b) => {
+            let aValue: string;
+            let bValue: string;
+
+            switch (key) {
+                case 'fullName':
+                    aValue = getUserFullName(a).toLowerCase();
+                    bValue = getUserFullName(b).toLowerCase();
+                    break;
+                case 'login':
+                    aValue = (a.login ?? '').toLowerCase();
+                    bValue = (b.login ?? '').toLowerCase();
+                    break;
+                case 'role.name':
+                    aValue = (a.role?.name ?? '').toLowerCase();
+                    bValue = (b.role?.name ?? '').toLowerCase();
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aValue < bValue) return -1 * dirMultiplier;
+            if (aValue > bValue) return 1 * dirMultiplier;
+            return 0;
+        });
+
+        return result;
+    }, [filteredUsers, sortConfig]);
+
     const listTabHeader = (
         <div className={styles.filterBar}>
             <div className={styles.filterField}
@@ -346,7 +403,7 @@ const UsersLayout: React.FC = () => {
             </div>
             <div className={styles.filterActions}>
                 <ActionButton
-                    size='sm'
+                    size='md'
                     variant='secondary'
                     onClick={handleResetFilters}
                     className={styles.modilButton}
@@ -361,16 +418,19 @@ const UsersLayout: React.FC = () => {
         <>
             <div className={styles.desktopTable}>
                 <CommonTable
-                    data={filteredUsers}
+                    data={sortedUsers}
                     totalCount={users.length}
                     columns={columns}
                     rowAction={rowAction}
+                    enableSorting={true}
+                    onSortRequest={requestSort}
+                    sortConfig={sortConfig}
                     emptyMessage="Пользователи не найдены"
                 />
             </div>
             <div className={styles.mobileCardsWrapper}>
-                {filteredUsers.length ? (
-                    filteredUsers.map(user => {
+                {sortedUsers.length ? (
+                    sortedUsers.map(user => {
                         const visibleMobileActions = getVisibleRowActions(user);
                         const hasMobileActions = visibleMobileActions.length > 0;
                         return (
@@ -685,10 +745,10 @@ const UsersLayout: React.FC = () => {
     if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
 
     const userStats = [
-        { value: statistics.totalUsers, label: 'Всего пользователей' },
-        { value: statistics.adminCount, label: 'Администраторы' },
-        { value: statistics.commandantCount, label: 'Коменданты' },
-        { value: statistics.educatorCount, label: 'Воспитатели' },
+        { value: statistics.totalUsers, label: 'пользователей' },
+        { value: statistics.adminCount, label: 'администраторы' },
+        { value: statistics.commandantCount, label: 'коменданты' },
+        { value: statistics.educatorCount, label: 'воспитатели' },
     ]
 
     const tabs = [

@@ -111,16 +111,12 @@
 }
 
 .pendingPlusIconDelete {
-    font-size: 3rem;
-    margin-top: -13px;
-    line-height: 1;
+    font-size: 2rem;
     color: var(--color-text-light);
 }
 
 .pendingPlusIcon {
-    font-size: 3rem;
-    padding-bottom: 6px;
-    line-height: 1;
+    font-size: 2rem;
     color: var(--color-text-light);
 }
 

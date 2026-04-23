@@ -177,42 +177,109 @@ const StructureLayout: React.FC = () => {
         activateSettlementTab,
     });
 
+    const [unassignedSortConfig, setUnassignedSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
+    });
+
+    const requestUnassignedSort = (key: string) => {
+        setUnassignedSortConfig(prevConfig => {
+            if (prevConfig && prevConfig.key === key) {
+                return {
+                    key,
+                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
+                };
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
     const unassignedStudentsSorted = useMemo(() => {
-        return unassignedStudents
-            .slice()
-            .sort((a, b) => formatFullName(a).localeCompare(formatFullName(b), 'ru'));
-    }, [unassignedStudents]);
+        const result = unassignedStudents.slice();
+        if (!unassignedSortConfig) {
+            return result;
+        }
+
+        const { key, direction } = unassignedSortConfig;
+        const dirMultiplier = direction === 'asc' ? 1 : -1;
+
+        result.sort((a, b) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            switch (key) {
+                case 'fullName':
+                    aValue = formatFullName(a).toLowerCase();
+                    bValue = formatFullName(b).toLowerCase();
+                    break;
+                case 'group.name':
+                    aValue = (a.group?.name ?? '').toLowerCase();
+                    bValue = (b.group?.name ?? '').toLowerCase();
+                    break;
+                case 'group.course':
+                    aValue = a.group?.course ?? 0;
+                    bValue = b.group?.course ?? 0;
+                    break;
+                case 'gender':
+                    aValue = a.gender ? 1 : 0;
+                    bValue = b.gender ? 1 : 0;
+                    break;
+                case 'phone':
+                    aValue = (a.phone ?? '').toLowerCase();
+                    bValue = (b.phone ?? '').toLowerCase();
+                    break;
+                case 'birthday':
+                    aValue = a.birthday ? new Date(a.birthday).getTime() : 0;
+                    bValue = b.birthday ? new Date(b.birthday).getTime() : 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aValue < bValue) return -1 * dirMultiplier;
+            if (aValue > bValue) return 1 * dirMultiplier;
+            return 0;
+        });
+
+        return result;
+    }, [unassignedStudents, unassignedSortConfig]);
 
     const unassignedColumns = useMemo(() => ([
         {
             key: 'fullName',
             title: 'ФИО',
+            sortable: true,
             render: (student: StudentsDto) => formatFullName(student) || '—',
         },
         {
             key: 'group.name',
             title: 'Группа',
+            sortable: true,
             render: (student: StudentsDto) => student.group?.name ?? '—',
         },
         {
             key: 'group.course',
             title: 'Курс',
+            sortable: true,
             render: (student: StudentsDto) => student.group?.course ?? '—',
             className: styles.tableNumericCell,
         },
         {
             key: 'gender',
             title: 'Пол',
+            sortable: true,
             render: (student: StudentsDto) => getStudentGenderLabel(student.gender),
         },
         {
             key: 'phone',
             title: 'Телефон',
+            sortable: true,
             render: (student: StudentsDto) => student.phone ?? '—',
         },
         {
             key: 'birthday',
             title: 'Дата рождения',
+            sortable: true,
             render: (student: StudentsDto) => formatBirthday(student.birthday),
         },
     ]), [navigate]);
@@ -420,6 +487,9 @@ const StructureLayout: React.FC = () => {
             students={unassignedStudentsSorted}
             columns={unassignedColumns}
             rowAction={rowAction}
+            enableSorting={true}
+            onSortRequest={requestUnassignedSort}
+            sortConfig={unassignedSortConfig}
             formatFullName={formatFullName}
             formatBirthday={formatBirthday}
             getStudentGenderLabel={getStudentGenderLabel}

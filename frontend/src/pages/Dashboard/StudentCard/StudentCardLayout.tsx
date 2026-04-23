@@ -268,10 +268,7 @@ const StudentCardLayout: React.FC = () => {
                                     className={styles.actionButtonFullWidth}
                                     size='md'
                                     onClick={() => setEditModalOpen(true)}>
-                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                        <i className="bi bi-pencil me-1"></i>
-                                        Редактировать
-                                    </div>
+                                    Редактировать
                                 </ActionButton>
                             )}
 

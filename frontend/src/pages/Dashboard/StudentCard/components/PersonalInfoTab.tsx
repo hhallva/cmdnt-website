@@ -108,7 +108,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ student, contacts }) 
                                 </div>
                             ))
                         ) : (
-                            <div className={styles.infoValue}>Нет дополнительных контактов</div>
+                            <div className={styles.blockMetaLabel}>Нет дополнительных контактов</div>
                         )}
                     </div>
                 </div>

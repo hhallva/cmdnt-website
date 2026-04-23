@@ -75,8 +75,8 @@ const CommonTable = <T extends Record<string, any>>({
         const icon = !isActive
             ? 'bi-arrow-down-up'
             : sortConfig?.direction === 'asc'
-                ? 'bi-sort-alpha-down'
-                : 'bi-sort-alpha-up';
+                ? 'bi-sort-down'
+                : 'bi-sort-up';
 
         return (
             <div

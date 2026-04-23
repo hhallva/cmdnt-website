@@ -98,6 +98,9 @@ interface SettlementTabContentProps {
     students: StudentsDto[];
     columns: ColumnDefinition<StudentsDto>[];
     rowAction: RowActionConfig<StudentsDto>;
+    enableSorting?: boolean;
+    onSortRequest?: (key: string) => void;
+    sortConfig?: { key: string; direction: 'asc' | 'desc' } | null;
     formatFullName: (student: StudentsDto) => string;
     formatBirthday: (birthday?: string | null) => string;
     getStudentGenderLabel: (gender: StudentsDto['gender']) => string;
@@ -108,6 +111,9 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
     students,
     columns,
     rowAction,
+    enableSorting,
+    onSortRequest,
+    sortConfig,
     formatFullName,
     formatBirthday,
     getStudentGenderLabel,
@@ -121,6 +127,9 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
                 emptyMessage="Все студенты уже заселены"
                 rowAction={rowAction}
                 className={styles.tablePlain}
+                enableSorting={enableSorting}
+                onSortRequest={onSortRequest}
+                sortConfig={sortConfig}
                 onRowClick={onStudentSelect}
             />
         </div>

@@ -418,7 +418,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                                                         onClick={() => handleRemoveContactField(index)}
                                                         disabled={loading}
                                                     >
-                                                        <span aria-hidden="true" className={styles.pendingPlusIconDelete}>-</span>
+                                                        <div aria-hidden="true" className={styles.pendingPlusIconDelete}>
+                                                            <i className="bi bi-dash"></i>
+                                                        </div>
                                                         <span className="visually-hidden">Удалить контакт</span>
                                                     </ActionButton>
                                                 </div>
@@ -457,7 +459,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                                             </div>
                                         </div>
                                         <div className={styles.contactButtonCell}>
-                                            <span className={styles.pendingPlusIcon}>+</span>
+                                            <div className={styles.pendingPlusIcon}>
+                                                <i className="bi bi-plus"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
