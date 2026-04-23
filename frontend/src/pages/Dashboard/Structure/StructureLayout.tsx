@@ -48,9 +48,24 @@ const StructureLayout: React.FC = () => {
     const roleName = userSession?.role?.name?.toLowerCase() ?? '';
     const isEducator = roleName.includes('воспитатель');
     const canManageRooms = !isEducator;
+    const [isNotFound, setIsNotFound] = useState(false);
+
+    const isNotFoundMessage = useCallback((message?: string) => {
+        const normalized = message?.toLowerCase() ?? '';
+        return normalized.includes('не найдено') || normalized.includes('404');
+    }, []);
+
+    const markNotFound = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('active-building');
+        }
+        setIsNotFound(true);
+        navigate('/404', { replace: true });
+    }, [navigate]);
 
     useEffect(() => {
         if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
+            markNotFound();
             return;
         }
 
@@ -69,12 +84,16 @@ const StructureLayout: React.FC = () => {
                     address: building.address,
                 }));
             } catch (err: any) {
+                if (isNotFoundMessage(err?.message)) {
+                    markNotFound();
+                    return;
+                }
                 console.error('Ошибка при загрузке здания:', err);
             }
         };
 
         loadBuilding();
-    }, [buildingIdNum, location.state]);
+    }, [buildingIdNum, location.state, isNotFoundMessage, markNotFound]);
 
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -405,6 +424,10 @@ const StructureLayout: React.FC = () => {
         prefillRoomSelection(room);
         closeBlockModal();
     }, [closeBlockModal, prefillRoomSelection]);
+
+    if (isNotFound) {
+        return null;
+    }
 
     if (loading) {
         return (

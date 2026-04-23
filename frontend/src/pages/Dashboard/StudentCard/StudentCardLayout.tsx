@@ -77,7 +77,7 @@ const StudentCardLayout: React.FC = () => {
         sessionStorage.setItem(tabStorageKey, activeTab);
     }, [activeTab, tabStorageKey]);
 
-    const { student, loading, error, refetch } = useStudentData(studentIdNum);
+    const { student, loading, error, notFound, refetch } = useStudentData(studentIdNum);
     const { room, neighbours, loading: roomLoading, error: roomError, refetch: refetchRoomData } = useRoomData(
         student?.roomId ?? null,
         activeTab === 'housing'
@@ -87,10 +87,17 @@ const StudentCardLayout: React.FC = () => {
     const userSessionStr = sessionStorage.getItem('userSession');
     const userSession: UserSession = userSessionStr ? JSON.parse(userSessionStr) : null;
 
-    // Валидация ID
-    if (isNaN(studentIdNum)) {
-        return <div className="alert alert-danger m-3">Некорректный ID студента.</div>;
-    }
+    useEffect(() => {
+        if (Number.isNaN(studentIdNum) || studentIdNum <= 0) {
+            navigate('/not-found', { replace: true });
+        }
+    }, [studentIdNum, navigate]);
+
+    useEffect(() => {
+        if (notFound) {
+            navigate('/not-found', { replace: true });
+        }
+    }, [notFound, navigate]);
 
     // Загрузка и ошибки
     if (loading) {
