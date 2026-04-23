@@ -29,17 +29,17 @@
 }
 
 .formSection {
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 20px;
-    background: #fff;
+    background: var(--color-white);
 }
 
 .formSectionTitle {
     font-size: 0.95rem;
     font-weight: 600;
     margin-bottom: 16px;
-    color: #495057;
+    color: var(--color-text-dark);
 }
 
 .formFooter {
@@ -73,7 +73,7 @@
 
 .pendingContactRow {
     border-radius: 12px;
-    background: #fff;
+    background: var(--color-white);
     cursor: pointer;
 }
 
@@ -96,12 +96,12 @@
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    background-color: transparent !important;
-    border-color: transparent !important;
+    background-color: var(--color-transparent) !important;
+    border-color: var(--color-transparent) !important;
     display: inline-flex;
     justify-content: center;
-    background-color: transparent !important;
-    border-color: transparent !important;
+    background-color: var(--color-transparent) !important;
+    border-color: var(--color-transparent) !important;
     align-items: center;
 }
 
@@ -111,17 +111,13 @@
 }
 
 .pendingPlusIconDelete {
-    font-size: 3rem;
-    margin-top: -13px;
-    line-height: 1;
-    color: #50555f;
+    font-size: 2rem;
+    color: var(--color-text-light);
 }
 
 .pendingPlusIcon {
-    font-size: 3rem;
-    padding-bottom: 6px;
-    line-height: 1;
-    color: #a6aab3;
+    font-size: 2rem;
+    color: var(--color-text-light);
 }
 
 .pendingContactRow {
@@ -129,7 +125,7 @@
 }
 
 .pendingContactRow:focus-visible {
-    outline: 2px solid #0d6efd;
+    outline: 2px solid var(--color-accent);
     outline-offset: 3px;
 }
 

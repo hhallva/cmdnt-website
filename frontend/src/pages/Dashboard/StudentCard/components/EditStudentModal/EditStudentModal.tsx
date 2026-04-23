@@ -211,7 +211,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
             errors.phone = 'Телефон обязателен.';
             isValid = false;
         } else if (!isPhoneValid(formData.phone)) {
-            errors.phone = 'Телефон должен быть в формате 89000000000.';
+            errors.phone = 'Телефон должен быть в формате +79XXXXXXXXX.';
             isValid = false;
         }
 
@@ -228,7 +228,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                 contactErrors.phone = 'Телефон обязателен.';
                 contactsValid = false;
             } else if (!isPhoneValid(contact.phone)) {
-                contactErrors.phone = 'Неверный формат телефона (8XXXXXXXXXX).';
+                contactErrors.phone = 'Неверный формат телефона (+79XXXXXXXXX).';
                 contactsValid = false;
             }
             contactErrorsArray[index] = contactErrors;
@@ -418,7 +418,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                                                         onClick={() => handleRemoveContactField(index)}
                                                         disabled={loading}
                                                     >
-                                                        <span aria-hidden="true" className={styles.pendingPlusIconDelete}>-</span>
+                                                        <div aria-hidden="true" className={styles.pendingPlusIconDelete}>
+                                                            <i className="bi bi-dash"></i>
+                                                        </div>
                                                         <span className="visually-hidden">Удалить контакт</span>
                                                     </ActionButton>
                                                 </div>
@@ -457,7 +459,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                                             </div>
                                         </div>
                                         <div className={styles.contactButtonCell}>
-                                            <span className={styles.pendingPlusIcon}>+</span>
+                                            <div className={styles.pendingPlusIcon}>
+                                                <i className="bi bi-plus"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

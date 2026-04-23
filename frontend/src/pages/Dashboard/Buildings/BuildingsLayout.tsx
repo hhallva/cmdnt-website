@@ -524,9 +524,9 @@ const BuildingsLayout: React.FC = () => {
                 <StatisticsCard
                     stats={[
                         { value: summaryStats.totalBuildings, label: 'зданий' },
-                        { value: summaryStats.totalStudents, label: 'студентов' },
                         { value: summaryStats.totalCapacity, label: 'мест' },
                         { value: summaryStats.occupiedStudents, label: 'заселено' },
+                        { value: summaryStats.totalStudents, label: 'студентов' },
                     ]}
                 />
             )}

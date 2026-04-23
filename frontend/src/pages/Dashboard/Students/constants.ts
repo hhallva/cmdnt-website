@@ -1,12 +1,10 @@
 export const IMPORT_EXPECTED_HEADERS = [
     'ФИО',
     'Группа',
-    'Курс',
     'Пол',
     'Населенный пункт',
     'Телефон',
     'Дата рождения',
-    'Проживание',
 ];
 
 export const ALLOWED_IMPORT_EXTENSIONS = ['.xls', '.xlsx'];

@@ -73,7 +73,7 @@ interface StructureTabContentProps {
     onOpenBlockModal: (block: BlockWithRooms) => void;
     getStatus: (currentCapacity: number, capacity: number) => RoomStatus;
     formatShortName: (student: StudentsDto) => string;
-    getGenderLabel: (entity: { genderType: BlockWithRooms['genderType'] }) => string;
+    getGenderLabel: (entity: BlockWithRooms) => string;
 }
 
 export const StructureTabContent: React.FC<StructureTabContentProps> = ({
@@ -119,7 +119,7 @@ export const StructureTabContent: React.FC<StructureTabContentProps> = ({
                         className={styles.fullWidthMobileButton}
                     >
                         <span className="me-2">+</span>
-                        Добавить комнату
+                        Добавить
                     </ActionButton>
                 </div>
             )}
@@ -131,7 +131,7 @@ export const StructureTabContent: React.FC<StructureTabContentProps> = ({
                         {canManageRooms && (
                             <div className={styles.floorActions}>
                                 <ActionButton
-                                    variant='secondary'
+                                    variant='light'
                                     size='md'
                                     className={styles.addRoomButton}
                                     onClick={(event) => {
@@ -139,8 +139,10 @@ export const StructureTabContent: React.FC<StructureTabContentProps> = ({
                                         onAddRoom(floor.floor);
                                     }}
                                 >
-                                    <span className={styles.addRoomButtonIcon}>+</span>
-                                    <span className={styles.addRoomButtonText}>Добавить</span>
+                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                        <i className="bi bi-plus"></i>
+                                        <span>Добавить</span>
+                                    </div>
                                 </ActionButton>
                             </div>
                         )}

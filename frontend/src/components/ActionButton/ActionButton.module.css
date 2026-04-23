@@ -1,26 +1,27 @@
 /* src/components/ActionButton/ActionButton.module.css */
 
 :root {
-    --btn-transparent: transparent;
-    --btn-white: #ffffff;
-    --btn-primary: #ffa726;
-    --btn-primary-hover: #f57c00;
-    --btn-secondary: #E7EDF5;
-    --btn-secondary-hover: #d9dfe8;
-    --btn-dark: #9ea2a8;
-    --btn-dark-hover: #6e7075;
+    --btn-primary: var(--color-primary);
+    --btn-primary-hover: var(--color-primary-hover);
+    --btn-secondary: var(--color-bg);
+    --btn-secondary-hover: var(--color-bg-hover);
+    --btn-dark: var(--color-text-light);
+    --btn-dark-hover: var(--color-text-light);
+    --btn-light: var(--color-text-light);
+    --btn-light-hover: var(--color-text-light);
     --btn-danger: var(--color-danger);
     --btn-danger-hover: var(--color-danger-hover);
-    --btn-success: #28a745;
-    --btn-success-hover: #157347;
-    --btn-info: #0d6efd;
-    --btn-info-hover: #0b59ce;
+    --btn-success: var(--color-accent);
+    --btn-success-hover: var(--color-accent-hover);
+    --btn-info: var(--color-accent);
+    --btn-info-hover: var(--color-accent-hover);
 }
 
 .actionButton {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    border: none;
     margin: 0;
     padding: 1.25rem 0.75rem;
     border-radius: 0.75rem;
@@ -36,18 +37,18 @@
 }
 
 .actionButton:not(.disabled) {
-    border: 0px solid transparent;
+    border: 0px solid var(--color-transparent);
 }
 
 .actionButton.variant-transparent,
 .actionButton.variant-transparent-primary {
-    background-color: var(--btn-transparent);
-    border-color: var(--btn-transparent);
+    background-color: var(--color-transparent);
+    border-color: var(--color-transparent);
     padding: 0rem;
 }
 
 .actionButton.variant-transparent:hover:not(.disabled) {
-    background-color: var(--btn-transparent);
+    background-color: var(--color-transparent);
 }
 
 .actionButton.variant-transparent-primary {
@@ -59,7 +60,7 @@
 }
 
 .actionButton.variant-primary {
-    color: var(--btn-white);
+    color: var(--color-white);
     background-color: var(--btn-primary);
     border-color: var(--btn-primary);
 }
@@ -69,7 +70,7 @@
 }
 
 .actionButton.variant-secondary {
-    color: #424242;
+    color: var(--color-text-dark);
     background-color: var(--btn-secondary);
     border-color: var(--btn-secondary);
 }
@@ -78,8 +79,19 @@
     background-color: var(--btn-secondary-hover);
 }
 
+.actionButton.variant-light {
+    color: var(--color-text-dark);
+    background-color: var(--color-white);
+    border-color: var(--btn-secondary);
+}
+
+.actionButton.variant-light:hover:not(.disabled) {
+    background-color: var(--btn-secondary-hover);
+}
+
+
 .actionButton.variant-dark {
-    color: #424242;
+    color: var(--color-text-dark);
     background-color: var(--btn-dark);
 }
 
@@ -88,7 +100,7 @@
 }
 
 .actionButton.variant-danger {
-    color: var(--btn-white);
+    color: var(--color-white);
     background-color: var(--btn-danger);
 }
 
@@ -97,7 +109,7 @@
 }
 
 .actionButton.variant-success {
-    color: var(--btn-white);
+    color: var(--color-white);
     background-color: var(--btn-success);
 }
 
@@ -106,7 +118,7 @@
 }
 
 .actionButton.variant-info {
-    color: var(--btn-white);
+    color: var(--color-white);
     background-color: var(--btn-info);
 }
 

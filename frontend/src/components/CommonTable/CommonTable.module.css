@@ -1,20 +1,20 @@
 .tableWrapper {
-    background: #ffffff;
-    border-radius: 12px;
+    background: var(--color-surface);
+    border-radius: 0.75rem;
 }
 
 .tableResponsive {
     overflow-x: auto;
     overflow-y: visible;
-    border-radius: 10px;
+    border-radius: 1rem;
 }
 
 /* Сама таблица */
 .table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 10px;
-    background-color: white;
+    border-radius: 0.625rem;
+    background-color: var(--color-surface);
 }
 
 .tableHeader {
@@ -26,34 +26,44 @@
 }
 
 .indexColumn {
-    width: 3rem;
+    width: 60px;
     text-align: center;
+}
+
+.table th.indexColumn,
+.table td.indexColumn {
+    text-align: center;
+}
+
+.table tbody .indexColumn {
+    font-weight: 600;
 }
 
 .tableTitle {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--color-text-dark);
 }
 
 .table th,
 .table td {
-    padding: 0.75rem;
-    vertical-align: top;
-    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+    height: 3rem;
+    vertical-align: center;
+    border-bottom: 1px solid var(--color-border);
     text-align: left;
 }
 
 .table th {
     vertical-align: bottom;
     font-weight: 600;
-    color: #495057;
+    color: var(--color-text-dark);
     text-align: left;
 }
 
 .table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: var(--color-surface-muted);
 }
 
 .clickableRow {
@@ -62,11 +72,16 @@
 }
 
 .clickableRow:active {
-    background-color: #eef2ff;
+    background-color: var(--color-bg);
 }
 
 .rowActionColumn {
     width: 3rem;
+}
+
+.table th.rowActionColumn,
+.table td.rowActionCell {
+    padding-right: 1.5rem;
 }
 
 .rowActionCell {
@@ -76,32 +91,31 @@
 
 .rowActionButton {
     border: none;
-    background: transparent;
+    background: var(--color-transparent);
     padding: 0.25rem;
     border-radius: 50%;
-    color: #abb0b8;
+    color: var(--color-text-light);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .rowActionButton:hover,
 .rowActionButton:focus-visible {
-    background-color: transparent;
-    color: #1f2933;
+    background-color: var(--color-transparent);
+    color: var(--color-text-dark);
 }
 
 .rowActionButton:focus-visible {
-    outline: 2px solid rgba(13, 110, 253, 0.35);
-    outline-offset: 2px;
+    outline: 0.125rem solid var(--color-focus-outline);
+    outline-offset: 0.125rem;
 }
 
 .rowActionMenu {
     position: fixed;
     min-width: 200px;
-    background: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
     padding: 0.25rem;
     z-index: 1100;
 }
@@ -109,20 +123,20 @@
 .rowActionMenuItem {
     width: 100%;
     border: none;
-    background: transparent;
+    background: var(--color-transparent);
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.4rem 0.5rem;
     border-radius: 0.4rem;
     cursor: pointer;
-    color: #212529;
+    color: var(--color-text-dark);
     font-size: 0.9rem;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .rowActionMenuItem:hover {
-    background-color: #f1f3f5;
+    background-color: var(--color-surface-subtle);
 }
 
 .rowActionMenuItem i {
@@ -130,12 +144,12 @@
 }
 
 .rowActionMenuItemDanger {
-    color: #c53030;
+    color: var(--color-danger);
 }
 
 .rowActionMenuItemDanger:hover {
-    background-color: #ffe3e3;
-    color: #a61b1b;
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
 }
 
 @media (max-width: 768px) {

@@ -83,15 +83,15 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                     <p className={styles.blockNumber}>
                         <span className={styles.blockNumberBadge}>{room.roomNumber}</span>
                     </p>
-                    <div className={styles.blockMetaColumn}>
-                        <p className={styles.blockMeta}>
+                    <div className={styles.groupMeta}>
+                        <div className={styles.blockMeta}>
                             <span className={styles.blockMetaLabel}>Тип</span>
                             <span className={styles.blockMetaValue}>{getGenderLabel(room.genderType)}</span>
-                        </p>
-                        <p className={styles.blockMeta}>
+                        </div>
+                        <div className={styles.blockMeta}>
                             <span className={styles.blockMetaLabel}>Заселено</span>
                             <span className={styles.blockMetaValue}>{room.currentCapacity}/{room.capacity}</span>
-                        </p>
+                        </div>
                     </div>
                 </div>
 
@@ -100,11 +100,11 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                         <div key={occupant.id} className={styles.housingOccupantRow}>
                             <div className={styles.housingOccupantInfo}>
                                 <div className={styles.housingOccupantAvatar}>{getInitials(occupant)}</div>
-                                <div>
-                                    {formatShortName(occupant)}
-                                    <p className={styles.housingOccupantMeta}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <div className={styles.housingOccupantFIO}>{formatShortName(occupant)}</div>
+                                    <div className={styles.housingOccupantMeta}>
                                         {occupant.group?.name ?? '—'} · {occupant.group?.course ?? '—'} курс
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                             <div className={styles.housingOccupantActions}>
@@ -113,7 +113,7 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                                 ) : (
                                     <ActionButton
                                         variant='secondary'
-                                        size='sm'
+                                        size='md'
                                         className={styles.studentCardButton}
                                         onClick={() => navigate(`/dashboard/students/${occupant.id}`)}
                                     >

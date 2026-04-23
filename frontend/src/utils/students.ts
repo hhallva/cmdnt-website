@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 
-export const PHONE_REGEX = /^8\d{10}$/;
+export const PHONE_REGEX = /^\+7\d{10}$/;
 
 export const isPhoneValid = (value?: string | null): boolean => {
     const normalized = value?.trim() ?? '';
@@ -19,12 +19,15 @@ export const sanitizePhone = (value: string): string | null => {
         return null;
     }
     if (digits.length === 11 && digits.startsWith('8')) {
-        return digits;
+        return `+7${digits.slice(1)}`;
     }
-    if (digits.length === 10) {
-        return `8${digits}`;
+    if (digits.length === 11 && digits.startsWith('7')) {
+        return `+${digits}`;
     }
-    return digits;
+    if (digits.length === 10 && digits.startsWith('9')) {
+        return `+7${digits}`;
+    }
+    return value.startsWith('+') ? value : `+${digits}`;
 };
 
 export interface SplitFullNameResult {

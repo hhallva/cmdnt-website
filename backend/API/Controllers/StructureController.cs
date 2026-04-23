@@ -1,4 +1,5 @@
 ﻿using Core.Data;
+using Core.DTOs;
 using Core.DTOs.Structures;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,25 +15,35 @@ namespace API.Controllers
     {
         private readonly AppDbContext _context = context;
 
-        [HttpGet("statistic")]
+        [HttpGet("statistic/{buildingId}")]
         [SwaggerOperation(
            Summary = "Получение статистики по структуре общежития",
-           Description = "Возвращает сводную статистику: общее количество мест в общежитии, количество занятых мест, свободных, и общее количество заселенных студентов")]
+           Description = "Возвращает сводную статистику по зданию: общее количество мест, количество занятых и свободных мест, а также число заселенных студентов")]
         [SwaggerResponse(StatusCodes.Status200OK, "Статистика успешно получена.", Type = typeof(StructureStatisticDto))]
-        public async Task<ActionResult<StructureStatisticDto>> GetStatistic()
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Здание не найдено.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<StructureStatisticDto>> GetStatistic(
+            [SwaggerParameter(Description = "Идентификатор здания", Required = true)] int buildingId)
         {
-            var totalCapacity = await _context.Rooms.SumAsync(r => r.Capacity);
+            var buildingExists = await _context.Buildings.AnyAsync(b => b.Id == buildingId);
+            if (!buildingExists)
+            {
+                return NotFound(new ApiErrorDto("Здание не найдено", StatusCodes.Status404NotFound));
+            }
+
+            var totalCapacity = await _context.Rooms
+                .Where(r => r.BuildingId == buildingId)
+                .Select(r => (int?)r.Capacity)
+                .SumAsync() ?? 0;
 
             var activeResettlements = _context.Resettlements
-                .Where(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue);
+                .Where(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue)
+                .Where(r => r.Room != null && r.Room.BuildingId == buildingId);
 
             var occupiedCount = await activeResettlements.CountAsync();
 
             var freeCount = totalCapacity - occupiedCount;
 
-            var studentCount = await activeResettlements
-                .Select(r => r.StudentId)
-                .Distinct()
+            var studentCount = await _context.Students
                 .CountAsync();
 
             var statistic = new StructureStatisticDto

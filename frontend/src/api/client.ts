@@ -70,7 +70,10 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
     }));
 
     const errorMessage = errorData.message || `Ошибка ${response.status}`;
-    throw new Error(errorMessage);
+    const error = new Error(errorMessage) as Error & { status?: number; errorCode?: number };
+    error.status = response.status;
+    error.errorCode = errorData.errorCode;
+    throw error;
   } catch (error: any) {
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new Error('Сервер недоступен. Попробуйте позже.');
@@ -343,8 +346,8 @@ export const apiClient = {
   //#endregion
 
   //#region Структура
-  getStructureStatistics: async (): Promise<StructureStatisticDto> => {
-    return apiClient.requestWithAuth<StructureStatisticDto>('/api/v1/Structure/statistic');
+  getStructureStatistics: async (buildingId: number): Promise<StructureStatisticDto> => {
+    return apiClient.requestWithAuth<StructureStatisticDto>(`/api/v1/Structure/statistic/${buildingId}`);
   },
 
   getOverallStructureStatistics: async (): Promise<OverallStructureStatisticDto> => {

@@ -48,9 +48,24 @@ const StructureLayout: React.FC = () => {
     const roleName = userSession?.role?.name?.toLowerCase() ?? '';
     const isEducator = roleName.includes('воспитатель');
     const canManageRooms = !isEducator;
+    const [isNotFound, setIsNotFound] = useState(false);
+
+    const isNotFoundMessage = useCallback((message?: string) => {
+        const normalized = message?.toLowerCase() ?? '';
+        return normalized.includes('не найдено') || normalized.includes('404');
+    }, []);
+
+    const markNotFound = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('active-building');
+        }
+        setIsNotFound(true);
+        navigate('/not-found', { replace: true });
+    }, [navigate]);
 
     useEffect(() => {
         if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
+            markNotFound();
             return;
         }
 
@@ -69,12 +84,16 @@ const StructureLayout: React.FC = () => {
                     address: building.address,
                 }));
             } catch (err: any) {
+                if (isNotFoundMessage(err?.message)) {
+                    markNotFound();
+                    return;
+                }
                 console.error('Ошибка при загрузке здания:', err);
             }
         };
 
         loadBuilding();
-    }, [buildingIdNum, location.state]);
+    }, [buildingIdNum, location.state, isNotFoundMessage, markNotFound]);
 
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -90,10 +109,17 @@ const StructureLayout: React.FC = () => {
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
 
     const loadStructureStats = useCallback(async () => {
+        if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
+            setStructureStats(null);
+            setStatsError('Не удалось определить здание для статистики');
+            setStatsLoading(false);
+            return;
+        }
+
         setStatsLoading(true);
         setStatsError(null);
         try {
-            const data = await apiClient.getStructureStatistics();
+            const data = await apiClient.getStructureStatistics(buildingIdNum);
             setStructureStats(data);
         } catch (err: any) {
             const message = err?.message || 'Не удалось загрузить статистику общежития';
@@ -102,7 +128,7 @@ const StructureLayout: React.FC = () => {
         } finally {
             setStatsLoading(false);
         }
-    }, []);
+    }, [buildingIdNum]);
 
     useEffect(() => {
         void loadStructureStats();
@@ -170,42 +196,109 @@ const StructureLayout: React.FC = () => {
         activateSettlementTab,
     });
 
+    const [unassignedSortConfig, setUnassignedSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
+    });
+
+    const requestUnassignedSort = (key: string) => {
+        setUnassignedSortConfig(prevConfig => {
+            if (prevConfig && prevConfig.key === key) {
+                return {
+                    key,
+                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
+                };
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
     const unassignedStudentsSorted = useMemo(() => {
-        return unassignedStudents
-            .slice()
-            .sort((a, b) => formatFullName(a).localeCompare(formatFullName(b), 'ru'));
-    }, [unassignedStudents]);
+        const result = unassignedStudents.slice();
+        if (!unassignedSortConfig) {
+            return result;
+        }
+
+        const { key, direction } = unassignedSortConfig;
+        const dirMultiplier = direction === 'asc' ? 1 : -1;
+
+        result.sort((a, b) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            switch (key) {
+                case 'fullName':
+                    aValue = formatFullName(a).toLowerCase();
+                    bValue = formatFullName(b).toLowerCase();
+                    break;
+                case 'group.name':
+                    aValue = (a.group?.name ?? '').toLowerCase();
+                    bValue = (b.group?.name ?? '').toLowerCase();
+                    break;
+                case 'group.course':
+                    aValue = a.group?.course ?? 0;
+                    bValue = b.group?.course ?? 0;
+                    break;
+                case 'gender':
+                    aValue = a.gender ? 1 : 0;
+                    bValue = b.gender ? 1 : 0;
+                    break;
+                case 'phone':
+                    aValue = (a.phone ?? '').toLowerCase();
+                    bValue = (b.phone ?? '').toLowerCase();
+                    break;
+                case 'birthday':
+                    aValue = a.birthday ? new Date(a.birthday).getTime() : 0;
+                    bValue = b.birthday ? new Date(b.birthday).getTime() : 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aValue < bValue) return -1 * dirMultiplier;
+            if (aValue > bValue) return 1 * dirMultiplier;
+            return 0;
+        });
+
+        return result;
+    }, [unassignedStudents, unassignedSortConfig]);
 
     const unassignedColumns = useMemo(() => ([
         {
             key: 'fullName',
             title: 'ФИО',
+            sortable: true,
             render: (student: StudentsDto) => formatFullName(student) || '—',
         },
         {
             key: 'group.name',
             title: 'Группа',
+            sortable: true,
             render: (student: StudentsDto) => student.group?.name ?? '—',
         },
         {
             key: 'group.course',
             title: 'Курс',
+            sortable: true,
             render: (student: StudentsDto) => student.group?.course ?? '—',
             className: styles.tableNumericCell,
         },
         {
             key: 'gender',
             title: 'Пол',
+            sortable: true,
             render: (student: StudentsDto) => getStudentGenderLabel(student.gender),
         },
         {
             key: 'phone',
             title: 'Телефон',
+            sortable: true,
             render: (student: StudentsDto) => student.phone ?? '—',
         },
         {
             key: 'birthday',
             title: 'Дата рождения',
+            sortable: true,
             render: (student: StudentsDto) => formatBirthday(student.birthday),
         },
     ]), [navigate]);
@@ -258,11 +351,28 @@ const StructureLayout: React.FC = () => {
 
     const handleAddRoomSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const storedBuilding = typeof window !== 'undefined' ? sessionStorage.getItem('active-building') : null;
+        const storedBuildingId = storedBuilding ? (() => {
+            try {
+                const parsed = JSON.parse(storedBuilding) as { id?: number };
+                return typeof parsed?.id === 'number' ? parsed.id : null;
+            } catch {
+                return null;
+            }
+        })() : null;
+        const activeBuildingId = storedBuildingId ?? buildingIdNum;
+
+        if (!activeBuildingId) {
+            alert('Не удалось определить выбранное здание. Попробуйте открыть общежитие заново.');
+            return;
+        }
+
         if (!validateNewRoomForm()) {
             return;
         }
 
         const payload = {
+            buildingId: activeBuildingId,
             floorNumber: Number(newRoomForm.floorNumber),
             roomNumber: Number(newRoomForm.roomNumber),
             capacity: Number(newRoomForm.capacity),
@@ -314,6 +424,10 @@ const StructureLayout: React.FC = () => {
         prefillRoomSelection(room);
         closeBlockModal();
     }, [closeBlockModal, prefillRoomSelection]);
+
+    if (isNotFound) {
+        return null;
+    }
 
     if (loading) {
         return (
@@ -396,6 +510,9 @@ const StructureLayout: React.FC = () => {
             students={unassignedStudentsSorted}
             columns={unassignedColumns}
             rowAction={rowAction}
+            enableSorting={true}
+            onSortRequest={requestUnassignedSort}
+            sortConfig={unassignedSortConfig}
             formatFullName={formatFullName}
             formatBirthday={formatBirthday}
             getStudentGenderLabel={getStudentGenderLabel}
@@ -441,6 +558,7 @@ const StructureLayout: React.FC = () => {
                     isOpen={isAddRoomModalOpen}
                     onClose={closeAddRoomModal}
                     minWidth={520}
+                    minHeight={380}
                 >
                     <form className={styles.addRoomForm} onSubmit={handleAddRoomSubmit}>
                         <div className={styles.addRoomFormGrid}>
@@ -500,21 +618,20 @@ const StructureLayout: React.FC = () => {
                 </CommonModal>
             )}
 
-            {!statsLoading && !statsError && structureStats && (
-                <StatisticsCard
-                    stats={[
-                        { value: students.length, label: 'Всего студентов' },
-                        { value: structureStats.studentCount, label: 'Заселено студентов' },
-                        { value: Math.max(students.length - structureStats.studentCount, 0), label: 'Свободно студентов' },
-                        { value: structureStats.totalCopacity, label: 'Всего мест' },
-                        { value: structureStats.freeCount, label: 'Свободных мест' },
-                    ]}
-                />
+            {!statsLoading && !statsError && structureStats && (<StatisticsCard
+                stats={[
+                    { value: structureStats.totalCopacity, label: 'мест' },
+                    { value: structureStats.occupiedCount, label: 'заселено' },
+                    { value: structureStats.freeCount, label: 'свободно' },
+                    { value: structureStats.studentCount, label: 'всего студентов' },
+                ]}
+            />
             )}
 
             <Tabs
                 tabs={tabs}
                 activeTabId={activeTabId}
+
                 onTabChange={handleTabChange}
             />
 
@@ -586,7 +703,7 @@ const StructureLayout: React.FC = () => {
                                                 </div>
                                                 <ActionButton
                                                     variant='secondary'
-                                                    size='sm'
+                                                    size='md'
                                                     className={styles.studentCardButton}
                                                     onClick={() => navigate(`/dashboard/students/${student.id}`)}
                                                 >
@@ -609,7 +726,9 @@ const StructureLayout: React.FC = () => {
                                                 }}
                                             >
                                                 <div className={styles.studentInfo}>
-                                                    <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>+</div>
+                                                    <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>
+                                                        <i className="bi bi-plus"></i>
+                                                    </div>
                                                     <div>
                                                         <p className={styles.studentName}>Свободное место</p>
                                                     </div>

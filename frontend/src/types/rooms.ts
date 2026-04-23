@@ -8,6 +8,7 @@ export interface RoomDto {
 }
 
 export interface PostRoomDto {
+    buildingId: number;
     floorNumber: number;
     roomNumber: number;
     capacity: number;
