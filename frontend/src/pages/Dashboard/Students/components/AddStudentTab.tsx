@@ -279,11 +279,11 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
 
     return (
         <form onSubmit={handleAddSubmit}>
-            <div className={styles.formSectionsWrapper}>
+            <div className={styles.formSectionsWrapper} style={{ marginTop: '-0.75rem' }}>
                 <section className={styles.formSection}>
                     <h4 className={styles.formSectionTitle}>Основное</h4>
-                    <div className="row g-3 mt-0">
-                        <div className="col-md-4">
+                    <div className={styles.studentFormGrid}>
+                        <div>
                             <InputField
                                 label="Фамилия"
                                 type="text"
@@ -294,7 +294,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                 disabled={isAdding}
                             />
                         </div>
-                        <div className="col-md-4">
+                        <div>
                             <InputField
                                 label="Имя"
                                 type="text"
@@ -305,7 +305,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                 error={formErrors.name}
                             />
                         </div>
-                        <div className="col-md-4">
+                        <div>
                             <InputField
                                 label="Отчество"
                                 type="text"
@@ -316,7 +316,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                 error={formErrors.patronymic}
                             />
                         </div>
-                        <div className="col-md-4">
+                        <div>
                             <InputField
                                 label="Дата рождения"
                                 type="date"
@@ -327,7 +327,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                 error={formErrors.birthday}
                             />
                         </div>
-                        <div className="col-md-4">
+                        <div>
                             <SelectField
                                 label="Пол"
                                 name="gender"
@@ -342,7 +342,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                 error={formErrors.gender}
                             />
                         </div>
-                        <div className="col-md-4">
+                        <div>
                             <InputField
                                 label="Населенный пункт"
                                 type="text"
@@ -353,7 +353,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                 error={formErrors.origin}
                             />
                         </div>
-                        <div className="col-md-4">
+                        <div>
                             <SelectField
                                 label="Группа"
                                 name="groupId"
@@ -364,7 +364,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                 error={formErrors.groupId}
                             />
                         </div>
-                        <div className="col-md-4">
+                        <div>
                             <InputField
                                 label="Контактный телефон"
                                 type="tel"
@@ -414,7 +414,9 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                                 onClick={() => handleRemoveContactField(index)}
                                                 disabled={isAdding}
                                             >
-                                                <span aria-hidden="true" className={styles.pendingPlusIconDelete}>-</span>
+                                                <div aria-hidden="true" className={styles.pendingPlusIconDelete}>
+                                                    <i className="bi bi-dash"></i>
+                                                </div>
                                                 <span className="visually-hidden">Удалить контакт</span>
                                             </ActionButton>
                                         </div>
@@ -455,7 +457,9 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                                     </div>
                                 </div>
                                 <div className={styles.contactButtonCell}>
-                                    <span className={styles.pendingPlusIcon}>+</span>
+                                    <div className={styles.pendingPlusIcon}>
+                                        <i className="bi bi-plus"></i>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -463,7 +467,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                 </section>
             </div>
 
-            <div className={`${styles.formSection} mt-4 d-flex justify-content-end`}>
+            <div className={`${styles.formSection} ${styles.formActions}`}>
                 <ActionButton
                     size="md"
                     className={styles.fullWidthMobileButton}
@@ -475,7 +479,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                 </ActionButton>
                 <ActionButton
                     size="md"
-                    className={`${styles.fullWidthMobileButton} ms-2`}
+                    className={`${styles.fullWidthMobileButton} ${styles.submitButton}`}
                     type="submit"
                     variant="primary"
                     disabled={isAdding}

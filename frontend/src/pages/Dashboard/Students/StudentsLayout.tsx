@@ -13,6 +13,7 @@ import StudentsListTab, { StudentsListFilters } from './components/StudentsListT
 import AddStudentTab from './components/AddStudentTab';
 import ImportStudentsTab from './components/ImportStudentsTab';
 import { MOBILE_IMPORT_BREAKPOINT } from './constants';
+import styles from './Students.module.css';
 
 const STUDENTS_TAB_STORAGE_KEY = 'students-active-tab';
 const STUDENTS_DEFAULT_TAB_ID = 'list';
@@ -252,11 +253,13 @@ const StudentsLayout: React.FC = () => {
     }
 
     return (
-        <Tabs
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabChange={handleTabChange}
-        />
+        <div className={styles.tabsWrapper}>
+            <Tabs
+                tabs={tabs}
+                activeTabId={activeTabId}
+                onTabChange={handleTabChange}
+            />
+        </div>
     );
 };
 

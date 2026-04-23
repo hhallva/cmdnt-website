@@ -117,7 +117,7 @@ export const StudentsListFilters: React.FC<StudentsListFiltersProps> = ({
                             variant="secondary"
                             size="md"
                             onClick={onToggleAdvancedFilters}
-                            className={styles.modilButton}
+                            className={`${styles.modilButton} ${styles.filtersButton}`}
                             aria-expanded={isAdvancedFilterOpen}
                         >
                             Фильтры
@@ -127,7 +127,7 @@ export const StudentsListFilters: React.FC<StudentsListFiltersProps> = ({
                             variant="secondary"
                             size="md"
                             onClick={onResetFilters}
-                            className={styles.modilButton}
+                            className={`${styles.modilButton} ${styles.resetButton}`}
                         >
                             Сбросить
                         </ActionButton>
@@ -142,7 +142,7 @@ export const StudentsListFilters: React.FC<StudentsListFiltersProps> = ({
                             className={styles.fullWidthMobileButton}
                         >
                             <i className="bi bi-file-earmark-spreadsheet me-1"></i>
-                            Скачать в Excel
+                            Скачать Excel
                         </ActionButton>
                     </div>
                 )}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { dormitoryApi } from '../api/dormitory';
 import { apiClient } from '../api/client';
 import type { RoomDto } from '../types/rooms';
 import type { StudentsDto } from '../types/students';
@@ -16,28 +17,25 @@ export const useDormStructureData = (buildingId?: number) => {
         const loadData = async () => {
             setLoading(true);
             setError(null);
-
-            if (!buildingId) {
-                if (!isMounted) {
-                    return;
-                }
-                setRooms([]);
-                setStudents([]);
-                setError('Здание не найдено');
-                setLoading(false);
-                return;
-            }
-
             try {
-                const [rooms, students] = await Promise.all([
-                    apiClient.getRoomsByBuildingId(buildingId),
-                    apiClient.getAllStudents(),
-                ]);
-                if (!isMounted) {
-                    return;
+                if (buildingId) {
+                    const [rooms, students] = await Promise.all([
+                        apiClient.getRoomsByBuildingId(buildingId),
+                        apiClient.getAllStudents(),
+                    ]);
+                    if (!isMounted) {
+                        return;
+                    }
+                    setRooms(rooms);
+                    setStudents(students);
+                } else {
+                    const dataset = await dormitoryApi.fetchDataset();
+                    if (!isMounted) {
+                        return;
+                    }
+                    setRooms(dataset.rooms);
+                    setStudents(dataset.students);
                 }
-                setRooms(rooms);
-                setStudents(students);
             } catch (err: any) {
                 if (!isMounted) {
                     return;
