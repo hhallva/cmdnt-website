@@ -60,7 +60,7 @@ const StructureLayout: React.FC = () => {
             sessionStorage.removeItem('active-building');
         }
         setIsNotFound(true);
-        navigate('/404', { replace: true });
+        navigate('/not-found', { replace: true });
     }, [navigate]);
 
     useEffect(() => {

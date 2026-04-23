@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import type { StudentsDto } from '../../../../types/students';
 import type { GroupDto } from '../../../../types/groups';
-import type { RoomDto } from '../../../../types/rooms';
+import type { BuildingDto } from '../../../../types/buildings';
 
 import CommonTable from '../../../../components/CommonTable/CommonTable';
 import InputField from '../../../../components/InputField/InputField';
@@ -21,12 +21,22 @@ import styles from '../Students.module.css';
 interface StudentsListTabProps {
     students: StudentsDto[];
     groups: GroupDto[];
-    rooms: RoomDto[];
+    buildings: BuildingDto[];
+    selectedBuildingId: number | 'unassigned' | null;
+    onBuildingChange: (buildingId: number | 'unassigned' | null) => void;
     isEducator: boolean;
     onStudentClick: (studentId: number) => void;
 }
 
-const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, rooms, isEducator, onStudentClick }) => {
+const StudentsListTab: React.FC<StudentsListTabProps> = ({
+    students,
+    groups,
+    buildings,
+    selectedBuildingId,
+    onBuildingChange,
+    isEducator,
+    onStudentClick,
+}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
     const [selectedGroupId, setSelectedGroupId] = useState<number | 'all'>('all');
@@ -65,20 +75,28 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
         { value: 'female', label: 'Женский' },
     ];
 
-    const roomCapacityMap = useMemo(() => {
-        const map = new Map<number, number>();
-        rooms.forEach(room => {
-            map.set(room.id, room.capacity);
+    const buildingNameMap = useMemo(() => {
+        const map = new Map<number, string>();
+        buildings.forEach(building => {
+            map.set(building.id, building.name || `Здание ${building.id}`);
         });
         return map;
-    }, [rooms]);
+    }, [buildings]);
+
+
+    const getStudentBuildingName = (student: StudentsDto) => {
+        if (!student.buildingId) {
+            return '—';
+        }
+        return buildingNameMap.get(student.buildingId) ?? '—';
+    };
 
     const formatResidenceInfo = (student: StudentsDto) => {
         if (!student.blockNumber) {
             return '—';
         }
-        const capacity = student.roomId ? roomCapacityMap.get(student.roomId) : null;
-        return `${student.blockNumber} (${capacity ?? '—'})`;
+        const capacity = student.roomCapacity ?? '—';
+        return `${student.blockNumber} (${capacity})`;
     };
 
     const processedStudents = useMemo(() => {
@@ -90,6 +108,12 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
                 `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.toLowerCase().includes(term) ||
                 (student.blockNumber && student.blockNumber.toLowerCase().includes(term))
             );
+        }
+
+        if (selectedBuildingId === 'unassigned') {
+            result = result.filter(student => !student.buildingId && !student.roomId);
+        } else if (selectedBuildingId) {
+            result = result.filter(student => student.buildingId === selectedBuildingId);
         }
 
         if (selectedGroupId !== 'all') {
@@ -123,13 +147,17 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
                         aValue = a.gender ? 1 : 0;
                         bValue = b.gender ? 1 : 0;
                         break;
-                    case 'blockNumber':
-                        aValue = a.blockNumber?.toLowerCase() ?? '';
-                        bValue = b.blockNumber?.toLowerCase() ?? '';
+                    case 'building':
+                        aValue = getStudentBuildingName(a).toLowerCase();
+                        bValue = getStudentBuildingName(b).toLowerCase();
                         break;
                     case 'birthday':
                         aValue = new Date(a.birthday).getTime();
                         bValue = new Date(b.birthday).getTime();
+                        break;
+                    case 'residence':
+                        aValue = formatResidenceInfo(a).toLowerCase();
+                        bValue = formatResidenceInfo(b).toLowerCase();
                         break;
                     default:
                         return 0;
@@ -142,7 +170,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
         }
 
         return result;
-    }, [students, searchTerm, selectedGroupId, selectedCourse, selectedGender, sortConfig]);
+    }, [students, searchTerm, selectedBuildingId, selectedGroupId, selectedCourse, selectedGender, sortConfig]);
 
     const handleExportToExcel = () => {
         const headerRow = [...IMPORT_EXPECTED_HEADERS];
@@ -169,6 +197,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
 
     const resetFiltersAndSorts = () => {
         setSearchTerm('');
+        onBuildingChange(null);
         setSelectedGroupId('all');
         setSelectedCourse('all');
         setSelectedGender('all');
@@ -212,12 +241,6 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
             render: (student: StudentsDto) => student.gender ? 'М' : 'Ж',
         },
         {
-            key: 'blockNumber',
-            title: 'Блок',
-            sortable: true,
-            render: (student: StudentsDto) => student.blockNumber ?? '—',
-        },
-        {
             key: 'phone',
             title: 'Телефон',
             render: (student: StudentsDto) => student.phone ?? '—',
@@ -229,8 +252,15 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
             render: (student: StudentsDto) => formatBirthday(student.birthday),
         },
         {
+            key: 'building',
+            title: 'Здание',
+            sortable: true,
+            render: (student: StudentsDto) => getStudentBuildingName(student),
+        },
+        {
             key: 'residence',
-            title: 'Проживание',
+            title: 'Блок',
+            sortable: true,
             render: (student: StudentsDto) => formatResidenceInfo(student),
         },
     ];
@@ -250,7 +280,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
                             <InputField
                                 label=""
                                 type="text"
-                                placeholder="Поиск по ФИО или Блоку..."
+                                placeholder="Поиск по ФИО..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                             />
@@ -279,6 +309,30 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
                 {isAdvancedFilterOpen && (
                     <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
                         <div className={styles.filtersGrid}>
+                            <SelectField
+                                label="Здание"
+                                value={selectedBuildingId ?? ''}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (!value) {
+                                        onBuildingChange(null);
+                                        return;
+                                    }
+                                    if (value === 'unassigned') {
+                                        onBuildingChange('unassigned');
+                                        return;
+                                    }
+                                    onBuildingChange(Number(value));
+                                }}
+                                options={[
+                                    { value: '', label: buildings.length ? 'Все здания' : 'Здания не найдены' },
+                                    ...buildings.map(building => ({
+                                        value: building.id,
+                                        label: building.name || `Здание ${building.id}`,
+                                    })),
+                                    { value: 'unassigned', label: 'Без заселения' },
+                                ]}
+                            />
                             <SelectField
                                 label="Группа"
                                 value={selectedGroupId}
@@ -368,8 +422,8 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({ students, groups, roo
                                         <span className={styles.blockMetaValue}>{getGenderLabel(student.gender)}</span>
                                     </div>
                                     <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Блок</span>
-                                        <span className={styles.blockMetaValue}>{student.blockNumber || 'Нет'}</span>
+                                        <span className={styles.blockMetaLabel}>Здание</span>
+                                        <span className={styles.blockMetaValue}>{getStudentBuildingName(student)}</span>
                                     </div>
                                     <div className={styles.blockMeta}>
                                         <span className={styles.blockMetaLabel}>Проживание</span>

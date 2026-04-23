@@ -6,7 +6,7 @@ import { apiClient } from '../../../api/client';
 import type { StudentsDto } from '../../../types/students';
 import type { GroupDto } from '../../../types/groups';
 import type { UserSession } from '../../../types/UserSession';
-import type { RoomDto } from '../../../types/rooms';
+import type { BuildingDto } from '../../../types/buildings';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import StudentsListTab from './components/StudentsListTab';
@@ -22,7 +22,8 @@ const StudentsLayout: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [students, setStudents] = useState<StudentsDto[]>([]);
     const [groups, setGroups] = useState<GroupDto[]>([]);
-    const [rooms, setRooms] = useState<RoomDto[]>([]);
+    const [buildings, setBuildings] = useState<BuildingDto[]>([]);
+    const [selectedBuildingId, setSelectedBuildingId] = useState<number | 'unassigned' | null>(null);
     const [isMobileViewport, setIsMobileViewport] = useState(false);
 
     const navigate = useNavigate();
@@ -41,12 +42,8 @@ const StudentsLayout: React.FC = () => {
 
     const fetchStudents = useCallback(async () => {
         try {
-            const [studentsResponse, roomsResponse] = await Promise.all([
-                apiClient.getAllStudents(),
-                apiClient.getAllRooms(),
-            ]);
+            const studentsResponse = await apiClient.getAllStudents();
             setStudents(studentsResponse);
-            setRooms(roomsResponse);
             setError(null);
         } catch (err: any) {
             console.error('Ошибка при обновлении списка студентов:', err);
@@ -58,14 +55,14 @@ const StudentsLayout: React.FC = () => {
         const fetchInitialData = async () => {
             try {
                 setLoading(true);
-                const [studentsResponse, groupsResponse, roomsResponse] = await Promise.all([
+                const [studentsResponse, groupsResponse, buildingsResponse] = await Promise.all([
                     apiClient.getAllStudents(),
                     apiClient.getAllGroups(),
-                    apiClient.getAllRooms(),
+                    apiClient.getAllBuildings(),
                 ]);
                 setStudents(studentsResponse);
                 setGroups(groupsResponse);
-                setRooms(roomsResponse);
+                setBuildings(buildingsResponse);
                 setError(null);
             } catch (err: any) {
                 console.error('Ошибка при загрузке данных:', err);
@@ -77,6 +74,7 @@ const StudentsLayout: React.FC = () => {
 
         fetchInitialData();
     }, []);
+
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -95,6 +93,7 @@ const StudentsLayout: React.FC = () => {
         sessionStorage.setItem(STUDENTS_TAB_STORAGE_KEY, activeTabId);
     }, [activeTabId]);
 
+
     const handleStudentClick = useCallback((studentId: number) => {
         navigate(`/dashboard/students/${studentId}`);
     }, [navigate]);
@@ -112,7 +111,9 @@ const StudentsLayout: React.FC = () => {
                         students={students}
                         groups={groups}
                         isEducator={isEducator}
-                        rooms={rooms}
+                        buildings={buildings}
+                        selectedBuildingId={selectedBuildingId}
+                        onBuildingChange={setSelectedBuildingId}
                         onStudentClick={handleStudentClick}
                     />
                 ),
@@ -148,7 +149,7 @@ const StudentsLayout: React.FC = () => {
         }
 
         return items;
-    }, [students, groups, rooms, isEducator, canUseImportTab, fetchStudents, handleStudentClick]);
+    }, [students, groups, buildings, selectedBuildingId, isEducator, canUseImportTab, fetchStudents, handleStudentClick]);
 
     useEffect(() => {
         const state = location.state as { fromSidebar?: boolean } | null;

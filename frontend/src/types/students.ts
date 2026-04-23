@@ -10,6 +10,8 @@ export interface StudentsDto {
     birthday: string;
     group: GroupDto;
     roomId: number | null;
+    buildingId?: number | null;
+    roomCapacity?: number | null;
     blockNumber: string | null;
     origin?: string | null;
     contacts?: ContactDto[];

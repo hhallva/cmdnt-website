@@ -29,6 +29,8 @@ namespace Core.DTOs.Students
                     Name = student.Group.Name,
                 },
                 RoomId = activeResettlement?.Room.Id,
+                BuildingId = activeResettlement?.Room.BuildingId,
+                RoomCapacity = activeResettlement?.Room.Capacity,
                 BlockNumber = activeResettlement == null
                     ? null
                     : $"{activeResettlement.Room.FloorNumber}{activeResettlement.Room.RoomNumber:D2}",
