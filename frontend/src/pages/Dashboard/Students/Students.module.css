@@ -1,463 +1,499 @@
- .searchControls {
-     align-items: stretch;
- }
-
- .searchPanel {
-     background: var(--color-white);
-     border-radius: 12px;
-     padding: 1rem;
- }
-
- .formSectionsWrapper {
-     display: flex;
-     flex-direction: column;
-     gap: 1.5rem;
- }
-
- .formSection {
-     background: var(--color-white);
-     border-radius: 12px;
-     padding: 1.5rem;
- }
-
- .formSectionTitle {
-     margin: 0 0 1rem;
-     font-size: 1.25rem;
-     font-weight: 600;
-     color: var(--color-text-dark);
- }
-
- .searchInputWrapper {
-     min-width: 320px;
-     flex: 1 1 320px;
- }
-
- .modilButton {
-     min-width: 160px;
-     font-size: 1rem;
- }
-
- .tableContainer {
-     padding: 1rem;
- }
-
- .contactsWrapper {
-     display: flex;
-     flex-direction: column;
-     gap: 0.75rem;
- }
-
- .contactsList {
-     display: flex;
-     flex-direction: column;
-     gap: 0.5rem;
- }
-
- .contactRow {
-     display: grid;
-     grid-template-columns: repeat(2, minmax(0, 1fr)) 56px;
-     gap: 1rem;
-     align-items: end;
-     width: 100%;
- }
-
- .addedContactRow {
-     border-radius: 12px;
- }
-
- .pendingContactRow {
-     cursor: pointer;
-     color: var(--color-text-light);
- }
-
- .pendingContactRow:focus-visible {
-     outline: 2px solid var(--color-accent);
-     outline-offset: 3px;
- }
-
- .contactField {
-     width: 100%;
- }
-
- .contactButtonCell {
-     display: flex;
-     justify-content: center;
-     align-items: center;
- }
-
- .contactActionButton {
-     width: 50px;
-     height: 50px;
-     padding: 0;
-     display: inline-flex;
-     justify-content: center;
-     background-color: var(--color-transparent) !important;
-     border-color: var(--color-transparent) !important;
-     align-items: center;
- }
-
- .pendingFieldWrapper {
-     pointer-events: none;
-     opacity: 0.6;
- }
-
- .pendingPlusIconDelete {
-     font-size: 3rem;
-     margin-top: -13px;
-     line-height: 1;
-     color: var(--color-text-light);
- }
-
- .pendingPlusIcon {
-     font-size: 3rem;
-     padding-bottom: 6px;
-     line-height: 1;
-     color: var(--color-text-light);
- }
-
- .desktopTable {
-     display: block;
- }
-
- .mobileCardsWrapper {
-     display: none;
- }
-
- .mobileCard {
-     width: 100%;
-     text-align: left;
-     border: none;
-     border-radius: 8px;
-     padding: 1rem;
-     background: var(--color-white);
-     transition: transform 0.2s ease, box-shadow 0.2s ease;
-     cursor: pointer;
- }
-
- .mobileCard:not(:first-child) {
-     margin-top: 0.75rem;
- }
-
- .mobileCard:active {
-     transform: scale(0.99);
- }
-
- .mobileCard:focus-visible {
-     outline: 2px solid var(--color-accent-35);
-     outline-offset: 3px;
- }
-
- .mobileCardTitle {
-     font-family: 'Inter', 'Segoe UI', sans-serif;
-     font-size: 1.2rem;
-     font-weight: 600;
-     color: var(--color-text-dark);
-     margin: 0;
- }
-
- .mobileCardDivider {
-     height: 1px;
-     background: var(--color-border);
-     margin: 0.75rem 0;
- }
-
- .blockMetaColumn {
-     display: flex;
-     flex-direction: column;
-     align-items: flex-start;
-     gap: 0.25rem;
-     text-align: left;
- }
-
- .blockMeta {
-     margin: 0.15rem 0 0;
-     color: var(--color-text-light);
-     display: flex;
-     align-items: baseline;
-     gap: 0.35rem;
-     font-size: 1rem;
- }
-
- .blockMetaLabel {
-     color: var(--color-text-light);
-     font-size: 0.9rem;
- }
-
- .blockMetaValue {
-     color: var(--color-text-dark);
-     font-size: 0.9rem;
- }
-
- .mobileCardRow {
-     display: grid;
-     grid-template-columns: repeat(2, minmax(0, 1fr));
-     gap: 4rem;
- }
-
- .mobileCardsEmpty {
-     text-align: center;
-     color: var(--color-text-light);
-     font-size: 0.95rem;
-     padding: 1rem 0;
- }
-
- .filtersGrid {
-     display: grid;
-     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-     gap: 1rem;
-     align-items: start;
- }
-
- .advancedFiltersPanel {
-     border-top: 1px solid var(--color-border);
-     margin-top: 1rem;
-     padding-top: 1rem;
- }
-
- .advancedFiltersPanel :global(.col-md-3) {
-     flex: 1 1 100%;
- }
-
- @media (max-width: 1000px) {
-     .searchControls {
-         gap: 0.75rem;
-     }
-
-     .searchInputWrapper {
-         width: 100%;
-         min-width: 0;
-     }
-
-     .modilButton {
-         align-self: end;
-         height: fit-content;
-         justify-self: flex;
-         font-size: 1rem;
-         width: 100%;
-     }
-
-     .advancedFiltersPanel {
-         padding-top: 0.75rem;
-         margin-top: 0.5rem;
-     }
-
-     .advancedFiltersPanel :global(.row) {
-         row-gap: 0.75rem;
-     }
-
-     .desktopTable {
-         display: none;
-     }
-
-     .mobileCardsWrapper {
-         display: flex;
-         flex-direction: column;
-     }
- }
-
- @media (max-width: 768px) {
-
-     .table th,
-     .table td {
-         padding: 0.6rem;
-         /* Уменьшаем отступы */
-         font-size: 0.85rem;
-         /* Уменьшаем размер шрифта */
-     }
-
-     .table th {
-         font-size: 0.8rem;
-         /* Ещё меньше для заголовков */
-     }
-
-     .actionBtn {
-         padding: 0.4rem 0.6rem;
-         /* Уменьшаем кнопки */
-         font-size: 0.75rem;
-     }
-
-     .formSection {
-         padding: 1rem;
-     }
-
-     .contactRow {
-         grid-template-columns: 1fr;
-     }
-
-     .contactButtonCell {
-         justify-content: flex-start;
-     }
-
-     /* Можно скрыть менее важные столбцы на средних экранах, если нужно */
-     /* .lessImportantColumn { display: none; } */
- }
-
- /* Для мобильных телефонов (портретная ориентация) */
- @media (max-width: 576px) {
-
-     .table th,
-     .table td {
-         padding: 0.5rem;
-         font-size: 0.8rem;
-     }
-
-     .table th {
-         font-size: 0.75rem;
-     }
-
-     .table {
-         min-width: 500px;
-     }
-
-     .actionBtn {
-         padding: 0.35rem 0.5rem;
-         font-size: 0.7rem;
-     }
-
- }
-
- .importTabWrapper {
-     display: flex;
-     flex-direction: column;
-     gap: 1.5rem;
- }
-
- .importSection {
-     background: var(--color-white);
-     border-radius: 10px;
-     padding: 1rem;
- }
-
- .importDropZone {
-     border: 2px dashed var(--color-accent);
-     background: var(--color-accent-10);
-     border-radius: 12px;
-     padding: 2rem 1rem;
-     text-align: center;
-     cursor: pointer;
- }
-
- .importDropZone p {
-     margin: 0;
- }
-
- .importDropZoneActive {
-     border-color: var(--color-accent);
-     background: var(--color-accent);
- }
-
- .importDropIcon {
-     font-size: 2.5rem;
-     color: var(--color-accent);
- }
-
- .importDropTitle {
-     font-size: 1.25rem;
-     font-weight: 600;
-     color: var(--color-text-dark);
- }
-
- .importDropHint {
-     font-size: 1rem;
-     color: var(--color-text-dark);
- }
-
- .importChooseLink {
-     background: none;
-     border: none;
-     padding: 0;
-     margin: 0;
-     color: var(--color-accent);
-     font-weight: 600;
-     text-decoration: underline;
-     cursor: pointer;
- }
-
- .importChooseLink:focus-visible {
-     outline: 2px solid var(--color-accent);
-     outline-offset: 3px;
- }
-
- .importDropNote {
-     color: var(--color-text-light);
-     font-size: 0.95rem;
- }
-
- .importFileName {
-     margin-top: 0.5rem;
-     color: var(--color-accent);
-     font-weight: 500;
- }
-
- .previewTableWrapper {
-     margin-top: 1.5rem;
-     border: 1px solid var(--color-border);
-     border-radius: 12px;
-     overflow: hidden;
-     background: var(--color-white);
- }
-
- .importPreviewTable thead {
-     background: var(--color-bg);
- }
-
- .importPreviewTable th,
- .importPreviewTable td {
-     vertical-align: middle;
- }
-
- .previewPlaceholder {
-     padding: 1.5rem;
-     text-align: center;
-     color: var(--color-text-light);
-     font-size: 0.95rem;
- }
-
- .importFailedList {
-     margin: 0;
-     padding-left: 1.25rem;
-     color: var(--color-danger);
- }
-
- .importActions {
-     display: flex;
-     align-items: center;
-     justify-content: space-between;
-     gap: 1rem;
-     flex-wrap: wrap;
- }
-
- .importTemplateButton {
-     flex-shrink: 0;
- }
-
- .importActionsRight {
-     display: flex;
-     justify-content: flex-end;
-     gap: 0.75rem;
-     flex-wrap: wrap;
- }
-
- .previewTableWrapper table {
-     margin: 0;
- }
-
- @media (max-width: 768px) {
-     .importDropZone {
-         padding: 2rem 1rem;
-     }
-
-     .importActions {
-         flex-direction: column;
-         align-items: stretch;
-     }
-
-     .importActionsRight {
-         width: 100%;
-         justify-content: stretch;
-     }
-
-     .importActionsRight> :global(button) {
-         flex: 1;
-     }
- }
+.searchControls {
+    align-items: stretch;
+}
+
+.searchPanel {
+    background: var(--color-white);
+    border-radius: 12px;
+}
+
+.formSectionsWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formSection {
+    background: var(--color-white);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.formSectionTitle {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.searchPanelRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.searchLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    flex-wrap: wrap;
+}
+
+.searchButtons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.searchRight {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.searchInputWrapper {
+    width: 17.5rem;
+    min-width: 17.5rem;
+    flex: 0 0 17.5rem;
+}
+
+.modilButton {
+    min-width: 160px;
+    font-size: 1rem;
+}
+
+.tableContainer {
+    padding: 1rem;
+}
+
+.contactsWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contactsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.contactRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) 56px;
+    gap: 1rem;
+    align-items: end;
+    width: 100%;
+}
+
+.addedContactRow {
+    border-radius: 12px;
+}
+
+.pendingContactRow {
+    cursor: pointer;
+    color: var(--color-text-light);
+}
+
+.pendingContactRow:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+}
+
+.contactField {
+    width: 100%;
+}
+
+.contactButtonCell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.contactActionButton {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    display: inline-flex;
+    justify-content: center;
+    background-color: var(--color-transparent) !important;
+    border-color: var(--color-transparent) !important;
+    align-items: center;
+}
+
+.pendingFieldWrapper {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.pendingPlusIconDelete {
+    font-size: 3rem;
+    margin-top: -13px;
+    line-height: 1;
+    color: var(--color-text-light);
+}
+
+.pendingPlusIcon {
+    font-size: 3rem;
+    padding-bottom: 6px;
+    line-height: 1;
+    color: var(--color-text-light);
+}
+
+.desktopTable {
+    display: block;
+}
+
+.mobileCardsWrapper {
+    display: none;
+}
+
+.mobileCard {
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-radius: 8px;
+    padding: 1rem;
+    background: var(--color-white);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.mobileCard:not(:first-child) {
+    margin-top: 0.75rem;
+}
+
+.mobileCard:active {
+    transform: scale(0.99);
+}
+
+.mobileCard:focus-visible {
+    outline: 2px solid var(--color-accent-35);
+    outline-offset: 3px;
+}
+
+.mobileCardTitle {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    margin: 0;
+}
+
+.mobileCardDivider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 0.75rem 0;
+}
+
+.blockMetaColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+}
+
+.blockMeta {
+    margin: 0.15rem 0 0;
+    color: var(--color-text-light);
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 1rem;
+}
+
+.blockMetaLabel {
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+}
+
+.blockMetaValue {
+    color: var(--color-text-dark);
+    font-size: 0.9rem;
+}
+
+.mobileCardRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4rem;
+}
+
+.mobileCardsEmpty {
+    text-align: center;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    padding: 1rem 0;
+}
+
+.filtersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+.advancedFiltersPanel {
+    border-top: 1px solid var(--color-border);
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.advancedFiltersPanel :global(.col-md-3) {
+    flex: 1 1 100%;
+}
+
+@media (max-width: 1000px) {
+    .searchPanelRow {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .searchLeft {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .searchInputWrapper {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .modilButton {
+        align-self: end;
+        height: fit-content;
+        justify-self: flex;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .advancedFiltersPanel {
+        padding-top: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .advancedFiltersPanel :global(.row) {
+        row-gap: 0.75rem;
+    }
+
+    .desktopTable {
+        display: none;
+    }
+
+    .mobileCardsWrapper {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .table th,
+    .table td {
+        padding: 0.6rem;
+        /* Уменьшаем отступы */
+        font-size: 0.85rem;
+        /* Уменьшаем размер шрифта */
+    }
+
+    .table th {
+        font-size: 0.8rem;
+        /* Ещё меньше для заголовков */
+    }
+
+    .actionBtn {
+        padding: 0.4rem 0.6rem;
+        /* Уменьшаем кнопки */
+        font-size: 0.75rem;
+    }
+
+    .formSection {
+        padding: 1rem;
+    }
+
+    .contactRow {
+        grid-template-columns: 1fr;
+    }
+
+    .contactButtonCell {
+        justify-content: flex-start;
+    }
+
+    /* Можно скрыть менее важные столбцы на средних экранах, если нужно */
+    /* .lessImportantColumn { display: none; } */
+}
+
+/* Для мобильных телефонов (портретная ориентация) */
+@media (max-width: 576px) {
+
+    .table th,
+    .table td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .table th {
+        font-size: 0.75rem;
+    }
+
+    .table {
+        min-width: 500px;
+    }
+
+    .actionBtn {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.7rem;
+    }
+
+}
+
+.importTabWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.importSection {
+    background: var(--color-white);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.importDropZone {
+    border: 2px dashed var(--color-accent);
+    background: var(--color-accent-10);
+    border-radius: 12px;
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+.importDropZone p {
+    margin: 0;
+}
+
+.importDropZoneActive {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+}
+
+.importDropIcon {
+    font-size: 2.5rem;
+    color: var(--color-accent);
+}
+
+.importDropTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.importDropHint {
+    font-size: 1rem;
+    color: var(--color-text-dark);
+}
+
+.importChooseLink {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.importChooseLink:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+}
+
+.importDropNote {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+.importFileName {
+    margin-top: 0.5rem;
+    color: var(--color-accent);
+    font-weight: 500;
+}
+
+.previewTableWrapper {
+    margin-top: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-white);
+}
+
+.importPreviewTable thead {
+    background: var(--color-bg);
+}
+
+.importPreviewTable th,
+.importPreviewTable td {
+    vertical-align: middle;
+}
+
+.previewPlaceholder {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+.importFailedList {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--color-danger);
+}
+
+.importActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.importTemplateButton {
+    flex-shrink: 0;
+}
+
+.importActionsRight {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.previewTableWrapper table {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .importDropZone {
+        padding: 2rem 1rem;
+    }
+
+    .importActions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .importActionsRight {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .importActionsRight> :global(button) {
+        flex: 1;
+    }
+}

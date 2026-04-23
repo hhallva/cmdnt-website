@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import type { StudentsDto } from '../../../../types/students';
 import type { GroupDto } from '../../../../types/groups';
@@ -23,30 +23,54 @@ interface StudentsListTabProps {
     groups: GroupDto[];
     buildings: BuildingDto[];
     selectedBuildingId: number | 'unassigned' | null;
-    onBuildingChange: (buildingId: number | 'unassigned' | null) => void;
+    searchTerm: string;
+    selectedGroupId: number | 'all';
+    selectedCourse: number | 'all';
+    selectedGender: 'male' | 'female' | 'all';
     isEducator: boolean;
+    onExportReady?: (handler: (() => void) | null) => void;
     onStudentClick: (studentId: number) => void;
 }
 
-const StudentsListTab: React.FC<StudentsListTabProps> = ({
-    students,
+interface StudentsListFiltersProps {
+    groups: GroupDto[];
+    buildings: BuildingDto[];
+    searchTerm: string;
+    selectedGroupId: number | 'all';
+    selectedCourse: number | 'all';
+    selectedGender: 'male' | 'female' | 'all';
+    selectedBuildingId: number | 'unassigned' | null;
+    isAdvancedFilterOpen: boolean;
+    isEducator: boolean;
+    onSearchTermChange: (value: string) => void;
+    onGroupChange: (value: number | 'all') => void;
+    onCourseChange: (value: number | 'all') => void;
+    onGenderChange: (value: 'male' | 'female' | 'all') => void;
+    onBuildingChange: (buildingId: number | 'unassigned' | null) => void;
+    onToggleAdvancedFilters: () => void;
+    onResetFilters: () => void;
+    onExport: () => void;
+}
+
+export const StudentsListFilters: React.FC<StudentsListFiltersProps> = ({
     groups,
     buildings,
+    searchTerm,
+    selectedGroupId,
+    selectedCourse,
+    selectedGender,
     selectedBuildingId,
-    onBuildingChange,
+    isAdvancedFilterOpen,
     isEducator,
-    onStudentClick,
+    onSearchTermChange,
+    onGroupChange,
+    onCourseChange,
+    onGenderChange,
+    onBuildingChange,
+    onToggleAdvancedFilters,
+    onResetFilters,
+    onExport,
 }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
-    const [selectedGroupId, setSelectedGroupId] = useState<number | 'all'>('all');
-    const [selectedCourse, setSelectedCourse] = useState<number | 'all'>('all');
-    const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'all'>('all');
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
-        key: 'fullName',
-        direction: 'asc',
-    });
-
     const uniqueCourses = useMemo(() => {
         const courses = new Set<number>();
         groups.forEach(group => {
@@ -74,6 +98,123 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         { value: 'male', label: 'Мужской' },
         { value: 'female', label: 'Женский' },
     ];
+
+    return (
+        <div className={`${styles.searchPanel} `}>
+            <div className={styles.searchPanelRow}>
+                <div className={styles.searchLeft}>
+                    <div className={styles.searchInputWrapper}>
+                        <InputField
+                            label=""
+                            type="text"
+                            placeholder="Поиск по ФИО..."
+                            value={searchTerm}
+                            onChange={(event) => onSearchTermChange(event.target.value)}
+                        />
+                    </div>
+                    <div className={styles.searchButtons}>
+                        <ActionButton
+                            variant="secondary"
+                            size="md"
+                            onClick={onToggleAdvancedFilters}
+                            className={styles.modilButton}
+                            aria-expanded={isAdvancedFilterOpen}
+                        >
+                            Фильтры
+                            <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} ms-2`}></i>
+                        </ActionButton>
+                        <ActionButton
+                            variant="secondary"
+                            size="md"
+                            onClick={onResetFilters}
+                            className={styles.modilButton}
+                        >
+                            Сбросить
+                        </ActionButton>
+                    </div>
+                </div>
+                {!isEducator && (
+                    <div className={styles.searchRight}>
+                        <ActionButton
+                            size="md"
+                            variant="primary"
+                            onClick={onExport}
+                            className={styles.fullWidthMobileButton}
+                        >
+                            <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                            Скачать в Excel
+                        </ActionButton>
+                    </div>
+                )}
+            </div>
+
+            {isAdvancedFilterOpen && (
+                <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
+                    <div className={styles.filtersGrid}>
+                        <SelectField
+                            label="Здание"
+                            value={selectedBuildingId ?? ''}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                if (!value) {
+                                    onBuildingChange(null);
+                                    return;
+                                }
+                                if (value === 'unassigned') {
+                                    onBuildingChange('unassigned');
+                                    return;
+                                }
+                                onBuildingChange(Number(value));
+                            }}
+                            options={[
+                                { value: '', label: buildings.length ? 'Все здания' : 'Здания не найдены' },
+                                ...buildings.map(building => ({
+                                    value: building.id,
+                                    label: building.name || `Здание ${building.id}`,
+                                })),
+                                { value: 'unassigned', label: 'Без заселения' },
+                            ]}
+                        />
+                        <SelectField
+                            label="Группа"
+                            value={selectedGroupId}
+                            onChange={(event) => onGroupChange(event.target.value === 'all' ? 'all' : Number(event.target.value))}
+                            options={groupOptions}
+                        />
+                        <SelectField
+                            label="Курс"
+                            value={selectedCourse}
+                            onChange={(event) => onCourseChange(event.target.value === 'all' ? 'all' : Number(event.target.value))}
+                            options={courseOptions}
+                        />
+                        <SelectField
+                            label="Пол"
+                            value={selectedGender}
+                            onChange={(event) => onGenderChange(event.target.value as 'male' | 'female' | 'all')}
+                            options={genderOptions}
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const StudentsListTab: React.FC<StudentsListTabProps> = ({
+    students,
+    buildings,
+    selectedBuildingId,
+    searchTerm,
+    selectedGroupId,
+    selectedCourse,
+    selectedGender,
+    onExportReady,
+    onStudentClick,
+}) => {
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
+    });
 
     const buildingNameMap = useMemo(() => {
         const map = new Map<number, string>();
@@ -172,7 +313,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         return result;
     }, [students, searchTerm, selectedBuildingId, selectedGroupId, selectedCourse, selectedGender, sortConfig]);
 
-    const handleExportToExcel = () => {
+    const handleExportToExcel = useCallback(() => {
         const headerRow = [...IMPORT_EXPECTED_HEADERS];
         const bodyRows = processedStudents.map(student => ([
             `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim(),
@@ -189,20 +330,14 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Студенты');
         XLSX.writeFile(workbook, `Список_студентов_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    };
+    }, [processedStudents]);
 
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-    };
-
-    const resetFiltersAndSorts = () => {
-        setSearchTerm('');
-        onBuildingChange(null);
-        setSelectedGroupId('all');
-        setSelectedCourse('all');
-        setSelectedGender('all');
-        setSortConfig({ key: 'fullName', direction: 'asc' });
-    };
+    useEffect(() => {
+        onExportReady?.(() => handleExportToExcel);
+        return () => {
+            onExportReady?.(null);
+        };
+    }, [handleExportToExcel, onExportReady]);
 
     const requestSort = (key: string) => {
         setSortConfig(prevConfig => {
@@ -273,103 +408,6 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
 
     return (
         <div>
-            <div className={`${styles.searchPanel} mb-3`}>
-                <div className="justify-content-between align-items-start flex-wrap gap-3 gap-md-0">
-                    <div className={`d-flex gap-2 flex-wrap ${styles.searchControls}`}>
-                        <div className={styles.searchInputWrapper}>
-                            <InputField
-                                label=""
-                                type="text"
-                                placeholder="Поиск по ФИО..."
-                                value={searchTerm}
-                                onChange={handleSearchChange}
-                            />
-                        </div>
-                        <ActionButton
-                            variant="secondary"
-                            size="md"
-                            onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
-                            className={styles.modilButton}
-                            aria-expanded={isAdvancedFilterOpen}
-                        >
-                            Фильтры
-                            <i className={`bi ${isAdvancedFilterOpen ? 'bi-chevron-up' : 'bi-chevron-down'} ms-2`}></i>
-                        </ActionButton>
-                        <ActionButton
-                            variant="secondary"
-                            size="md"
-                            onClick={resetFiltersAndSorts}
-                            className={styles.modilButton}
-                        >
-                            Сбросить
-                        </ActionButton>
-                    </div>
-                </div>
-
-                {isAdvancedFilterOpen && (
-                    <div id="advancedFilters" className={`collapse show ${styles.advancedFiltersPanel}`}>
-                        <div className={styles.filtersGrid}>
-                            <SelectField
-                                label="Здание"
-                                value={selectedBuildingId ?? ''}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (!value) {
-                                        onBuildingChange(null);
-                                        return;
-                                    }
-                                    if (value === 'unassigned') {
-                                        onBuildingChange('unassigned');
-                                        return;
-                                    }
-                                    onBuildingChange(Number(value));
-                                }}
-                                options={[
-                                    { value: '', label: buildings.length ? 'Все здания' : 'Здания не найдены' },
-                                    ...buildings.map(building => ({
-                                        value: building.id,
-                                        label: building.name || `Здание ${building.id}`,
-                                    })),
-                                    { value: 'unassigned', label: 'Без заселения' },
-                                ]}
-                            />
-                            <SelectField
-                                label="Группа"
-                                value={selectedGroupId}
-                                onChange={(e) => setSelectedGroupId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                options={groupOptions}
-                            />
-                            <SelectField
-                                label="Курс"
-                                value={selectedCourse}
-                                onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                                options={courseOptions}
-                            />
-                            <SelectField
-                                label="Пол"
-                                value={selectedGender}
-                                onChange={(e) => setSelectedGender(e.target.value as 'male' | 'female' | 'all')}
-                                options={genderOptions}
-                            />
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {!isEducator && (
-                <div className={styles.tableContainer}>
-                    <ActionButton
-                        size="md"
-                        variant="primary"
-                        onClick={handleExportToExcel}
-                        className={styles.fullWidthMobileButton}
-                    >
-                        <i className="bi bi-file-earmark-spreadsheet me-1"></i>
-                        Скачать в Excel
-                    </ActionButton>
-                </div>
-            )}
-
             <div className={styles.desktopTable}>
                 <CommonTable
                     data={processedStudents}
