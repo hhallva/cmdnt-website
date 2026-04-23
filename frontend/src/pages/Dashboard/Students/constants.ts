@@ -1,7 +1,6 @@
 export const IMPORT_EXPECTED_HEADERS = [
     'ФИО',
     'Группа',
-    'Курс',
     'Пол',
     'Населенный пункт',
     'Телефон',

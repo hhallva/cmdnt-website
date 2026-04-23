@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 
-export const PHONE_REGEX = /^\+79\d{9}$/;
+export const PHONE_REGEX = /^\+7\d{10}$/;
 
 export const isPhoneValid = (value?: string | null): boolean => {
     const normalized = value?.trim() ?? '';
