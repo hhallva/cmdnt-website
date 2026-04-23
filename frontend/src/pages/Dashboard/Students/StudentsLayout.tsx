@@ -200,6 +200,7 @@ const StudentsLayout: React.FC = () => {
         isAdvancedFilterOpen,
         isEducator,
         canUseImportTab,
+        exportHandler,
         fetchStudents,
         handleStudentClick,
     ]);

@@ -52,6 +52,7 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
         { key: 'birthday', title: 'Дата рождения' },
     ]), []);
 
+
     const handleImportCancel = useCallback(() => {
         setImportRows([]);
         setImportFileName('');
@@ -271,7 +272,7 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
     }, [handleDropZoneClick]);
 
     return (
-        <div className={styles.importTabWrapper}>
+        <div className={styles.importTabWrapper} style={{ marginTop: '-0.75rem' }}>
             <section className={styles.importSection}>
                 <div
                     role="button"
@@ -290,7 +291,10 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
                         <button
                             type="button"
                             className={styles.importChooseLink}
-                            onClick={handleDropZoneClick}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                handleDropZoneClick();
+                            }}
                         >
                             Выберите
                         </button>
@@ -331,18 +335,13 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
                     </div>
                 )}
                 <div className={styles.previewTableWrapper}>
-                    {importRows.length ? (
-                        <CommonTable
-                            data={importRows}
-                            columns={importPreviewColumns}
-                            className={styles.importPreviewTable}
-                            emptyMessage="Строки для импорта отсутствуют"
-                        />
-                    ) : (
-                        <div className={styles.previewPlaceholder}>
-                            Таблица предварительного просмотра появится после выбора файла.
-                        </div>
-                    )}
+                    <CommonTable
+                        title="Предварительный просмотр"
+                        data={importRows}
+                        columns={importPreviewColumns}
+                        className={styles.importPreviewTable}
+                        emptyMessage="Данные не импортированы"
+                    />
                 </div>
             </section>
             <section className={styles.importSection}>

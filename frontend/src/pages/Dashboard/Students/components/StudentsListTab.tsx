@@ -8,7 +8,6 @@ import CommonTable from '../../../../components/CommonTable/CommonTable';
 import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
-import { IMPORT_EXPECTED_HEADERS } from '../constants';
 import {
     formatBirthday,
     formatBirthdayForExport,
@@ -314,7 +313,16 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
     }, [students, searchTerm, selectedBuildingId, selectedGroupId, selectedCourse, selectedGender, sortConfig]);
 
     const handleExportToExcel = useCallback(() => {
-        const headerRow = [...IMPORT_EXPECTED_HEADERS];
+        const headerRow = [
+            'ФИО',
+            'Группа',
+            'Курс',
+            'Пол',
+            'Населенный пункт',
+            'Телефон',
+            'Дата рождения',
+            'Блок',
+        ];
         const bodyRows = processedStudents.map(student => ([
             `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim(),
             student.group?.name ?? '',

@@ -237,7 +237,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
         setFormErrors({});
     };
 
-    const handleAddSubmit = async (e: React.FormEvent) => {
+    const handleAddSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
 
@@ -483,6 +483,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                     type="submit"
                     variant="primary"
                     disabled={isAdding}
+                    onClick={handleAddSubmit}
                 >
                     Добавить
                 </ActionButton>

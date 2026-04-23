@@ -398,15 +398,15 @@
 
 .importSection {
     background: var(--color-white);
-    border-radius: 10px;
-    padding: 1rem;
+    border-radius: 12px;
+    padding: 1.5rem;
 }
 
 .importDropZone {
     border: 2px dashed var(--color-accent);
     background: var(--color-accent-10);
     border-radius: 12px;
-    padding: 2rem 1rem;
+    padding: 2rem 0;
     text-align: center;
     cursor: pointer;
 }
@@ -465,14 +465,16 @@
 
 .previewTableWrapper {
     margin-top: 1.5rem;
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
     overflow: hidden;
-    background: var(--color-white);
+    border-radius: 1rem;
+
 }
 
-.importPreviewTable thead {
-    background: var(--color-bg);
+.importPreviewTable table {
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .importPreviewTable th,
