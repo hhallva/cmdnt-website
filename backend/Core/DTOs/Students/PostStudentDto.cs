@@ -19,7 +19,7 @@ namespace Core.DTOs.Students
         public bool Gender { get; set; }
 
         [StringLength(12, ErrorMessage = "Номер телефона должен содержать 12 символов")]
-        [RegularExpression(@"^\+79\d{9}$", ErrorMessage = "Номер телефона должен быть в формате +79XXXXXXXXX")]
+        [RegularExpression(@"^\+7\d{10}$", ErrorMessage = "Номер телефона должен быть в формате +7XXXXXXXXXX")]
         public string? Phone { get; set; }
 
         public DateTime? Birthday { get; set; }

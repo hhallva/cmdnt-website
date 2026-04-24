@@ -306,7 +306,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
             errors.phone = 'Телефон обязателен.';
             isValid = false;
         } else if (!isPhoneValid(formData.phone)) {
-            errors.phone = 'Телефон должен быть в формате +79XXXXXXXXX.';
+            errors.phone = 'Телефон должен быть в формате +7XXXXXXXXXX.';
             isValid = false;
         }
 
@@ -323,7 +323,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
                 contactErrors.phone = 'Телефон обязателен.';
                 contactsValid = false;
             } else if (!isPhoneValid(contact.phone)) {
-                contactErrors.phone = 'Неверный формат телефона (+79XXXXXXXXX).';
+                contactErrors.phone = 'Неверный формат телефона (+7XXXXXXXXXX).';
                 contactsValid = false;
             }
             contactErrorsArray[index] = contactErrors;

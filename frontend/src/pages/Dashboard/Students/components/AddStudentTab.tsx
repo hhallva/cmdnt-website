@@ -281,7 +281,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
             errors.phone = 'Поле обязательно';
             isValid = false;
         } else if (!isPhoneValid(trimmedPhoneValue)) {
-            errors.phone = 'Разрешен формат +79XXXXXXXXX';
+            errors.phone = 'Разрешен формат +7XXXXXXXXXX';
             isValid = false;
         }
 
@@ -300,7 +300,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                 contactErrors.phone = 'Поле обязательно';
                 contactsValid = false;
             } else if (!isPhoneValid(contact.phone)) {
-                contactErrors.phone = 'Разрешен формат +79XXXXXXXXX';
+                contactErrors.phone = 'Разрешен формат +7XXXXXXXXXX';
                 contactsValid = false;
             }
 

@@ -433,7 +433,7 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
     const handleDownloadTemplate = useCallback(() => {
         const templateSheet = XLSX.utils.aoa_to_sheet([
             IMPORT_EXPECTED_HEADERS,
-            ['Иванов Иван Иванович', 'ИС-21', 'М', 'г. Пермь', '+79XXXXXXXXX', '12.08.2002'],
+            ['Иванов Иван Иванович', 'ИС-21', 'М', 'г. Пермь', '+7XXXXXXXXXX', '12.08.2002'],
         ]);
 
         const groupsSheetData = [
