@@ -13,6 +13,7 @@ import {
     formatBirthdayForExport,
     formatGenderShort,
     getGenderLabel,
+    getStudentImageSrc,
 } from '../../../../utils/students';
 
 import styles from '../Students.module.css';
@@ -239,6 +240,12 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         return `${student.blockNumber} (${capacity})`;
     };
 
+    const getInitials = (student: StudentsDto) => {
+        const surnameInitial = student.surname?.trim().charAt(0) ?? '';
+        const nameInitial = student.name?.trim().charAt(0) ?? '';
+        return `${surnameInitial}${nameInitial}`.toUpperCase();
+    };
+
     const processedStudents = useMemo(() => {
         let result = [...students];
 
@@ -364,7 +371,22 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
             key: 'fullName',
             title: 'ФИО',
             sortable: true,
-            render: (student: StudentsDto) => `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || '—',
+            render: (student: StudentsDto) => {
+                const fullName = `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || '—';
+                const imageSrc = getStudentImageSrc(student.image);
+                return (
+                    <div className={styles.fioCell}>
+                        <div className={styles.fioAvatar}>
+                            {imageSrc ? (
+                                <img src={imageSrc} alt={student.surname || 'Фото студента'} />
+                            ) : (
+                                <span>{getInitials(student) || '—'}</span>
+                            )}
+                        </div>
+                        <span className={styles.fioText}>{fullName}</span>
+                    </div>
+                );
+            },
         },
         {
             key: 'group.name',

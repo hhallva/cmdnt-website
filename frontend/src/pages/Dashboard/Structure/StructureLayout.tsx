@@ -269,7 +269,22 @@ const StructureLayout: React.FC = () => {
             key: 'fullName',
             title: 'ФИО',
             sortable: true,
-            render: (student: StudentsDto) => formatFullName(student) || '—',
+            render: (student: StudentsDto) => {
+                const fullName = formatFullName(student) || '—';
+                const imageSrc = getStudentImageSrc(student.image);
+                return (
+                    <div className={styles.fioCell}>
+                        <div className={styles.fioAvatar}>
+                            {imageSrc ? (
+                                <img src={imageSrc} alt={student.surname || 'Фото студента'} />
+                            ) : (
+                                <span>{getInitials(student) || '—'}</span>
+                            )}
+                        </div>
+                        <span className={styles.fioText}>{fullName}</span>
+                    </div>
+                );
+            },
         },
         {
             key: 'group.name',
