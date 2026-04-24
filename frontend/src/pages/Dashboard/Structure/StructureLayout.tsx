@@ -28,6 +28,7 @@ import { SETTLEMENT_TAB_ID, STRUCTURE_TAB_IDS } from './constants';
 import { useStructureTabs } from './hooks/useStructureTabs';
 import { useStructureFilters } from './hooks/useStructureFilters';
 import { useSettlementForm } from './hooks/useSettlementForm';
+import { getStudentImageSrc } from '../../../utils/students';
 
 type NewRoomFormState = {
     floorNumber: string;
@@ -693,7 +694,13 @@ const StructureLayout: React.FC = () => {
                                         {room.occupants.map(student => (
                                             <div key={student.id} className={styles.studentRow}>
                                                 <div className={styles.studentInfo}>
-                                                    <div className={styles.studentAvatar}>{getInitials(student)}</div>
+                                                    <div className={styles.studentAvatar}>
+                                                        {getStudentImageSrc(student.image) ? (
+                                                            <img src={getStudentImageSrc(student.image) ?? ''} alt={student.surname || 'Фотография студента'} />
+                                                        ) : (
+                                                            getInitials(student)
+                                                        )}
+                                                    </div>
                                                     <div>
                                                         <p className={styles.studentName}>{formatShortName(student)}</p>
                                                         <p className={styles.studentMeta}>

@@ -38,11 +38,21 @@
     color: var(--color-text-dark);
 }
 
+.mainFormRow {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    width: 100%;
+}
+
 .studentFormGrid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     column-gap: 1.75rem;
     row-gap: 1.25rem;
+    align-items: start;
+    flex: 1 1 auto;
+    width: 100%;
 }
 
 
@@ -53,8 +63,18 @@
 }
 
 @media (max-width: 768px) {
+    .mainFormRow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .studentFormGrid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .photoField {
+        grid-column: 1 / -1;
+        align-items: flex-start;
     }
 }
 
@@ -178,6 +198,94 @@
 .pendingPlusIcon {
     font-size: 2rem;
     color: var(--color-text-light);
+}
+
+.photoField {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    grid-row: span 3;
+    align-self: center;
+}
+
+.photoDropZone {
+    border: none;
+    outline: 2px dashed var(--color-accent);
+    outline-offset: 0;
+    background: var(--color-accent-10);
+    border-radius: 50%;
+    width: 155px;
+    height: 155px;
+    padding: 0;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.photoDropZoneActive {
+    outline-color: var(--color-accent);
+    background: var(--color-accent-10);
+}
+
+.photoDropZoneHasImage {
+    outline: 2px solid var(--color-accent);
+}
+
+.photoIcon {
+    font-size: 1.75rem;
+    color: var(--color-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photoInput {
+    display: none;
+}
+
+.photoPreviewImage {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.photoError {
+    color: var(--color-danger);
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.photoRemoveOverlay {
+    position: absolute;
+    inset: 0;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    border-radius: 50%;
+    color: var(--color-white);
+    font-size: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.photoDropZone:hover .photoRemoveOverlay,
+.photoDropZone:focus-within .photoRemoveOverlay {
+    opacity: 1;
+}
+
+.photoRemoveOverlay:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .desktopTable {

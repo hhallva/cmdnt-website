@@ -4,6 +4,7 @@ import type { StudentsDto } from '../../../../types/students';
 import type { RoomDto } from '../../../../types/rooms';
 import styles from '../StudentCard.module.css';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
+import { getStudentImageSrc } from '../../../../utils/students';
 
 type RoomStatus = 'occupied' | 'partial' | 'free';
 
@@ -96,33 +97,42 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                 </div>
 
                 <div className={styles.housingOccupantsGrid}>
-                    {occupants.map((occupant) => (
-                        <div key={occupant.id} className={styles.housingOccupantRow}>
-                            <div className={styles.housingOccupantInfo}>
-                                <div className={styles.housingOccupantAvatar}>{getInitials(occupant)}</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                    <div className={styles.housingOccupantFIO}>{formatShortName(occupant)}</div>
-                                    <div className={styles.housingOccupantMeta}>
-                                        {occupant.group?.name ?? '—'} · {occupant.group?.course ?? '—'} курс
+                    {occupants.map((occupant) => {
+                        const occupantImageSrc = getStudentImageSrc(occupant.image);
+                        return (
+                            <div key={occupant.id} className={styles.housingOccupantRow}>
+                                <div className={styles.housingOccupantInfo}>
+                                    <div className={styles.housingOccupantAvatar}>
+                                        {occupantImageSrc ? (
+                                            <img src={occupantImageSrc} alt={occupant.surname || 'Фотография студента'} />
+                                        ) : (
+                                            getInitials(occupant)
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <div className={styles.housingOccupantFIO}>{formatShortName(occupant)}</div>
+                                        <div className={styles.housingOccupantMeta}>
+                                            {occupant.group?.name ?? '—'} · {occupant.group?.course ?? '—'} курс
+                                        </div>
                                     </div>
                                 </div>
+                                <div className={styles.housingOccupantActions}>
+                                    {occupant.id === student.id ? (
+                                        <></>
+                                    ) : (
+                                        <ActionButton
+                                            variant='secondary'
+                                            size='md'
+                                            className={styles.studentCardButton}
+                                            onClick={() => navigate(`/dashboard/students/${occupant.id}`)}
+                                        >
+                                            Карточка
+                                        </ActionButton>
+                                    )}
+                                </div>
                             </div>
-                            <div className={styles.housingOccupantActions}>
-                                {occupant.id === student.id ? (
-                                    <></>
-                                ) : (
-                                    <ActionButton
-                                        variant='secondary'
-                                        size='md'
-                                        className={styles.studentCardButton}
-                                        onClick={() => navigate(`/dashboard/students/${occupant.id}`)}
-                                    >
-                                        Карточка
-                                    </ActionButton>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div >

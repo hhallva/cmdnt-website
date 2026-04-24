@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { ContactDto, PostStudentDto } from '../../../../types/students';
 import type { GroupDto } from '../../../../types/groups';
 
@@ -6,6 +6,7 @@ import { apiClient } from '../../../../api/client';
 import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
+import ImageCropModal from '../../../../components/ImageCropModal/ImageCropModal';
 import { isPhoneValid } from '../../../../utils/students';
 
 import styles from '../Students.module.css';
@@ -26,6 +27,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
             gender: null,
             phone: '',
             origin: null,
+            image: null,
         }
     );
     const [newContacts, setNewContacts] = useState<{ comment: string; phone: string }[]>([]);
@@ -42,6 +44,12 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
         form?: string;
     }>({});
     const [isAdding, setIsAdding] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [photoError, setPhotoError] = useState<string | null>(null);
+    const [isPhotoDragActive, setIsPhotoDragActive] = useState(false);
+    const [cropSource, setCropSource] = useState<string | null>(null);
+    const [isCropOpen, setIsCropOpen] = useState(false);
+    const photoInputRef = useRef<HTMLInputElement | null>(null);
 
     const sortedGroups = useMemo(() => (
         [...groups].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'ru', { sensitivity: 'base' }))
@@ -89,6 +97,92 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
             return;
         }
         setNewContacts(prev => [...prev, { comment: '', phone: '' }]);
+    };
+
+    const handlePhotoFile = (file: File | null) => {
+        if (!file) {
+            return;
+        }
+        if (!file.type.startsWith('image/')) {
+            setPhotoError('Можно загрузить только изображение.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = typeof reader.result === 'string' ? reader.result : '';
+            setCropSource(result || null);
+            setIsCropOpen(true);
+            setPhotoError(null);
+        };
+        reader.onerror = () => {
+            setPhotoError('Не удалось прочитать файл.');
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null;
+        handlePhotoFile(file);
+        if (event.target) {
+            event.target.value = '';
+        }
+    };
+
+    const handlePhotoDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        if (isAdding) {
+            return;
+        }
+        setIsPhotoDragActive(false);
+        const file = event.dataTransfer.files?.[0] ?? null;
+        handlePhotoFile(file);
+    };
+
+    const handlePhotoDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setIsPhotoDragActive(true);
+    };
+
+    const handlePhotoDragLeave = () => {
+        setIsPhotoDragActive(false);
+    };
+
+    const handlePhotoPick = () => {
+        if (isAdding) {
+            return;
+        }
+        photoInputRef.current?.click();
+    };
+
+    const handlePhotoKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handlePhotoPick();
+        }
+    };
+
+    const handlePhotoClear = () => {
+        setNewStudent(prev => ({ ...prev, image: null }));
+        setPhotoPreview(null);
+        setPhotoError(null);
+        if (photoInputRef.current) {
+            photoInputRef.current.value = '';
+        }
+    };
+
+    const handleCropCancel = () => {
+        setIsCropOpen(false);
+        setCropSource(null);
+    };
+
+    const handleCropConfirm = (croppedDataUrl: string) => {
+        const base64Payload = croppedDataUrl.includes(',') ? croppedDataUrl.split(',')[1] : croppedDataUrl;
+        setNewStudent(prev => ({ ...prev, image: base64Payload || null }));
+        setPhotoPreview(croppedDataUrl);
+        setPhotoError(null);
+        setIsCropOpen(false);
+        setCropSource(null);
     };
 
     const handleRemoveContactField = (index: number) => {
@@ -232,9 +326,17 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
             gender: null,
             phone: '',
             origin: null,
+            image: null,
         });
         setNewContacts([]);
         setFormErrors({});
+        setPhotoPreview(null);
+        setPhotoError(null);
+        setIsCropOpen(false);
+        setCropSource(null);
+        if (photoInputRef.current) {
+            photoInputRef.current.value = '';
+        }
     };
 
     const handleAddSubmit = async (e: React.SyntheticEvent) => {
@@ -250,6 +352,7 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
                 groupId: newStudent.groupId && newStudent.groupId !== 0 ? newStudent.groupId : null,
                 origin: trimmedOrigin ? trimmedOrigin : null,
                 phone: trimmedPhone,
+                image: newStudent.image ?? null,
             };
 
             const createdStudent = await apiClient.createStudent(studentDataToSend);
@@ -279,101 +382,154 @@ const AddStudentTab: React.FC<AddStudentTabProps> = ({ groups, onStudentCreated 
 
     return (
         <form onSubmit={handleAddSubmit}>
+            <ImageCropModal
+                isOpen={isCropOpen}
+                imageSrc={cropSource}
+                onCancel={handleCropCancel}
+                onConfirm={handleCropConfirm}
+            />
             <div className={styles.formSectionsWrapper} style={{ marginTop: '-0.75rem' }}>
                 <section className={styles.formSection}>
                     <h4 className={styles.formSectionTitle}>Основное</h4>
-                    <div className={styles.studentFormGrid}>
-                        <div>
-                            <InputField
-                                label="Фамилия"
-                                type="text"
-                                name="surname"
-                                value={newStudent.surname || ''}
-                                onChange={handleAddChange}
-                                error={formErrors.surname}
-                                disabled={isAdding}
-                            />
+
+                    <div className={styles.mainFormRow}>
+                        <div className={styles.photoField}>
+                            <div
+                                className={`${styles.photoDropZone} ${isPhotoDragActive ? styles.photoDropZoneActive : ''} ${photoPreview ? styles.photoDropZoneHasImage : ''}`}
+                                onClick={handlePhotoPick}
+                                onKeyDown={handlePhotoKeyDown}
+                                onDragOver={handlePhotoDragOver}
+                                onDragLeave={handlePhotoDragLeave}
+                                onDrop={handlePhotoDrop}
+                                role="button"
+                                tabIndex={0}
+                                aria-label="Добавить фотографию"
+                            >
+                                <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className={styles.photoInput}
+                                    onChange={handlePhotoChange}
+                                    disabled={isAdding}
+                                />
+                                {photoPreview ? (
+                                    <>
+                                        <img src={photoPreview} alt="Превью фотографии студента" className={styles.photoPreviewImage} />
+                                        <button
+                                            type="button"
+                                            className={styles.photoRemoveOverlay}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                handlePhotoClear();
+                                            }}
+                                            aria-label="Удалить фото"
+                                            disabled={isAdding}
+                                        >
+                                            <i className="bi bi-x"></i>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className={styles.photoIcon}>
+                                        <i className="bi bi-camera"></i>
+                                    </div>
+                                )}
+                            </div>
+                            {photoError && <div className={styles.photoError}>{photoError}</div>}
                         </div>
-                        <div>
-                            <InputField
-                                label="Имя"
-                                type="text"
-                                name="name"
-                                value={newStudent.name || ''}
-                                onChange={handleAddChange}
-                                disabled={isAdding}
-                                error={formErrors.name}
-                            />
-                        </div>
-                        <div>
-                            <InputField
-                                label="Отчество"
-                                type="text"
-                                name="patronymic"
-                                value={newStudent.patronymic || ''}
-                                onChange={handleAddChange}
-                                disabled={isAdding}
-                                error={formErrors.patronymic}
-                            />
-                        </div>
-                        <div>
-                            <InputField
-                                label="Дата рождения"
-                                type="date"
-                                name="birthday"
-                                value={newStudent.birthday || ''}
-                                onChange={handleAddChange}
-                                disabled={isAdding}
-                                error={formErrors.birthday}
-                            />
-                        </div>
-                        <div>
-                            <SelectField
-                                label="Пол"
-                                name="gender"
-                                value={
-                                    newStudent.gender === true ? 'true'
-                                        : newStudent.gender === false ? 'false'
-                                            : ''
-                                }
-                                onChange={handleAddChange}
-                                options={genderOptions}
-                                disabled={isAdding}
-                                error={formErrors.gender}
-                            />
-                        </div>
-                        <div>
-                            <InputField
-                                label="Населенный пункт"
-                                type="text"
-                                name="origin"
-                                value={newStudent.origin || ''}
-                                onChange={handleAddChange}
-                                disabled={isAdding}
-                                error={formErrors.origin}
-                            />
-                        </div>
-                        <div>
-                            <SelectField
-                                label="Группа"
-                                name="groupId"
-                                value={newStudent.groupId ?? ''}
-                                onChange={handleAddChange}
-                                options={groupOptions}
-                                disabled={isAdding}
-                                error={formErrors.groupId}
-                            />
-                        </div>
-                        <div>
-                            <InputField
-                                label="Контактный телефон"
-                                type="tel"
-                                name="phone"
-                                value={newStudent.phone || ''}
-                                onChange={handleAddChange}
-                                disabled={isAdding}
-                                error={formErrors.phone}
-                            />
+                        <div className={styles.studentFormGrid}>
+                            <div>
+                                <InputField
+                                    label="Фамилия"
+                                    type="text"
+                                    name="surname"
+                                    value={newStudent.surname || ''}
+                                    onChange={handleAddChange}
+                                    error={formErrors.surname}
+                                    disabled={isAdding}
+                                />
+                            </div>
+                            <div>
+                                <InputField
+                                    label="Имя"
+                                    type="text"
+                                    name="name"
+                                    value={newStudent.name || ''}
+                                    onChange={handleAddChange}
+                                    disabled={isAdding}
+                                    error={formErrors.name}
+                                />
+                            </div>
+                            <div>
+                                <InputField
+                                    label="Отчество"
+                                    type="text"
+                                    name="patronymic"
+                                    value={newStudent.patronymic || ''}
+                                    onChange={handleAddChange}
+                                    disabled={isAdding}
+                                    error={formErrors.patronymic}
+                                />
+                            </div>
+                            <div>
+                                <InputField
+                                    label="Дата рождения"
+                                    type="date"
+                                    name="birthday"
+                                    value={newStudent.birthday || ''}
+                                    onChange={handleAddChange}
+                                    disabled={isAdding}
+                                    error={formErrors.birthday}
+                                />
+                            </div>
+                            <div>
+                                <SelectField
+                                    label="Пол"
+                                    name="gender"
+                                    value={
+                                        newStudent.gender === true ? 'true'
+                                            : newStudent.gender === false ? 'false'
+                                                : ''
+                                    }
+                                    onChange={handleAddChange}
+                                    options={genderOptions}
+                                    disabled={isAdding}
+                                    error={formErrors.gender}
+                                />
+                            </div>
+                            <div>
+                                <InputField
+                                    label="Населенный пункт"
+                                    type="text"
+                                    name="origin"
+                                    value={newStudent.origin || ''}
+                                    onChange={handleAddChange}
+                                    disabled={isAdding}
+                                    error={formErrors.origin}
+                                />
+                            </div>
+                            <div>
+                                <SelectField
+                                    label="Группа"
+                                    name="groupId"
+                                    value={newStudent.groupId ?? ''}
+                                    onChange={handleAddChange}
+                                    options={groupOptions}
+                                    disabled={isAdding}
+                                    error={formErrors.groupId}
+                                />
+                            </div>
+                            <div>
+                                <InputField
+                                    label="Контактный телефон"
+                                    type="tel"
+                                    name="phone"
+                                    value={newStudent.phone || ''}
+                                    onChange={handleAddChange}
+                                    disabled={isAdding}
+                                    error={formErrors.phone}
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>

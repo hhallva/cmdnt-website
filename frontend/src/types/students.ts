@@ -14,6 +14,7 @@ export interface StudentsDto {
     roomCapacity?: number | null;
     blockNumber: string | null;
     origin?: string | null;
+    image?: string | null;
     contacts?: ContactDto[];
 }
 
@@ -26,6 +27,7 @@ export interface PostStudentDto {
     gender: boolean | null;
     phone: string | null;
     origin: string | null;
+    image?: string | null;
 }
 
 export interface ContactDto {

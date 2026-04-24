@@ -29,5 +29,7 @@ namespace Core.DTOs.Students
         public string? BlockNumber { get; set; }
 
         public string? Origin { get; set; }
+
+        public string? Image { get; set; }
     }
 }

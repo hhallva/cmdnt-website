@@ -34,7 +34,8 @@ namespace Core.DTOs.Students
                 BlockNumber = activeResettlement == null
                     ? null
                     : $"{activeResettlement.Room.FloorNumber}{activeResettlement.Room.RoomNumber:D2}",
-                Origin = student.Origin
+                Origin = student.Origin,
+                Image = student.Image
             };
         }
     }

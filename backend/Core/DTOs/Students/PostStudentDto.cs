@@ -30,5 +30,7 @@ namespace Core.DTOs.Students
         [Required(ErrorMessage = "Группа обязательна.")]
         [Range(1, int.MaxValue, ErrorMessage = "Идентификатор группы должен быть положительным числом")]
         public int GroupId { get; set; }
+
+        public string? Image { get; set; }
     }
 }

@@ -8,6 +8,7 @@ import { useRoomData } from '../../../hooks/useRoomData';
 import type { UserSession } from '../../../types/UserSession';
 
 import ActionButton from '../../../components/ActionButton/ActionButton';
+import { getStudentImageSrc } from '../../../utils/students';
 import PersonalInfoTab from './components/PersonalInfoTab';
 import HousingInfoTab from './components/HousingInfoTab';
 import NotesTab from './components/NotesTab/NotesTab';
@@ -114,6 +115,7 @@ const StudentCardLayout: React.FC = () => {
 
     const studentFullName = buildFullName(student.name, student.patronymic);
     const studentInitials = buildInitials(student.surname, student.name);
+    const studentImageSrc = getStudentImageSrc(student.image);
     const currentUserFullName = buildFullName(userSession?.surname, userSession?.name, userSession?.patronymic) || userSession?.name || undefined;
 
     // Удаление студента
@@ -203,7 +205,11 @@ const StudentCardLayout: React.FC = () => {
                 <div className={styles.profileHeader}>
                     <div className={styles.studentBasicInfo}>
                         <div className={styles.studentPhoto}>
-                            <div className={styles.studentPhotoPlaceholder}>{studentInitials}</div>
+                            {studentImageSrc ? (
+                                <img src={studentImageSrc} alt={student.surname || 'Фотография студента'} />
+                            ) : (
+                                <div className={styles.studentPhotoPlaceholder}>{studentInitials}</div>
+                            )}
                         </div>
                         <div className={styles.studentNameInfo}>
                             <h2>{student.surname} <br />{studentFullName || '—'}</h2>

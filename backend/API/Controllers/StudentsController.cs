@@ -98,6 +98,7 @@ namespace API.Controllers
                 Birthday = dto.Birthday,
                 GroupId = dto.GroupId,
                 Origin = dto.Origin,
+                Image = dto.Image,
                 IsHeadman = false
             };
 
@@ -155,6 +156,7 @@ namespace API.Controllers
             student.Birthday = updateDto.Student.Birthday;
             student.GroupId = updateDto.Student.Group.Id;
             student.Origin = updateDto.Student.Origin;
+            student.Image = updateDto.Student.Image;
 
             if (updateDto.Contacts != null)
             {
