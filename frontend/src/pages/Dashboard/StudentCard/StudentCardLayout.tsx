@@ -204,7 +204,7 @@ const StudentCardLayout: React.FC = () => {
                 {/* Заголовок */}
                 <div className={styles.profileHeader}>
                     <div className={styles.studentBasicInfo}>
-                        <div className={styles.studentPhoto}>
+                        <div className={`${styles.studentPhoto} ${studentImageSrc ? styles.studentPhotoHasImage : ''}`}>
                             {studentImageSrc ? (
                                 <img src={studentImageSrc} alt={student.surname || 'Фотография студента'} />
                             ) : (

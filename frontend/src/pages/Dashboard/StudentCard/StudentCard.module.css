@@ -98,6 +98,11 @@
     overflow: hidden;
 }
 
+.studentPhotoHasImage {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0;
+}
+
 .studentPhoto img {
     width: 100%;
     height: 100%;
