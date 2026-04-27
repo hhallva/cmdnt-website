@@ -204,6 +204,8 @@ namespace Core.Migrations
                 name: "Resettlement",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     StudentId = table.Column<int>(type: "int", nullable: false),
                     RoomId = table.Column<int>(type: "int", nullable: false),
                     CheckInDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -211,7 +213,7 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Resettlement", x => new { x.StudentId, x.RoomId });
+                    table.PrimaryKey("PK_Resettlement", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Resettlement_Room",
                         column: x => x.RoomId,
@@ -342,6 +344,11 @@ namespace Core.Migrations
                 name: "IX_Resettlement_RoomId",
                 table: "Resettlement",
                 column: "RoomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Resettlement_StudentId",
+                table: "Resettlement",
+                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Room_BuildingId",

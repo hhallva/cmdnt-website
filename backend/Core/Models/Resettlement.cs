@@ -2,6 +2,8 @@
 
 public partial class Resettlement
 {
+    public int Id { get; set; }
+
     public int StudentId { get; set; }
 
     public int RoomId { get; set; }

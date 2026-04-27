@@ -50,7 +50,7 @@ namespace Core.Data
 
                 entity.HasOne(d => d.Student).WithMany(p => p.Contacts)
                     .HasForeignKey(d => d.StudentId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.ClientCascade)
                     .HasConstraintName("FK_Contact_Student");
             });
 
@@ -75,7 +75,7 @@ namespace Core.Data
 
                 entity.HasOne(d => d.Student).WithMany(p => p.Notes)
                     .HasForeignKey(d => d.StudentId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.ClientCascade)
                     .HasConstraintName("FK_Note_Student");
 
                 entity.HasOne(d => d.User).WithMany(p => p.Notes)
@@ -86,8 +86,6 @@ namespace Core.Data
 
             modelBuilder.Entity<Resettlement>(entity =>
             {
-                entity.HasKey(e => new { e.StudentId, e.RoomId });
-
                 entity.ToTable("Resettlement");
 
                 entity.HasOne(d => d.Room).WithMany(p => p.Resettlements)

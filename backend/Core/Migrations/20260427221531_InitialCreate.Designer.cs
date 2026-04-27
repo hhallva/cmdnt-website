@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260421120941_InitialCreate")]
+    [Migration("20260427221531_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -453,10 +453,8 @@ namespace Core.Migrations
 
             modelBuilder.Entity("Core.Models.Resettlement", b =>
                 {
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoomId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("CheckInDate")
@@ -465,9 +463,17 @@ namespace Core.Migrations
                     b.Property<DateTime?>("CheckOutDate")
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("StudentId", "RoomId");
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("RoomId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("Resettlement", (string)null);
                 });
@@ -649,6 +655,7 @@ namespace Core.Migrations
                     b.HasOne("Core.Models.Student", "Student")
                         .WithMany("Contacts")
                         .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired()
                         .HasConstraintName("FK_Contact_Student");
 
@@ -660,6 +667,7 @@ namespace Core.Migrations
                     b.HasOne("Core.Models.Student", "Student")
                         .WithMany("Notes")
                         .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired()
                         .HasConstraintName("FK_Note_Student");
 
