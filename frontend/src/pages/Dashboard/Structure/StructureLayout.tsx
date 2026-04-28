@@ -1,10 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import ActionButton from '../../../components/ActionButton/ActionButton';
-import CommonModal from '../../../components/CommonModal/CommonModal';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
-import InputField from '../../../components/InputField/InputField';
 import Tabs from '../../../components/Tabs/Tabs';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
 import { apiClient } from '../../../api/client';
@@ -12,6 +8,10 @@ import type { StudentsDto } from '../../../types/students';
 import type { StructureStatisticDto } from '../../../types/structures';
 import type { UserSession } from '../../../types/UserSession';
 import type { RoomWithOccupants } from './types';
+import AddRoomModal from './components/AddRoomModal';
+import BlockModal from './components/BlockModal';
+import SettlementToast from './components/SettlementToast';
+import SideMenuPortal from './components/SideMenuPortal';
 import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
 import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
 import styles from './Structure.module.css';
@@ -606,9 +606,13 @@ const StructureLayout: React.FC = () => {
             return;
         }
 
-        const student = unassignedStudents.find(item => item.id === studentId);
+        const student = students.find(item => item.id === studentId);
         if (!student) {
             setSettlementAlert({ type: 'error', message: 'Студент недоступен для заселения' });
+            return;
+        }
+
+        if (student.roomId === room.id) {
             return;
         }
 
@@ -619,6 +623,9 @@ const StructureLayout: React.FC = () => {
 
         setSettlementAlert(null);
         try {
+            if (student.roomId && student.roomId !== room.id) {
+                await apiClient.evictStudent(studentId);
+            }
             await apiClient.assignStudentToRoom(studentId, room.id);
             setSettlementAlert({ type: 'success', message: 'Студент успешно заселён' });
             await refetch({ silent: true });
@@ -626,7 +633,7 @@ const StructureLayout: React.FC = () => {
         } catch (err: any) {
             setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось заселить студента' });
         }
-    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, unassignedStudents]);
+    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, students]);
 
     const handleSideMenuDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -772,168 +779,34 @@ const StructureLayout: React.FC = () => {
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
         ];
 
-    const settlementToast = settlementAlert && typeof document !== 'undefined'
-        ? createPortal(
-            <div className={styles.toastContainer}>
-                <div className={`${styles.toast} ${settlementAlert.type === 'success' ? styles.toastSuccess : styles.toastError}`}>
-                    <span>{settlementAlert.message}</span>
-                    <button
-                        type="button"
-                        className={styles.toastCloseButton}
-                        onClick={() => setSettlementAlert(null)}
-                        aria-label="Закрыть уведомление"
-                    >
-                        ×
-                    </button>
-                </div>
-            </div>,
-            document.body
-        )
-        : null;
-
-    const blockMenuPortal = activeBlock && typeof document !== 'undefined'
-        ? createPortal(
-            <>
-                <button
-                    type="button"
-                    className={styles.blockMenuButton}
-                    onClick={toggleSideMenu}
-                    aria-expanded={isSideMenuOpen}
-                    aria-controls="structure-block-menu"
-                >
-                    <i className="bi bi-list" aria-hidden="true"></i>
-                </button>
-                <aside
-                    id="structure-block-menu"
-                    className={`${styles.sideMenu} ${isSideMenuOpen ? styles.sideMenuOpen : ''}`}
-                    aria-hidden={!isSideMenuOpen}
-                >
-                    <div className={styles.sideMenuHeader}>
-                        <span className={styles.sideMenuTitle}>Заселение</span>
-                        <button
-                            type="button"
-                            className={styles.sideMenuClose}
-                            onClick={closeSideMenu}
-                            aria-label="Закрыть меню"
-                        >
-                            ×
-                        </button>
-                    </div>
-                    <div className={styles.sideMenuBody}>
-                        <div
-                            className={styles.sideMenuList}
-                            onDragOver={handleSideMenuDragOver}
-                            onDrop={handleSideMenuDrop}
-                        >
-                            {unassignedStudentsSorted.length > 0 ? (
-                                unassignedStudentsSorted.map(student => (
-                                    <button
-                                        key={student.id}
-                                        type="button"
-                                        className={styles.sideMenuCard}
-                                        onClick={() => handleSettlementStudentSelect(student)}
-                                        draggable
-                                        onDragStart={(event) => handleStudentDragStart(event, student.id)}
-                                        onDragEnd={handleStudentDragEnd}
-                                    >
-                                        <div className={styles.sideMenuAvatar}>
-                                            {getStudentImageSrc(student.image) ? (
-                                                <img
-                                                    src={getStudentImageSrc(student.image) ?? ''}
-                                                    alt={student.surname || 'Фотография студента'}
-                                                />
-                                            ) : (
-                                                <span>{getInitials(student) || '—'}</span>
-                                            )}
-                                        </div>
-                                        <div className={styles.sideMenuCardInfo}>
-                                            <p className={styles.sideMenuName}>{formatShortName(student)}</p>
-                                            <p className={styles.sideMenuMeta}>
-                                                Группа {student.group?.name ?? '—'}, {student.group?.course ?? '—'} курс
-                                            </p>
-                                        </div>
-                                    </button>
-                                ))
-                            ) : (
-                                <p className={styles.sideMenuEmpty}>Нет свободных студентов.</p>
-                            )}
-                        </div>
-                    </div>
-                </aside>
-            </>,
-            document.body
-        )
-        : null;
-
     return (
         <>
-            {settlementToast}
-            {blockMenuPortal}
+            <SettlementToast alert={settlementAlert} onClose={() => setSettlementAlert(null)} />
+            {canManageRooms && (
+                <SideMenuPortal
+                    isActive={Boolean(activeBlock)}
+                    isOpen={isSideMenuOpen}
+                    students={unassignedStudentsSorted}
+                    onToggle={toggleSideMenu}
+                    onClose={closeSideMenu}
+                    onStudentSelect={handleSettlementStudentSelect}
+                    onDragStart={handleStudentDragStart}
+                    onDragEnd={handleStudentDragEnd}
+                    onDragOver={handleSideMenuDragOver}
+                    onDrop={handleSideMenuDrop}
+                />
+            )}
 
             {canManageRooms && (
-                <CommonModal
-                    title="Добавить комнату"
+                <AddRoomModal
                     isOpen={isAddRoomModalOpen}
+                    isCreating={isCreatingRoom}
+                    form={newRoomForm}
+                    errors={newRoomErrors}
                     onClose={closeAddRoomModal}
-                    minWidth={520}
-                    minHeight={380}
-                >
-                    <form className={styles.addRoomForm} onSubmit={handleAddRoomSubmit}>
-                        <div className={styles.addRoomFormGrid}>
-                            <InputField
-                                label="Номер этажа"
-                                type="number"
-                                min="1"
-                                inputMode="numeric"
-                                value={newRoomForm.floorNumber}
-                                onChange={(e) => handleNewRoomFieldChange('floorNumber', e.target.value)}
-                                disabled={isCreatingRoom}
-                                error={newRoomErrors.floorNumber}
-                            />
-                            <InputField
-                                label="Номер комнаты"
-                                type="number"
-                                min="1"
-                                inputMode="numeric"
-                                value={newRoomForm.roomNumber}
-                                onChange={(e) => handleNewRoomFieldChange('roomNumber', e.target.value)}
-                                disabled={isCreatingRoom}
-                                error={newRoomErrors.roomNumber}
-                            />
-                            <InputField
-                                label="Вместимость"
-                                type="number"
-                                min="1"
-                                inputMode="numeric"
-                                value={newRoomForm.capacity}
-                                onChange={(e) => handleNewRoomFieldChange('capacity', e.target.value)}
-                                disabled={isCreatingRoom}
-                                error={newRoomErrors.capacity}
-                            />
-                        </div>
-                        <div className={styles.addRoomActions}>
-                            <ActionButton
-                                size='md'
-                                variant='secondary'
-                                type='button'
-                                className={styles.fullWidthMobileButton}
-                                onClick={closeAddRoomModal}
-                                disabled={isCreatingRoom}
-                            >
-                                Отмена
-                            </ActionButton>
-                            <ActionButton
-                                size='md'
-                                variant='primary'
-                                type='submit'
-                                className={styles.fullWidthMobileButton}
-                                disabled={isCreatingRoom}
-                            >
-                                {isCreatingRoom ? 'Добавляем…' : 'Добавить'}
-                            </ActionButton>
-                        </div>
-                    </form>
-                </CommonModal>
+                    onFieldChange={handleNewRoomFieldChange}
+                    onSubmit={handleAddRoomSubmit}
+                />
             )}
 
             {!statsLoading && !statsError && structureStats && (<StatisticsCard
@@ -953,127 +826,19 @@ const StructureLayout: React.FC = () => {
                 onTabChange={handleTabChange}
             />
 
-            <CommonModal
-                title={activeBlock && (
-                    <div className={styles.blockHeader}>
-                        <p className={styles.blockNumber}>
-                            <span className={styles.blockNumberBadge}>{activeBlock.blockNumber}</span>
-                        </p>
-                        <div className={styles.blockMetaColumn}>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Тип</span>
-                                <span className={styles.blockMetaValue}>{getGenderLabel(activeBlock)}</span>
-                            </p>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Этаж</span>
-                                <span className={styles.blockMetaValue}>{activeBlock.floorNumber}</span>
-                            </p>
-                        </div>
-                        <div className={styles.blockMetaColumn}>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Статус</span>
-                                <span className={styles.blockMetaValue}>{getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'occupied' ? 'Занят' : getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'free' ? 'Свободен' : 'Частично занят'}</span>
-                            </p>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Заселено</span>
-                                <span className={styles.blockMetaValue}>{activeBlock.currentCapacity}/{activeBlock.capacity}</span>
-                            </p>
-
-                        </div>
-                    </div>
-                )}
-                isOpen={Boolean(activeBlock)}
+            <BlockModal
+                activeBlock={activeBlock}
+                canManageRooms={canManageRooms}
+                deletingRoomId={deletingRoomId}
                 onClose={handleCloseBlockModal}
-                minWidth={720}
-            >
-                {activeBlock && (
-                    <div className={styles.modalContentWrapper}>
-                        {activeBlock.rooms.map((room, roomIndex) => {
-                            const freeSlotsCount = Math.max(room.capacity - room.currentCapacity, 0);
-                            return (
-                                <div key={room.id} className={styles.blockRoomSection}>
-                                    <div className={styles.blockRoomHeader}>
-                                        <p className={styles.blockRoomTitle}>Комната {roomIndex + 1}</p>
-                                        {canManageRooms && (
-                                            <ActionButton
-                                                variant='transparent-primary'
-                                                size='sm'
-                                                type='button'
-                                                className={styles.blockRoomDeleteButton}
-                                                disabled={deletingRoomId === room.id}
-                                                onClick={() => handleDeleteRoom(room.id, room.roomNumber)}
-                                            >
-                                                {deletingRoomId === room.id ? 'Удаляем…' : 'Удалить'}
-                                            </ActionButton>
-                                        )}
-                                    </div>
-                                    <div className={styles.studentsList}>
-                                        {room.occupants.map(student => (
-                                            <div
-                                                key={student.id}
-                                                className={styles.studentRow}
-                                                draggable
-                                                onDragStart={(event) => handleAssignedStudentDragStart(event, student)}
-                                                onDragEnd={handleAssignedStudentDragEnd}
-                                            >
-                                                <div className={styles.studentInfo}>
-                                                    <div className={styles.studentAvatar}>
-                                                        {getStudentImageSrc(student.image) ? (
-                                                            <img src={getStudentImageSrc(student.image) ?? ''} alt={student.surname || 'Фотография студента'} />
-                                                        ) : (
-                                                            getInitials(student)
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <p className={styles.studentName}>{formatShortName(student)}</p>
-                                                        <p className={styles.studentMeta}>
-                                                            {student.group?.name ?? '—'} · {student.group?.course ?? '—'} курс
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <ActionButton
-                                                    variant='secondary'
-                                                    size='md'
-                                                    className={styles.studentCardButton}
-                                                    onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                                                >
-                                                    Карточка
-                                                </ActionButton>
-                                            </div>
-                                        ))}
-                                        {freeSlotsCount > 0 && Array.from({ length: freeSlotsCount }).map((_, slotIndex) => (
-                                            <div
-                                                key={`${room.id}-free-${slotIndex}`}
-                                                className={`${styles.studentRow} ${styles.freeSlotCard}`}
-                                                role="button"
-                                                tabIndex={0}
-                                                onClick={() => handleFreeSlotClick(room)}
-                                                onDragOver={handleRoomDragOver}
-                                                onDrop={(event) => handleRoomDrop(event, room)}
-                                                onKeyDown={(event) => {
-                                                    if (event.key === 'Enter' || event.key === ' ') {
-                                                        event.preventDefault();
-                                                        handleFreeSlotClick(room);
-                                                    }
-                                                }}
-                                            >
-                                                <div className={styles.studentInfo}>
-                                                    <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>
-                                                        <i className="bi bi-plus"></i>
-                                                    </div>
-                                                    <div>
-                                                        <p className={styles.studentName}>Свободное место</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </CommonModal>
+                onDeleteRoom={handleDeleteRoom}
+                onFreeSlotClick={handleFreeSlotClick}
+                onRoomDragOver={handleRoomDragOver}
+                onRoomDrop={handleRoomDrop}
+                onStudentDragStart={handleAssignedStudentDragStart}
+                onStudentDragEnd={handleAssignedStudentDragEnd}
+                onStudentCardClick={(studentId) => navigate(`/dashboard/students/${studentId}`)}
+            />
         </>
     );
 };
