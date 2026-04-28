@@ -399,7 +399,7 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
             const genderValue = mapGenderFromText(row.gender);
             const normalizedOrigin = row.origin?.trim() ?? '';
             const sanitizedPhone = sanitizePhone(row.phone);
-            if (!matchedGroup || !birthdayIso || !genderValue) {
+            if (!matchedGroup || !birthdayIso || genderValue === null) {
                 continue;
             }
             const payload: PostStudentDto = {
