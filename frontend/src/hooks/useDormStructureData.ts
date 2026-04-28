@@ -10,12 +10,15 @@ export const useDormStructureData = (buildingId?: number) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [reloadKey, setReloadKey] = useState(0);
+    const [silentReload, setSilentReload] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
 
         const loadData = async () => {
-            setLoading(true);
+            if (!silentReload) {
+                setLoading(true);
+            }
             setError(null);
             try {
                 if (buildingId) {
@@ -46,6 +49,7 @@ export const useDormStructureData = (buildingId?: number) => {
             } finally {
                 if (isMounted) {
                     setLoading(false);
+                    setSilentReload(false);
                 }
             }
         };
@@ -57,7 +61,11 @@ export const useDormStructureData = (buildingId?: number) => {
         };
     }, [buildingId, reloadKey]);
 
-    const refetch = useCallback(() => {
+    const refetch = useCallback((options?: { silent?: boolean }) => {
+        if (options?.silent) {
+            setSilentReload(true);
+            setLoading(false);
+        }
         setReloadKey(prev => prev + 1);
     }, []);
 

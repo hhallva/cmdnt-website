@@ -19,6 +19,7 @@ import {
     formatBirthday,
     formatFullName,
     formatShortName,
+    doesRoomMatchStudentGender,
     getGenderLabel,
     getInitials,
     getStatus,
@@ -108,8 +109,9 @@ const StructureLayout: React.FC = () => {
     const [newRoomErrors, setNewRoomErrors] = useState<NewRoomFormErrors>({});
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
+    const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
-    const loadStructureStats = useCallback(async () => {
+    const loadStructureStats = useCallback(async (options?: { silent?: boolean }) => {
         if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
             setStructureStats(null);
             setStatsError('Не удалось определить здание для статистики');
@@ -117,7 +119,9 @@ const StructureLayout: React.FC = () => {
             return;
         }
 
-        setStatsLoading(true);
+        if (!options?.silent) {
+            setStatsLoading(true);
+        }
         setStatsError(null);
         try {
             const data = await apiClient.getStructureStatistics(buildingIdNum);
@@ -191,9 +195,9 @@ const StructureLayout: React.FC = () => {
         unassignedStudents,
         canManageRooms,
         onSuccess: async () => {
-            await refetch();
+            await refetch({ silent: true });
         },
-        refreshStatistics: loadStructureStats,
+        refreshStatistics: () => loadStructureStats({ silent: true }),
         activateSettlementTab,
     });
 
@@ -401,7 +405,7 @@ const StructureLayout: React.FC = () => {
             setNewRoomForm({ floorNumber: '', roomNumber: '', capacity: '' });
             setNewRoomErrors({});
             refetch();
-            await loadStructureStats();
+            await loadStructureStats({ silent: true });
         } catch (err: any) {
             console.error('Ошибка при добавлении комнаты:', err);
             alert(err?.message || 'Не удалось добавить комнату');
@@ -427,7 +431,7 @@ const StructureLayout: React.FC = () => {
         try {
             await apiClient.deleteRoom(roomId);
             refetch();
-            await loadStructureStats();
+            await loadStructureStats({ silent: true });
         } catch (err: any) {
             console.error('Ошибка при удалении комнаты:', err);
             alert(err?.message || 'Не удалось удалить комнату');
@@ -440,6 +444,229 @@ const StructureLayout: React.FC = () => {
         prefillRoomSelection(room);
         closeBlockModal();
     }, [closeBlockModal, prefillRoomSelection]);
+
+    const setDraggingState = useCallback((element: HTMLElement, isDragging: boolean) => {
+        if (isDragging) {
+            element.setAttribute('data-dragging', 'true');
+            element.style.opacity = '1';
+            element.style.transform = 'none';
+        } else {
+            element.removeAttribute('data-dragging');
+            element.style.removeProperty('opacity');
+            element.style.removeProperty('transform');
+        }
+    }, []);
+
+    const createDragImage = useCallback((element: HTMLElement) => {
+        if (typeof document === 'undefined') {
+            return null;
+        }
+        const rect = element.getBoundingClientRect();
+        const width = Math.ceil(rect.width);
+        const height = Math.ceil(rect.height);
+        const computed = window.getComputedStyle(element);
+        const clone = element.cloneNode(true) as HTMLElement;
+        clone.style.width = `${width}px`;
+        clone.style.height = `${height}px`;
+        clone.style.position = 'absolute';
+        clone.style.top = '-1000px';
+        clone.style.left = '-1000px';
+        clone.style.opacity = '1';
+        clone.style.transform = 'none';
+        clone.style.filter = 'none';
+        clone.style.backdropFilter = 'none';
+        clone.style.boxShadow = 'none';
+        clone.style.outline = 'none';
+        clone.style.borderRadius = computed.borderRadius;
+        clone.style.backgroundColor = computed.backgroundColor;
+        clone.style.border = computed.border;
+        clone.style.overflow = 'hidden';
+        clone.style.maskImage = 'none';
+        clone.style.webkitMaskImage = 'none';
+        clone.style.pointerEvents = 'none';
+        clone.style.boxSizing = 'border-box';
+        document.body.appendChild(clone);
+        return clone;
+    }, []);
+
+    const createSideMenuDragImage = useCallback((student: StudentsDto) => {
+        if (typeof document === 'undefined') {
+            return null;
+        }
+        const imageSrc = getStudentImageSrc(student.image);
+        const card = document.createElement('div');
+        card.className = styles.sideMenuCard;
+        card.style.width = '220px';
+        card.style.position = 'absolute';
+        card.style.top = '-1000px';
+        card.style.left = '-1000px';
+        card.style.opacity = '1';
+        card.style.transform = 'none';
+        card.style.filter = 'none';
+        card.style.backdropFilter = 'none';
+        card.style.boxShadow = 'none';
+        card.style.outline = 'none';
+        card.style.overflow = 'hidden';
+        card.style.pointerEvents = 'none';
+        card.style.boxSizing = 'border-box';
+
+        const avatar = document.createElement('div');
+        avatar.className = styles.sideMenuAvatar;
+
+        if (imageSrc) {
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.alt = student.surname || 'Фотография студента';
+            avatar.appendChild(img);
+        } else {
+            const initials = document.createElement('span');
+            initials.textContent = getInitials(student) || '—';
+            avatar.appendChild(initials);
+        }
+
+        const info = document.createElement('div');
+        info.className = styles.sideMenuCardInfo;
+
+        const name = document.createElement('p');
+        name.className = styles.sideMenuName;
+        name.textContent = formatShortName(student);
+
+        const meta = document.createElement('p');
+        meta.className = styles.sideMenuMeta;
+        meta.textContent = `Группа ${student.group?.name ?? '—'}, ${student.group?.course ?? '—'} курс`;
+
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        card.appendChild(avatar);
+        card.appendChild(info);
+
+        document.body.appendChild(card);
+        return card;
+    }, []);
+
+    const handleStudentDragStart = useCallback((event: React.DragEvent<HTMLButtonElement>, studentId: number) => {
+        event.dataTransfer.setData('text/plain', studentId.toString());
+        event.dataTransfer.setData('application/x-student-id', studentId.toString());
+        event.dataTransfer.effectAllowed = 'move';
+        setDraggingState(event.currentTarget, true);
+        const dragImage = createDragImage(event.currentTarget);
+        if (dragImage) {
+            event.dataTransfer.setDragImage(
+                dragImage,
+                Math.floor(dragImage.offsetWidth / 2),
+                Math.floor(dragImage.offsetHeight / 2)
+            );
+            window.setTimeout(() => dragImage.remove(), 0);
+        }
+    }, [createDragImage, setDraggingState]);
+
+    const handleStudentDragEnd = useCallback((event: React.DragEvent<HTMLButtonElement>) => {
+        setDraggingState(event.currentTarget, false);
+    }, [setDraggingState]);
+
+    const handleAssignedStudentDragStart = useCallback((event: React.DragEvent<HTMLDivElement>, student: StudentsDto) => {
+        event.dataTransfer.setData('text/plain', student.id.toString());
+        event.dataTransfer.setData('application/x-student-id', student.id.toString());
+        event.dataTransfer.effectAllowed = 'move';
+        setDraggingState(event.currentTarget, true);
+        const dragImage = createSideMenuDragImage(student);
+        if (dragImage) {
+            event.dataTransfer.setDragImage(
+                dragImage,
+                Math.floor(dragImage.offsetWidth / 2),
+                Math.floor(dragImage.offsetHeight / 2)
+            );
+            window.setTimeout(() => dragImage.remove(), 0);
+        }
+    }, [createSideMenuDragImage, setDraggingState]);
+
+    const handleAssignedStudentDragEnd = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        setDraggingState(event.currentTarget, false);
+    }, [setDraggingState]);
+
+    const handleRoomDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
+
+    const handleSideMenuDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
+
+    const handleRoomDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>, room: RoomWithOccupants) => {
+        event.preventDefault();
+        if (!canManageRooms) {
+            return;
+        }
+        const studentIdRaw = event.dataTransfer.getData('application/x-student-id') || event.dataTransfer.getData('text/plain');
+        const studentId = Number(studentIdRaw);
+        if (!studentIdRaw || Number.isNaN(studentId)) {
+            return;
+        }
+
+        const student = unassignedStudents.find(item => item.id === studentId);
+        if (!student) {
+            setSettlementAlert({ type: 'error', message: 'Студент недоступен для заселения' });
+            return;
+        }
+
+        if (!doesRoomMatchStudentGender(room, student.gender)) {
+            setSettlementAlert({ type: 'error', message: 'Нельзя заселить студента в эту комнату' });
+            return;
+        }
+
+        setSettlementAlert(null);
+        try {
+            await apiClient.assignStudentToRoom(studentId, room.id);
+            setSettlementAlert({ type: 'success', message: 'Студент успешно заселён' });
+            await refetch({ silent: true });
+            await loadStructureStats({ silent: true });
+        } catch (err: any) {
+            setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось заселить студента' });
+        }
+    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, unassignedStudents]);
+
+    const handleSideMenuDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        if (!canManageRooms) {
+            return;
+        }
+        const studentIdRaw = event.dataTransfer.getData('application/x-student-id') || event.dataTransfer.getData('text/plain');
+        const studentId = Number(studentIdRaw);
+        if (!studentIdRaw || Number.isNaN(studentId)) {
+            return;
+        }
+
+        const isUnassigned = unassignedStudents.some(item => item.id === studentId);
+        if (isUnassigned) {
+            return;
+        }
+
+        setSettlementAlert(null);
+        try {
+            await apiClient.evictStudent(studentId);
+            setSettlementAlert({ type: 'success', message: 'Студент успешно выселен' });
+            await refetch({ silent: true });
+            await loadStructureStats({ silent: true });
+        } catch (err: any) {
+            setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось выселить студента' });
+        }
+    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, unassignedStudents]);
+
+    const handleCloseBlockModal = useCallback(() => {
+        closeBlockModal();
+    }, [closeBlockModal]);
+
+    const toggleSideMenu = useCallback(() => {
+        setIsSideMenuOpen(prev => !prev);
+    }, []);
+
+    const closeSideMenu = useCallback(() => {
+        setIsSideMenuOpen(false);
+    }, []);
+
 
     if (isNotFound) {
         return null;
@@ -564,9 +791,84 @@ const StructureLayout: React.FC = () => {
         )
         : null;
 
+    const blockMenuPortal = activeBlock && typeof document !== 'undefined'
+        ? createPortal(
+            <>
+                <button
+                    type="button"
+                    className={styles.blockMenuButton}
+                    onClick={toggleSideMenu}
+                    aria-expanded={isSideMenuOpen}
+                    aria-controls="structure-block-menu"
+                >
+                    <i className="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <aside
+                    id="structure-block-menu"
+                    className={`${styles.sideMenu} ${isSideMenuOpen ? styles.sideMenuOpen : ''}`}
+                    aria-hidden={!isSideMenuOpen}
+                >
+                    <div className={styles.sideMenuHeader}>
+                        <span className={styles.sideMenuTitle}>Заселение</span>
+                        <button
+                            type="button"
+                            className={styles.sideMenuClose}
+                            onClick={closeSideMenu}
+                            aria-label="Закрыть меню"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div className={styles.sideMenuBody}>
+                        <div
+                            className={styles.sideMenuList}
+                            onDragOver={handleSideMenuDragOver}
+                            onDrop={handleSideMenuDrop}
+                        >
+                            {unassignedStudentsSorted.length > 0 ? (
+                                unassignedStudentsSorted.map(student => (
+                                    <button
+                                        key={student.id}
+                                        type="button"
+                                        className={styles.sideMenuCard}
+                                        onClick={() => handleSettlementStudentSelect(student)}
+                                        draggable
+                                        onDragStart={(event) => handleStudentDragStart(event, student.id)}
+                                        onDragEnd={handleStudentDragEnd}
+                                    >
+                                        <div className={styles.sideMenuAvatar}>
+                                            {getStudentImageSrc(student.image) ? (
+                                                <img
+                                                    src={getStudentImageSrc(student.image) ?? ''}
+                                                    alt={student.surname || 'Фотография студента'}
+                                                />
+                                            ) : (
+                                                <span>{getInitials(student) || '—'}</span>
+                                            )}
+                                        </div>
+                                        <div className={styles.sideMenuCardInfo}>
+                                            <p className={styles.sideMenuName}>{formatShortName(student)}</p>
+                                            <p className={styles.sideMenuMeta}>
+                                                Группа {student.group?.name ?? '—'}, {student.group?.course ?? '—'} курс
+                                            </p>
+                                        </div>
+                                    </button>
+                                ))
+                            ) : (
+                                <p className={styles.sideMenuEmpty}>Нет свободных студентов.</p>
+                            )}
+                        </div>
+                    </div>
+                </aside>
+            </>,
+            document.body
+        )
+        : null;
+
     return (
         <>
             {settlementToast}
+            {blockMenuPortal}
 
             {canManageRooms && (
                 <CommonModal
@@ -681,7 +983,7 @@ const StructureLayout: React.FC = () => {
                     </div>
                 )}
                 isOpen={Boolean(activeBlock)}
-                onClose={closeBlockModal}
+                onClose={handleCloseBlockModal}
                 minWidth={720}
             >
                 {activeBlock && (
@@ -707,7 +1009,13 @@ const StructureLayout: React.FC = () => {
                                     </div>
                                     <div className={styles.studentsList}>
                                         {room.occupants.map(student => (
-                                            <div key={student.id} className={styles.studentRow}>
+                                            <div
+                                                key={student.id}
+                                                className={styles.studentRow}
+                                                draggable
+                                                onDragStart={(event) => handleAssignedStudentDragStart(event, student)}
+                                                onDragEnd={handleAssignedStudentDragEnd}
+                                            >
                                                 <div className={styles.studentInfo}>
                                                     <div className={styles.studentAvatar}>
                                                         {getStudentImageSrc(student.image) ? (
@@ -740,6 +1048,8 @@ const StructureLayout: React.FC = () => {
                                                 role="button"
                                                 tabIndex={0}
                                                 onClick={() => handleFreeSlotClick(room)}
+                                                onDragOver={handleRoomDragOver}
+                                                onDrop={(event) => handleRoomDrop(event, room)}
                                                 onKeyDown={(event) => {
                                                     if (event.key === 'Enter' || event.key === ' ') {
                                                         event.preventDefault();

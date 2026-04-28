@@ -300,9 +300,9 @@
 }
 
 .toastError {
-    background: var(--color-danger-soft);
-    border-color: var(--color-danger-soft);
-    color: var(--color-danger);
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: var(--color-white);
 }
 
 .toastCloseButton {
@@ -695,6 +695,13 @@
     flex-wrap: nowrap;
 }
 
+.studentRow[data-dragging='true'] {
+    opacity: 1;
+    transform: none;
+    box-shadow: none;
+    filter: none;
+}
+
 .studentInfo {
     display: flex;
     gap: 0.75rem;
@@ -754,6 +761,174 @@
 .studentCardButton {
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+.blockMenuButton {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1200;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    color: var(--color-text-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    box-shadow: 0 8px 20px var(--color-shadow-15);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.blockMenuButton:hover,
+.blockMenuButton:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px var(--color-shadow-20);
+    color: var(--btn-primary);
+}
+
+.sideMenu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 276px;
+    height: 100vh;
+    background: var(--color-white);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    z-index: 1201;
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem;
+    gap: 1.5rem;
+}
+
+.sideMenuOpen {
+    transform: translateX(0);
+}
+
+.sideMenuHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sideMenuTitle {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+}
+
+.sideMenuClose {
+    border: none;
+    background: var(--color-transparent);
+    color: var(--color-text-dark);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.sideMenuBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.sideMenuHint {
+    margin: 0;
+}
+
+.sideMenuList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    flex: 1;
+    min-height: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.sideMenuList::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.sideMenuCard {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: var(--color-white);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.sideMenuCard:hover,
+.sideMenuCard:focus-visible {
+    border-color: var(--color-accent-35);
+}
+
+.sideMenuAvatar {
+    width: 100%;
+    max-width: 188px;
+    aspect-ratio: 188 / 210;
+    height: auto;
+    border-radius: 12px;
+    background: var(--btn-primary);
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    overflow: hidden;
+    flex: 0 0 auto;
+}
+
+.sideMenuAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.sideMenuCardInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    align-items: flex-start;
+}
+
+.sideMenuName {
+    margin: 0;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.sideMenuMeta {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+}
+
+.sideMenuEmpty {
+    margin: 0;
+    color: var(--color-text-light);
 }
 
 @media (max-width: 768px) {
