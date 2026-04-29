@@ -14,6 +14,7 @@ type HistoryModalProps = {
     onStudentClick: (studentId: number) => void;
     onDeleteResettlement: (resettlementId: number) => void;
     formatDate: (value: string) => string;
+    canDelete: boolean;
 };
 
 const getInitialsFromFullName = (fullName: string): string => {
@@ -48,6 +49,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
     onStudentClick,
     onDeleteResettlement,
     formatDate,
+    canDelete,
 }) => {
     const currentAcademicYearStart = getAcademicYearStart(new Date().toISOString());
 
@@ -115,21 +117,23 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
                                             <span className={styles.historyPeriodLabel}>
                                                 {formatDate(item.checkInDate)} – {formatDate(item.checkOutDate)}
                                             </span>
-                                            <ActionButton
-                                                variant="transparent-primary"
-                                                size="md"
-                                                className={styles.historyPeriodDelete}
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
-                                                    if (!window.confirm('Удалить запись проживания?')) {
-                                                        return;
-                                                    }
-                                                    onDeleteResettlement(item.resettlementId);
-                                                }}
-                                            >
-                                                Удалить
-                                            </ActionButton>
+                                            {canDelete && (
+                                                <ActionButton
+                                                    variant="transparent-primary"
+                                                    size="md"
+                                                    className={styles.historyPeriodDelete}
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        event.stopPropagation();
+                                                        if (!window.confirm('Удалить запись проживания?')) {
+                                                            return;
+                                                        }
+                                                        onDeleteResettlement(item.resettlementId);
+                                                    }}
+                                                >
+                                                    Удалить
+                                                </ActionButton>
+                                            )}
                                         </summary>
                                         <div className={styles.historyPeriodContent}>
                                             <div className={styles.historyItem}>

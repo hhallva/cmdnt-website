@@ -8,6 +8,7 @@ import { getStudentImageSrc } from '../../../../utils/students';
 import HistoryModal from './HistoryModal';
 import { apiClient } from '../../../../api/client';
 import type { ResettlementHistoryDto } from '../../../../types/resettlements';
+import type { UserSession } from '../../../../types/UserSession';
 
 type RoomStatus = 'occupied' | 'partial' | 'free';
 
@@ -55,6 +56,10 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
     const [historyError, setHistoryError] = useState<string | null>(null);
     const [historyItems, setHistoryItems] = useState<ResettlementHistoryDto[]>([]);
     const [historyLoaded, setHistoryLoaded] = useState(false);
+    const userSessionStr = sessionStorage.getItem('userSession');
+    const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
+    const roleName = userSession?.role?.name?.toLowerCase() ?? '';
+    const canDeleteHistory = roleName.includes('администратор') || roleName.includes('комендант');
     const occupants = useMemo(() => {
         const uniqueNeighbours = neighbours.filter((n) => n.id !== student.id);
         return [student, ...uniqueNeighbours];
@@ -163,6 +168,7 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                 formatDate={formatDate}
                 onStudentClick={(studentId) => navigate(`/dashboard/students/${studentId}`)}
                 onDeleteResettlement={handleDeleteResettlement}
+                canDelete={canDeleteHistory}
             />
         </>;
     }
@@ -247,6 +253,7 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                 formatDate={formatDate}
                 onStudentClick={(studentId) => navigate(`/dashboard/students/${studentId}`)}
                 onDeleteResettlement={handleDeleteResettlement}
+                canDelete={canDeleteHistory}
             />
         </div >
     );

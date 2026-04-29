@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
@@ -110,6 +110,15 @@ const StructureLayout: React.FC = () => {
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
     const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+    const dragImageRef = useRef<HTMLElement | null>(null);
+    const sideMenuDragImageRef = useRef<HTMLElement | null>(null);
+
+    const clearDragImage = useCallback((ref: React.MutableRefObject<HTMLElement | null>) => {
+        if (ref.current) {
+            ref.current.remove();
+            ref.current = null;
+        }
+    }, []);
 
     const loadStructureStats = useCallback(async (options?: { silent?: boolean }) => {
         if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
@@ -545,11 +554,19 @@ const StructureLayout: React.FC = () => {
         return card;
     }, []);
 
+    useEffect(() => {
+        return () => {
+            clearDragImage(dragImageRef);
+            clearDragImage(sideMenuDragImageRef);
+        };
+    }, [clearDragImage]);
+
     const handleStudentDragStart = useCallback((event: React.DragEvent<HTMLButtonElement>, studentId: number) => {
         event.dataTransfer.setData('text/plain', studentId.toString());
         event.dataTransfer.setData('application/x-student-id', studentId.toString());
         event.dataTransfer.effectAllowed = 'move';
         setDraggingState(event.currentTarget, true);
+        clearDragImage(dragImageRef);
         const dragImage = createDragImage(event.currentTarget);
         if (dragImage) {
             event.dataTransfer.setDragImage(
@@ -557,19 +574,21 @@ const StructureLayout: React.FC = () => {
                 Math.floor(dragImage.offsetWidth / 2),
                 Math.floor(dragImage.offsetHeight / 2)
             );
-            window.setTimeout(() => dragImage.remove(), 0);
+            dragImageRef.current = dragImage;
         }
-    }, [createDragImage, setDraggingState]);
+    }, [clearDragImage, createDragImage, setDraggingState]);
 
     const handleStudentDragEnd = useCallback((event: React.DragEvent<HTMLButtonElement>) => {
         setDraggingState(event.currentTarget, false);
-    }, [setDraggingState]);
+        clearDragImage(dragImageRef);
+    }, [clearDragImage, setDraggingState]);
 
     const handleAssignedStudentDragStart = useCallback((event: React.DragEvent<HTMLDivElement>, student: StudentsDto) => {
         event.dataTransfer.setData('text/plain', student.id.toString());
         event.dataTransfer.setData('application/x-student-id', student.id.toString());
         event.dataTransfer.effectAllowed = 'move';
         setDraggingState(event.currentTarget, true);
+        clearDragImage(sideMenuDragImageRef);
         const dragImage = createSideMenuDragImage(student);
         if (dragImage) {
             event.dataTransfer.setDragImage(
@@ -577,13 +596,14 @@ const StructureLayout: React.FC = () => {
                 Math.floor(dragImage.offsetWidth / 2),
                 Math.floor(dragImage.offsetHeight / 2)
             );
-            window.setTimeout(() => dragImage.remove(), 0);
+            sideMenuDragImageRef.current = dragImage;
         }
-    }, [createSideMenuDragImage, setDraggingState]);
+    }, [clearDragImage, createSideMenuDragImage, setDraggingState]);
 
     const handleAssignedStudentDragEnd = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         setDraggingState(event.currentTarget, false);
-    }, [setDraggingState]);
+        clearDragImage(sideMenuDragImageRef);
+    }, [clearDragImage, setDraggingState]);
 
     const handleRoomDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
