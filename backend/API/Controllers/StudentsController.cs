@@ -2,6 +2,7 @@
 using Core.DTOs;
 using Core.DTOs.Contacts;
 using Core.DTOs.Notes;
+using Core.DTOs.Resettlements;
 using Core.DTOs.Students;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -53,6 +54,105 @@ namespace API.Controllers
                 return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
 
             return Ok(student.ToDto());
+        }
+
+        [HttpGet("{id}/resettlements/history")]
+        [SwaggerOperation(
+            Summary = "Получение истории проживания студента",
+            Description = "Возвращает завершенные периоды проживания студента с соседями по комнате."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "История проживания получена.", Type = typeof(IEnumerable<ResettlementHistoryDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Неверный идентификатор студента.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<IEnumerable<ResettlementHistoryDto>>> GetResettlementHistory(int id)
+        {
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Неверный идентификатор студента", StatusCodes.Status400BadRequest));
+
+            var studentExists = await _context.Students.AnyAsync(s => s.Id == id);
+            if (!studentExists)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            var resettlements = await _context.Resettlements
+                .Where(r => r.StudentId == id && r.CheckInDate.HasValue && r.CheckOutDate.HasValue)
+                .Include(r => r.Room)
+                    .ThenInclude(room => room.Resettlements)
+                        .ThenInclude(resettlement => resettlement.Student)
+                            .ThenInclude(student => student.Group)
+                .OrderByDescending(r => r.CheckInDate)
+                .ToListAsync();
+
+            if (resettlements.Count == 0)
+                return NotFound(new ApiErrorDto("История проживания отсутствует", StatusCodes.Status404NotFound));
+
+            static string BuildFullName(Student student)
+            {
+                var parts = new List<string?> { student.Surname, student.Name, student.Patronymic };
+                return string.Join(" ", parts.Where(part => !string.IsNullOrWhiteSpace(part))).Trim();
+            }
+
+            var history = resettlements.Select(resettlement =>
+            {
+                var checkIn = resettlement.CheckInDate!.Value;
+                var checkOut = resettlement.CheckOutDate!.Value;
+                var room = resettlement.Room;
+                var roommates = room.Resettlements
+                    .Where(r => r.StudentId != id && r.CheckInDate.HasValue)
+                    .Where(r => r.CheckInDate!.Value <= checkOut &&
+                        (!r.CheckOutDate.HasValue || r.CheckOutDate.Value >= checkIn))
+                    .OrderBy(r => r.CheckInDate)
+                    .ThenBy(r => r.Student.Surname)
+                    .ThenBy(r => r.Student.Name)
+                    .ThenBy(r => r.Student.Patronymic)
+                    .Select(r => new ResettlementRoommateDto
+                    {
+                        Id = r.Student.Id,
+                        FullName = BuildFullName(r.Student),
+                        GroupName = r.Student.Group?.Name,
+                        GroupCourse = r.Student.Group?.Course
+                    })
+                    .ToList();
+
+                return new ResettlementHistoryDto
+                {
+                    ResettlementId = resettlement.Id,
+                    RoomId = room.Id,
+                    RoomNumber = (room.FloorNumber * 100 + room.RoomNumber).ToString(),
+                    FloorNumber = room.FloorNumber,
+                    BuildingId = room.BuildingId,
+                    Capacity = room.Capacity,
+                    CheckInDate = checkIn,
+                    CheckOutDate = checkOut,
+                    Roommates = roommates
+                };
+            });
+
+            return Ok(history);
+        }
+
+        [HttpDelete("{id}/resettlements/{resettlementId}")]
+        [SwaggerOperation(
+            Summary = "Удаление записи проживания студента",
+            Description = "Удаляет запись о проживании студента по идентификатору переселения."
+        )]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Запись проживания удалена.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректный идентификатор.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Запись проживания не найдена.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> DeleteResettlement(int id, int resettlementId)
+        {
+            if (id <= 0 || resettlementId <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор", StatusCodes.Status400BadRequest));
+
+            var resettlement = await _context.Resettlements
+                .FirstOrDefaultAsync(r => r.Id == resettlementId && r.StudentId == id);
+
+            if (resettlement == null)
+                return NotFound(new ApiErrorDto("Запись проживания не найдена", StatusCodes.Status404NotFound));
+
+            _context.Resettlements.Remove(resettlement);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         [HttpGet("{id}/extended")]

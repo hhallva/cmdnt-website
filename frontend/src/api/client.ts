@@ -17,6 +17,7 @@ import type { RoomDto, PostRoomDto } from '../types/rooms'
 import type { NoteDto, CreateNoteDto } from '../types/notes'
 import type { StructureStatisticDto, OverallStructureStatisticDto } from '../types/structures'
 import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/buildings'
+import type { ResettlementHistoryDto } from '../types/resettlements'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -174,6 +175,16 @@ export const apiClient = {
 
   getExtStudentById: async (id: number): Promise<{ origin: string | null }> => {
     return apiClient.requestWithAuth<{ origin: string | null }>(`/api/v1/Students/${id}/extended`);
+  },
+
+  getStudentResettlementHistory: async (id: number): Promise<ResettlementHistoryDto[]> => {
+    return apiClient.requestWithAuth<ResettlementHistoryDto[]>(`/api/v1/Students/${id}/resettlements/history`);
+  },
+
+  deleteStudentResettlement: async (studentId: number, resettlementId: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Students/${studentId}/resettlements/${resettlementId}`, {
+      method: 'DELETE',
+    });
   },
   //#endregion
 

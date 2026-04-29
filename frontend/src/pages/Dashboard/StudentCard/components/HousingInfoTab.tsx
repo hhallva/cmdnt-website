@@ -1,10 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { StudentsDto } from '../../../../types/students';
 import type { RoomDto } from '../../../../types/rooms';
 import styles from '../StudentCard.module.css';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
 import { getStudentImageSrc } from '../../../../utils/students';
+import HistoryModal from './HistoryModal';
+import { apiClient } from '../../../../api/client';
+import type { ResettlementHistoryDto } from '../../../../types/resettlements';
 
 type RoomStatus = 'occupied' | 'partial' | 'free';
 
@@ -36,6 +39,7 @@ const formatShortName = (student: StudentsDto): string => {
     return [surname, initials].filter(Boolean).join(' ').trim() || `Студент ${student.id}`;
 };
 
+
 interface HousingInfoTabProps {
     room: RoomDto | null;
     neighbours: StudentsDto[];
@@ -46,10 +50,80 @@ interface HousingInfoTabProps {
 
 const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, student, loading, error }) => {
     const navigate = useNavigate();
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyError, setHistoryError] = useState<string | null>(null);
+    const [historyItems, setHistoryItems] = useState<ResettlementHistoryDto[]>([]);
+    const [historyLoaded, setHistoryLoaded] = useState(false);
     const occupants = useMemo(() => {
         const uniqueNeighbours = neighbours.filter((n) => n.id !== student.id);
         return [student, ...uniqueNeighbours];
     }, [neighbours, student]);
+
+    useEffect(() => {
+        setHistoryItems([]);
+        setHistoryError(null);
+        setHistoryLoaded(false);
+        setHistoryLoading(false);
+    }, [student.id]);
+
+    useEffect(() => {
+        if (!isHistoryOpen) {
+            setHistoryLoading(false);
+        }
+    }, [isHistoryOpen]);
+
+    useEffect(() => {
+        if (!isHistoryOpen || historyLoaded) {
+            return;
+        }
+
+        let isActive = true;
+
+        setHistoryLoading(true);
+        setHistoryError(null);
+
+        apiClient.getStudentResettlementHistory(student.id)
+            .then((data) => {
+                if (!isActive) {
+                    return;
+                }
+                setHistoryItems(data);
+            })
+            .catch((err: any) => {
+                if (!isActive) {
+                    return;
+                }
+                setHistoryError(err?.message || 'Не удалось загрузить историю проживания');
+            })
+            .finally(() => {
+                if (isActive) {
+                    setHistoryLoaded(true);
+                    setHistoryLoading(false);
+                }
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, [isHistoryOpen, historyLoaded, student.id]);
+
+    const formatDate = (value: string) => {
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+            return '—';
+        }
+        return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
+    };
+
+    const handleDeleteResettlement = async (resettlementId: number) => {
+        try {
+            await apiClient.deleteStudentResettlement(student.id, resettlementId);
+            setHistoryItems((prev) => prev.filter((item) => item.resettlementId !== resettlementId));
+        } catch (err: any) {
+            setHistoryError(err?.message || 'Не удалось удалить запись проживания');
+        }
+    };
 
     if (loading) {
         return (
@@ -70,14 +144,32 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
             <div className={styles.emptyState} style={{ marginBottom: '1.5rem' }}>
                 <i className="bi bi-emoji-frown"></i>
                 <p>Студент не заселен</p>
+                <ActionButton
+                    variant="secondary"
+                    size="md"
+                    className={styles.housingHistoryButton}
+                    onClick={() => setIsHistoryOpen(true)}
+                >
+                    История
+                </ActionButton>
             </div>
+            <HistoryModal
+                isOpen={isHistoryOpen}
+                onClose={() => setIsHistoryOpen(false)}
+                isLoading={historyLoading}
+                isLoaded={historyLoaded}
+                error={historyError}
+                items={historyItems}
+                formatDate={formatDate}
+                onStudentClick={(studentId) => navigate(`/dashboard/students/${studentId}`)}
+                onDeleteResettlement={handleDeleteResettlement}
+            />
         </>;
     }
 
     const blockStatus = getRoomStatus(room.currentCapacity, room.capacity);
 
     return (
-
         <div className={styles.housingCardWrapper}>
             <div className={`${styles.housingCard} ${blockStatus === 'occupied' ? styles.housingCardOccupied : ''}`}>
                 <div className={styles.blockHeader}>
@@ -93,6 +185,16 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                             <span className={styles.blockMetaLabel}>Заселено</span>
                             <span className={styles.blockMetaValue}>{room.currentCapacity}/{room.capacity}</span>
                         </div>
+                    </div>
+                    <div className={styles.blockHeaderActions}>
+                        <ActionButton
+                            variant="transparent-primary"
+                            size="md"
+                            className={styles.housingHistoryButton}
+                            onClick={() => setIsHistoryOpen(true)}
+                        >
+                            История
+                        </ActionButton>
                     </div>
                 </div>
 
@@ -135,6 +237,17 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                     })}
                 </div>
             </div>
+            <HistoryModal
+                isOpen={isHistoryOpen}
+                onClose={() => setIsHistoryOpen(false)}
+                isLoading={historyLoading}
+                isLoaded={historyLoaded}
+                error={historyError}
+                items={historyItems}
+                formatDate={formatDate}
+                onStudentClick={(studentId) => navigate(`/dashboard/students/${studentId}`)}
+                onDeleteResettlement={handleDeleteResettlement}
+            />
         </div >
     );
 };
