@@ -20,6 +20,8 @@ public partial class Student
 
     public bool IsHeadman { get; set; }
 
+    public bool IsArchived { get; set; }
+
     public string? Origin { get; set; }
 
     public string? Image { get; set; }
