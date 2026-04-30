@@ -371,6 +371,13 @@ const StructureLayout: React.FC = () => {
             const parsed = Number(rawValue);
             if (!Number.isInteger(parsed) || parsed <= 0) {
                 errors[field] = 'Введите положительное число';
+                return;
+            }
+            if (field === 'roomNumber' && parsed > 99) {
+                errors[field] = 'Максимум 99';
+            }
+            if (field === 'capacity' && parsed > 10) {
+                errors[field] = 'Максимум 10';
             }
         });
 

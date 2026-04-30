@@ -38,13 +38,12 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({
         minWidth={520}
         minHeight={380}
     >
-        <form className={styles.addRoomForm} onSubmit={onSubmit}>
+        <form className={styles.addRoomForm} onSubmit={onSubmit} noValidate>
             <div className={styles.addRoomFormGrid}>
                 <InputField
                     label="Номер этажа"
                     type="number"
                     min="1"
-                    max="99"
                     inputMode="numeric"
                     value={form.floorNumber}
                     onChange={(e) => onFieldChange('floorNumber', e.target.value)}
