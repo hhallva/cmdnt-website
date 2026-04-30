@@ -65,21 +65,19 @@ const BuildingDetailsModal: React.FC<BuildingDetailsModalProps> = ({
                             <div className={structureStyles.blockMetaColumn}>
                                 <div className={structureStyles.blockMeta}>
                                     <span className={structureStyles.blockMetaLabel}>Адрес</span>
-                                    <span className={structureStyles.blockMetaValue}>{selectedBuilding.address || '—'}</span>
-                                </div>
-                                {hasCoordinates && (
-                                    <div className={structureStyles.blockMeta}>
-                                        <span className={structureStyles.blockMetaLabel}>Карта</span>
+                                    {hasCoordinates ? (
                                         <a
                                             className={structureStyles.blockMetaValue}
                                             href={`https://yandex.ru/maps/?ll=${selectedCoordinates?.longitude},${selectedCoordinates?.latitude}&z=19`}
                                             target="_blank"
                                             rel="noreferrer"
                                         >
-                                            Открыть
+                                            {selectedBuilding.address || '—'}
                                         </a>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className={structureStyles.blockMetaValue}>{selectedBuilding.address || '—'}</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
