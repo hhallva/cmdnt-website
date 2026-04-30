@@ -3,10 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../../api/client';
 import InputField from '../../../components/InputField/InputField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
-import CommonModal from '../../../components/CommonModal/CommonModal';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import type { BuildingDto, BuildingSummaryDto } from '../../../types/buildings';
 import type { OverallStructureStatisticDto } from '../../../types/structures';
+
+
+import AddBuildingModal from './components/AddBuildingModal';
+import BuildingDetailsModal from './components/BuildingDetailsModal';
+import EditBuildingModal from './components/EditBuildingModal';
 import structureStyles from '../Structure/Structure.module.css';
 import tabsStyles from '../../../components/Tabs/Tabs.module.css';
 
@@ -51,8 +55,6 @@ const BuildingsLayout: React.FC = () => {
     const [editLongitudeError, setEditLongitudeError] = useState<string | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const selectedCoordinates = selectedBuilding?.coordinates;
-    const hasCoordinates = selectedCoordinates?.latitude != null && selectedCoordinates?.longitude != null;
 
     const parseCoordinateInput = (value: string) => {
         const trimmed = value.trim();
@@ -532,103 +534,20 @@ const BuildingsLayout: React.FC = () => {
             )}
             {searchBar}
             {listContent}
-            <CommonModal
+            <BuildingDetailsModal
                 title={selectedBuilding ? selectedBuilding.name : 'Здание'}
                 isOpen={isBuildingModalOpen}
                 onClose={handleCloseBuildingModal}
-
-                minWidth={520}
-                minHeight={210}
-            >
-                <div className={structureStyles.modalLoadingWrapper}>
-                    <div className={`${structureStyles.modalContentWrapper} ${buildingSummaryLoading ? structureStyles.modalContentHidden : ''}`}>
-                        {selectedBuilding && (
-                            <div style={{ display: 'flex', gap: '1.75rem', flexWrap: 'wrap' }}>
-
-                                <div className={structureStyles.blockMetaColumn}>
-                                    <div className={structureStyles.blockMeta}>
-                                        <span className={structureStyles.blockMetaLabel}>Этажи</span>
-                                        <span className={structureStyles.blockMetaValue}>
-                                            {buildingSummary ? buildingSummary.totalFloors : '—'}
-                                        </span>
-                                    </div>
-                                    <div className={structureStyles.blockMeta}>
-                                        <span className={structureStyles.blockMetaLabel}>Заселено</span>
-                                        <span className={structureStyles.blockMetaValue}>
-                                            {buildingSummary ? `${buildingSummary.occupiedCount}/${buildingSummary.totalCapacity}` : '—'}
-                                        </span>
-                                    </div>
-
-                                </div>
-                                <div className={structureStyles.blockMetaColumn}>
-                                    <div className={structureStyles.blockMeta}>
-                                        <span className={structureStyles.blockMetaLabel}>Адрес</span>
-                                        <span className={structureStyles.blockMetaValue}>{selectedBuilding.address || '—'}</span>
-                                    </div>
-                                    {hasCoordinates && (
-                                        <div className={structureStyles.blockMeta}>
-                                            <span className={structureStyles.blockMetaLabel}>Карта</span>
-                                            <a
-                                                className={structureStyles.blockMetaValue}
-                                                href={`https://yandex.ru/maps/?ll=${selectedCoordinates?.longitude},${selectedCoordinates?.latitude}&z=19`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                Открыть
-                                            </a>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {!buildingSummaryLoading && buildingSummaryError && (
-                            <div className="alert alert-danger">{buildingSummaryError}</div>
-                        )}
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-start' }}>
-                                {isAdmin && (
-                                    <>
-                                        <ActionButton
-                                            size="md"
-                                            variant="danger"
-                                            onClick={handleDeleteBuilding}
-                                            disabled={!selectedBuilding || isDeleting}
-                                        >
-                                            {isDeleting ? 'Удаляем…' : 'Удалить'}
-                                        </ActionButton>
-                                        <ActionButton
-                                            size="md"
-                                            variant="secondary"
-                                            onClick={handleOpenEditModal}
-                                            disabled={!selectedBuilding}
-                                        >
-                                            Редактировать
-                                        </ActionButton>
-                                    </>
-                                )}
-                            </div>
-                            <ActionButton
-                                size="md"
-                                variant="primary"
-                                onClick={() => selectedBuilding && handleOpenBuilding(selectedBuilding)}
-                                disabled={!selectedBuilding}
-                            >
-                                Структура
-                            </ActionButton>
-                        </div>
-                    </div>
-
-                    {buildingSummaryLoading && (
-                        <div className={structureStyles.modalLoadingOverlay}>
-                            <div className="spinner-border" role="status">
-                                <span className="visually-hidden">Загрузка...</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </CommonModal>
+                selectedBuilding={selectedBuilding}
+                buildingSummary={buildingSummary}
+                buildingSummaryLoading={buildingSummaryLoading}
+                buildingSummaryError={buildingSummaryError}
+                isAdmin={isAdmin}
+                isDeleting={isDeleting}
+                onDelete={handleDeleteBuilding}
+                onEdit={handleOpenEditModal}
+                onOpenStructure={() => selectedBuilding && handleOpenBuilding(selectedBuilding)}
+            />
             {isAdmin && (
                 <>
                     <div className={tabsStyles.tabsSurface} style={{ padding: '1.5rem', marginTop: '2.75rem', borderRadius: '1rem' }}>
@@ -641,151 +560,84 @@ const BuildingsLayout: React.FC = () => {
                             </ActionButton>
                         </div>
                     </div>
-                    <CommonModal
-                        title="Новое здание"
+                    <AddBuildingModal
                         isOpen={isAddModalOpen}
                         onClose={handleCloseAddModal}
-                        minWidth={520}
-                    >
-                        <form onSubmit={handleAddSubmit}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-                                <InputField
-                                    label="Название"
-                                    type="text"
-                                    value={newBuildingName}
-                                    onChange={(e) => {
-                                        setNewBuildingName(e.target.value);
-                                        if (nameError) {
-                                            setNameError(null);
-                                        }
-                                    }}
-                                    error={nameError ?? undefined}
-                                    disabled={isAdding}
-                                />
-                                <InputField
-                                    label="Адрес"
-                                    type="text"
-                                    value={newBuildingAddress}
-                                    onChange={(e) => {
-                                        setNewBuildingAddress(e.target.value);
-                                        if (addressError) {
-                                            setAddressError(null);
-                                        }
-                                    }}
-                                    error={addressError ?? undefined}
-                                    disabled={isAdding}
-                                />
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                                    <InputField
-                                        label="Долгота"
-                                        type="text"
-                                        value={newBuildingLongitude}
-                                        onChange={(e) => {
-                                            setNewBuildingLongitude(e.target.value);
-                                            if (newLongitudeError) {
-                                                setNewLongitudeError(null);
-                                            }
-                                        }}
-                                        error={newLongitudeError ?? undefined}
-                                        disabled={isAdding}
-                                    />
-                                    <InputField
-                                        label="Широта"
-                                        type="text"
-                                        value={newBuildingLatitude}
-                                        onChange={(e) => {
-                                            setNewBuildingLatitude(e.target.value);
-                                            if (newLatitudeError) {
-                                                setNewLatitudeError(null);
-                                            }
-                                        }}
-                                        error={newLatitudeError ?? undefined}
-                                        disabled={isAdding}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <ActionButton size="md" variant="primary" type="submit" disabled={isAdding}>
-                                        {isAdding ? 'Добавляем…' : 'Добавить'}
-                                    </ActionButton>
-                                </div>
-                            </div>
-                        </form>
-                    </CommonModal>
+                        onSubmit={handleAddSubmit}
+                        name={newBuildingName}
+                        address={newBuildingAddress}
+                        latitude={newBuildingLatitude}
+                        longitude={newBuildingLongitude}
+                        nameError={nameError}
+                        addressError={addressError}
+                        latitudeError={newLatitudeError}
+                        longitudeError={newLongitudeError}
+                        isAdding={isAdding}
+                        onNameChange={(value) => {
+                            setNewBuildingName(value);
+                            if (nameError) {
+                                setNameError(null);
+                            }
+                        }}
+                        onAddressChange={(value) => {
+                            setNewBuildingAddress(value);
+                            if (addressError) {
+                                setAddressError(null);
+                            }
+                        }}
+                        onLatitudeChange={(value) => {
+                            setNewBuildingLatitude(value);
+                            if (newLatitudeError) {
+                                setNewLatitudeError(null);
+                            }
+                        }}
+                        onLongitudeChange={(value) => {
+                            setNewBuildingLongitude(value);
+                            if (newLongitudeError) {
+                                setNewLongitudeError(null);
+                            }
+                        }}
+                    />
                 </>
             )}
-            <CommonModal
-                title="Редактировать здание"
+            <EditBuildingModal
                 isOpen={isEditModalOpen}
                 onClose={handleCloseEditModal}
-                minWidth={520}
-            >
-                <form onSubmit={handleEditSubmit}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-                        <InputField
-                            label="Название"
-                            type="text"
-                            value={editName}
-                            onChange={(e) => {
-                                setEditName(e.target.value);
-                                if (editNameError) {
-                                    setEditNameError(null);
-                                }
-                            }}
-                            error={editNameError ?? undefined}
-                            disabled={isUpdating}
-                        />
-                        <InputField
-                            label="Адрес"
-                            type="text"
-                            value={editAddress}
-                            onChange={(e) => {
-                                setEditAddress(e.target.value);
-                                if (editAddressError) {
-                                    setEditAddressError(null);
-                                }
-                            }}
-                            error={editAddressError ?? undefined}
-                            disabled={isUpdating}
-                        />
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                            <InputField
-                                label="Долгота"
-                                type="text"
-                                value={editLongitude}
-                                onChange={(e) => {
-                                    setEditLongitude(e.target.value);
-                                    if (editLongitudeError) {
-                                        setEditLongitudeError(null);
-                                    }
-                                }}
-                                error={editLongitudeError ?? undefined}
-                                disabled={isUpdating}
-                            />
-                            <InputField
-                                label="Широта"
-                                type="text"
-                                value={editLatitude}
-                                onChange={(e) => {
-                                    setEditLatitude(e.target.value);
-                                    if (editLatitudeError) {
-                                        setEditLatitudeError(null);
-                                    }
-                                }}
-                                error={editLatitudeError ?? undefined}
-                                disabled={isUpdating}
-                            />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                            <ActionButton size="md" variant="secondary" type="button" onClick={handleCloseEditModal} disabled={isUpdating}>
-                                Отмена
-                            </ActionButton>
-                            <ActionButton size="md" variant="primary" type="submit" disabled={isUpdating}>
-                                {isUpdating ? 'Сохраняем…' : 'Сохранить'}
-                            </ActionButton>
-                        </div>
-                    </div>
-                </form>
-            </CommonModal>
+                onSubmit={handleEditSubmit}
+                name={editName}
+                address={editAddress}
+                latitude={editLatitude}
+                longitude={editLongitude}
+                nameError={editNameError}
+                addressError={editAddressError}
+                latitudeError={editLatitudeError}
+                longitudeError={editLongitudeError}
+                isUpdating={isUpdating}
+                onNameChange={(value) => {
+                    setEditName(value);
+                    if (editNameError) {
+                        setEditNameError(null);
+                    }
+                }}
+                onAddressChange={(value) => {
+                    setEditAddress(value);
+                    if (editAddressError) {
+                        setEditAddressError(null);
+                    }
+                }}
+                onLatitudeChange={(value) => {
+                    setEditLatitude(value);
+                    if (editLatitudeError) {
+                        setEditLatitudeError(null);
+                    }
+                }}
+                onLongitudeChange={(value) => {
+                    setEditLongitude(value);
+                    if (editLongitudeError) {
+                        setEditLongitudeError(null);
+                    }
+                }}
+            />
         </>
     );
 };
