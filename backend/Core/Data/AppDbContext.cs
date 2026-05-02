@@ -110,7 +110,6 @@ namespace Core.Data
             {
                 entity.ToTable("Room");
 
-                entity.Property(e => e.RoomNumber).HasColumnName("Room");
                 entity.HasOne(d => d.Building).WithMany(p => p.Rooms)
                     .HasForeignKey(d => d.BuildingId)
                     .HasConstraintName("FK_Room_Building");

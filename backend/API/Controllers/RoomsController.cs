@@ -90,7 +90,7 @@ namespace API.Controllers
             {
                 BuildingId = dto.BuildingId,
                 FloorNumber = dto.FloorNumber,
-                RoomNumber = dto.RoomNumber,
+                Number = dto.Number,
                 Capacity = dto.Capacity,
             };
 

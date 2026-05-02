@@ -8,7 +8,7 @@ public partial class Room
 
     public int FloorNumber { get; set; }
 
-    public int RoomNumber { get; set; }
+    public int Number { get; set; }
 
     public int Capacity { get; set; }
 
