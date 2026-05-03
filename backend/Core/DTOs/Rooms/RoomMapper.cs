@@ -15,8 +15,8 @@ namespace Core.DTOs.Rooms
             return new RoomDto
             {
                 Id = room.Id,
-                FloorNumber = room.FloorNumber,
-                RoomNumber = (room.FloorNumber * 100 + room.Number).ToString(),
+                FloorNumber = room.Floor,
+                RoomNumber = (room.Floor * 100 + room.Number).ToString(),
                 Capacity = room.Capacity,
                 CurrentCapacity = activeResettlements.Count,
                 GenderType = activeResettlements.Count == 0 ? null : activeResettlements[0].Student.Gender

@@ -19,5 +19,4 @@ public partial class User
     public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
 
     public virtual Role Role { get; set; } = null!;
-
 }

@@ -21,12 +21,23 @@ namespace Core.Data
 
         public virtual DbSet<Building> Buildings { get; set; } = null!;
 
-        public virtual DbSet<Equipment> Equipment { get; set; } = null!;
-
         public virtual DbSet<Resettlement> Resettlements { get; set; } = null!;
 
-        public virtual DbSet<RoomEquipment> RoomEquipments { get; set; } = null!;
 
+        public virtual DbSet<ExpendableEquipment> ExpendableEquipments { get; set; } = null!;
+
+        public virtual DbSet<ExpendableType> ExpendableTypes { get; set; } = null!;
+
+        public virtual DbSet<ExpendablesDistribution> ExpendablesDistributions { get; set; } = null!;
+
+
+        public virtual DbSet<StationaryEquipment> StationaryEquipments { get; set; } = null!;
+
+        public virtual DbSet<StationaryType> StationaryTypes { get; set; } = null!;
+
+
+
+        public virtual DbSet<Status> Statuses { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Building>(entity =>
@@ -54,11 +65,6 @@ namespace Core.Data
                     .HasConstraintName("FK_Contact_Student");
             });
 
-            modelBuilder.Entity<Equipment>(entity =>
-            {
-                entity.Property(e => e.Name).HasMaxLength(300);
-            });
-
             modelBuilder.Entity<Group>(entity =>
             {
                 entity.ToTable("Group");
@@ -70,7 +76,6 @@ namespace Core.Data
             {
                 entity.ToTable("Note");
 
-                entity.Property(e => e.CreateDate);
                 entity.Property(e => e.Text).HasMaxLength(500);
 
                 entity.HasOne(d => d.Student).WithMany(p => p.Notes)
@@ -115,21 +120,6 @@ namespace Core.Data
                     .HasConstraintName("FK_Room_Building");
             });
 
-            modelBuilder.Entity<RoomEquipment>(entity =>
-            {
-                entity.HasKey(e => new { e.RoomId, e.EquipmentId });
-
-                entity.ToTable("RoomEquipment");
-
-                entity.HasOne(d => d.Equipment).WithMany(p => p.RoomEquipments)
-                    .HasForeignKey(d => d.EquipmentId)
-                    .HasConstraintName("FK_RoomEquipment_Equipment");
-
-                entity.HasOne(d => d.Room).WithMany(p => p.RoomEquipments)
-                    .HasForeignKey(d => d.RoomId)
-                    .HasConstraintName("FK_RoomEquipment_Room");
-            });
-
             modelBuilder.Entity<Student>(entity =>
             {
                 entity.ToTable("Student");
@@ -165,6 +155,42 @@ namespace Core.Data
                     .HasForeignKey(d => d.RoleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_User_Role");
+            });
+
+            modelBuilder.Entity<ExpendablesDistribution>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK_Оccupancy");
+
+                entity.ToTable("ExpendablesDistribution");
+
+                entity.HasOne(d => d.Expendable).WithMany(p => p.ExpendablesDistributions)
+                    .HasForeignKey(d => d.ExpendableId)
+                    .OnDelete(DeleteBehavior.ClientCascade)
+                    .HasConstraintName("FK_ExpendablesDistribution_ExpendableEquipment");
+
+                entity.HasOne(d => d.Student).WithMany(p => p.ExpendablesDistributions)
+                    .HasForeignKey(d => d.StudentId)
+                    .OnDelete(DeleteBehavior.ClientCascade)
+                    .HasConstraintName("FK_ExpendablesDistribution_Student");
+            });
+
+            modelBuilder.Entity<ExpendableEquipment>(entity =>
+            {
+                entity.ToTable("ExpendableEquipment");
+
+                entity.HasOne(d => d.Type).WithMany(p => p.ExpendableEquipments)
+                    .HasForeignKey(d => d.TypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ExpendableEquipment_ExpendableType");
+            });
+
+            modelBuilder.Entity<ExpendableType>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK_ExpendableType");
+
+                entity.ToTable("ExpendableType");
+
+                entity.Property(e => e.Name).HasMaxLength(100);
             });
 
             modelBuilder.Entity<Group>().HasData(
@@ -226,6 +252,7 @@ namespace Core.Data
                 new Role { Id = 2, Name = "Комендант" },
                 new Role { Id = 3, Name = "Воспитатель" }
             );
+
 
             OnModelCreatingPartial(modelBuilder);
         }

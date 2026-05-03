@@ -117,8 +117,8 @@ namespace API.Controllers
                 {
                     ResettlementId = resettlement.Id,
                     RoomId = room.Id,
-                    RoomNumber = (room.FloorNumber * 100 + room.Number).ToString(),
-                    FloorNumber = room.FloorNumber,
+                    RoomNumber = (room.Floor * 100 + room.Number).ToString(),
+                    FloorNumber = room.Floor,
                     BuildingId = room.BuildingId,
                     Capacity = room.Capacity,
                     CheckInDate = checkIn,

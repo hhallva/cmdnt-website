@@ -9,7 +9,7 @@ namespace Core.DTOs.Rooms
         public int BuildingId { get; set; }
 
         [Required(ErrorMessage = "Номер этажа обязателен.")]
-        public int FloorNumber { get; set; }
+        public int Floor { get; set; }
 
         [Required(ErrorMessage = "Номер комнаты обязателен.")]
         public int Number { get; set; }

@@ -24,11 +24,15 @@ public partial class Student
 
     public string? Image { get; set; }
 
-    public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
+    public bool IsArchived { get; set; }
+
+    public virtual ICollection<ExpendablesDistribution> ExpendablesDistributions { get; set; } = [];
+
+    public virtual ICollection<Contact> Contacts { get; set; } = [];
 
     public virtual Group Group { get; set; } = null!;
 
-    public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
+    public virtual ICollection<Note> Notes { get; set; } = [];
 
-    public virtual ICollection<Resettlement> Resettlements { get; set; } = new List<Resettlement>();
+    public virtual ICollection<Resettlement> Resettlements { get; set; } = []       ;
 }
