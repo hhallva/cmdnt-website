@@ -409,8 +409,8 @@ const StructureLayout: React.FC = () => {
 
         const payload = {
             buildingId: activeBuildingId,
-            floorNumber: Number(newRoomForm.floorNumber),
-            roomNumber: Number(newRoomForm.roomNumber),
+            floor: Number(newRoomForm.floorNumber),
+            number: Number(newRoomForm.roomNumber),
             capacity: Number(newRoomForm.capacity),
         };
 

@@ -89,7 +89,7 @@ const BlockModal: React.FC<BlockModalProps> = ({
                                         type="button"
                                         className={styles.blockRoomDeleteButton}
                                         disabled={deletingRoomId === room.id}
-                                        onClick={() => onDeleteRoom(room.id, room.roomNumber)}
+                                        onClick={() => onDeleteRoom(room.id, room.number)}
                                     >
                                         {deletingRoomId === room.id ? 'Удаляем…' : 'Удалить'}
                                     </ActionButton>

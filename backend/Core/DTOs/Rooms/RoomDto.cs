@@ -4,9 +4,9 @@
     {
         public int Id { get; set; }
 
-        public int FloorNumber { get; set; }
+        public int Floor { get; set; }
 
-        public string RoomNumber { get; set; } = null!;
+        public string Number { get; set; } = null!;
 
         public int Capacity { get; set; }
 
