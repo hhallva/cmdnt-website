@@ -8,7 +8,7 @@ public partial class ExpendableEquipment
 
     public int Count { get; set; }
 
-    public virtual ICollection<ExpendablesDistribution> ExpendablesDistributions { get; set; } = [];
+    public virtual ICollection<ExpendableDistribution> ExpendableDistributions { get; set; } = [];
 
     public virtual ExpendableType Type { get; set; } = null!;
 }

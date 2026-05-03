@@ -27,13 +27,14 @@ namespace Core.Data
 
         public virtual DbSet<ExpendableType> ExpendableTypes { get; set; } = null!;
 
-        public virtual DbSet<ExpendablesDistribution> ExpendablesDistributions { get; set; } = null!
+        public virtual DbSet<ExpendableDistribution> ExpendableDistributions { get; set; } = null!;
 
         public virtual DbSet<StationaryEquipment> StationaryEquipments { get; set; } = null!;
 
         public virtual DbSet<StationaryType> StationaryTypes { get; set; } = null!;
 
         public virtual DbSet<Status> Statuses { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Building>(entity =>
@@ -153,21 +154,19 @@ namespace Core.Data
                     .HasConstraintName("FK_User_Role");
             });
 
-            modelBuilder.Entity<ExpendablesDistribution>(entity =>
+            modelBuilder.Entity<ExpendableDistribution>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_Оccupancy");
+                entity.ToTable("ExpendableDistribution");
 
-                entity.ToTable("ExpendablesDistribution");
-
-                entity.HasOne(d => d.Expendable).WithMany(p => p.ExpendablesDistributions)
+                entity.HasOne(d => d.Expendable).WithMany(p => p.ExpendableDistributions)
                     .HasForeignKey(d => d.ExpendableId)
                     .OnDelete(DeleteBehavior.ClientCascade)
-                    .HasConstraintName("FK_ExpendablesDistribution_ExpendableEquipment");
+                    .HasConstraintName("FK_ExpendableDistribution_ExpendableEquipment");
 
-                entity.HasOne(d => d.Student).WithMany(p => p.ExpendablesDistributions)
+                entity.HasOne(d => d.Student).WithMany(p => p.ExpendableDistributions)
                     .HasForeignKey(d => d.StudentId)
                     .OnDelete(DeleteBehavior.ClientCascade)
-                    .HasConstraintName("FK_ExpendablesDistribution_Student");
+                    .HasConstraintName("FK_ExpendableDistribution_Student");
             });
 
             modelBuilder.Entity<ExpendableEquipment>(entity =>
@@ -182,66 +181,102 @@ namespace Core.Data
 
             modelBuilder.Entity<ExpendableType>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_ExpendableType");
-
                 entity.ToTable("ExpendableType");
 
                 entity.Property(e => e.Name).HasMaxLength(100);
             });
 
+            modelBuilder.Entity<StationaryEquipment>(entity =>
+            {
+                entity.ToTable("StationaryEquipment");
+
+                entity.Property(e => e.Description).HasMaxLength(300);
+                entity.Property(e => e.InventoryNumber).HasMaxLength(6);
+
+                entity.HasOne(d => d.Room).WithMany(p => p.StationaryEquipments)
+                    .HasForeignKey(d => d.RoomId)
+                    .HasConstraintName("FK_Equipment_Room");
+
+                entity.HasOne(d => d.Status).WithMany(p => p.StationaryEquipments)
+                    .HasForeignKey(d => d.StatusId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Equipment_Status");
+
+                entity.HasOne(d => d.Type).WithMany(p => p.StationaryEquipments)
+                    .HasForeignKey(d => d.TypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Equipment_Type");
+            });
+
+            modelBuilder.Entity<StationaryType>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK_Type");
+
+                entity.ToTable("StationaryType");
+
+                entity.Property(e => e.Name).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<Status>(entity =>
+            {
+                entity.ToTable("Status");
+
+                entity.Property(e => e.Name).HasMaxLength(9);
+            });
+
             modelBuilder.Entity<Group>().HasData(
-                new Group { Id = 1, Name = "ИСПВ-21", Course = 4 },
-                new Group { Id = 2, Name = "ИСПВ-22", Course = 4 },
-                new Group { Id = 3, Name = "ИСПВ-32", Course = 3 },
-                new Group { Id = 4, Name = "ИСПВ-42", Course = 2 },
-                new Group { Id = 5, Name = "ИСПВ-52", Course = 1 },
-                new Group { Id = 6, Name = "ИСПП-21", Course = 4 },
-                new Group { Id = 7, Name = "ИСПП-31", Course = 3 },
-                new Group { Id = 8, Name = "ИСПП-34", Course = 3 },
-                new Group { Id = 9, Name = "ИСПП-35", Course = 3 },
-                new Group { Id = 10, Name = "ИСПП-41", Course = 2 },
-                new Group { Id = 11, Name = "ИСПП-43", Course = 2 },
-                new Group { Id = 12, Name = "ИСПП-45", Course = 2 },
-                new Group { Id = 13, Name = "ИСПП-51", Course = 1 },
-                new Group { Id = 14, Name = "ИСПП-55", Course = 1 },
-                new Group { Id = 15, Name = "ИСС-11", Course = 5 },
-                new Group { Id = 16, Name = "ИСС-12", Course = 5 },
-                new Group { Id = 17, Name = "ИСС-21", Course = 4 },
-                new Group { Id = 18, Name = "ИСС-22", Course = 4 },
-                new Group { Id = 19, Name = "ИСС-25", Course = 4 },
-                new Group { Id = 20, Name = "ИСС-31", Course = 3 },
-                new Group { Id = 21, Name = "ИСС-32", Course = 3 },
-                new Group { Id = 22, Name = "ИСС-35", Course = 3 },
-                new Group { Id = 23, Name = "ИСС-41", Course = 2 },
-                new Group { Id = 24, Name = "ИСС-45", Course = 2 },
-                new Group { Id = 25, Name = "ИСС-51", Course = 1 },
-                new Group { Id = 26, Name = "ИСС-52", Course = 1 },
-                new Group { Id = 27, Name = "КСК-21", Course = 4 },
-                new Group { Id = 28, Name = "КСК-22", Course = 4 },
-                new Group { Id = 29, Name = "КСК-31", Course = 3 },
-                new Group { Id = 30, Name = "КСК-41", Course = 2 },
-                new Group { Id = 31, Name = "КСК-51", Course = 1 },
-                new Group { Id = 32, Name = "ОИБ-21", Course = 4 },
-                new Group { Id = 33, Name = "ОИБ-31", Course = 3 },
-                new Group { Id = 34, Name = "ОИБ-35", Course = 3 },
-                new Group { Id = 35, Name = "ОИБ-41", Course = 2 },
-                new Group { Id = 36, Name = "ОИБ-51", Course = 1 },
-                new Group { Id = 37, Name = "П-41", Course = 2 },
-                new Group { Id = 38, Name = "Р-21", Course = 4 },
-                new Group { Id = 39, Name = "РМТ-31", Course = 3 },
-                new Group { Id = 40, Name = "РМТ-35", Course = 3 },
-                new Group { Id = 41, Name = "РМТ-41", Course = 2 },
-                new Group { Id = 42, Name = "РМТ-45", Course = 2 },
-                new Group { Id = 43, Name = "РМТ-51", Course = 1 },
-                new Group { Id = 44, Name = "РМТ-52", Course = 1 },
-                new Group { Id = 45, Name = "ССА-21", Course = 4 },
-                new Group { Id = 46, Name = "ССА-22", Course = 4 },
-                new Group { Id = 47, Name = "ССА-31", Course = 3 },
-                new Group { Id = 48, Name = "ССА-35", Course = 3 },
-                new Group { Id = 49, Name = "ССА-41", Course = 2 },
-                new Group { Id = 50, Name = "ССА-51", Course = 1 },
-                new Group { Id = 51, Name = "ССА-55", Course = 1 }
-            );
+                 new Group { Id = 1, Name = "ИСПВ-21", Course = 4 },
+                 new Group { Id = 2, Name = "ИСПВ-22", Course = 4 },
+                 new Group { Id = 3, Name = "ИСПВ-32", Course = 3 },
+                 new Group { Id = 4, Name = "ИСПВ-42", Course = 2 },
+                 new Group { Id = 5, Name = "ИСПВ-52", Course = 1 },
+                 new Group { Id = 6, Name = "ИСПП-21", Course = 4 },
+                 new Group { Id = 7, Name = "ИСПП-31", Course = 3 },
+                 new Group { Id = 8, Name = "ИСПП-34", Course = 3 },
+                 new Group { Id = 9, Name = "ИСПП-35", Course = 3 },
+                 new Group { Id = 10, Name = "ИСПП-41", Course = 2 },
+                 new Group { Id = 11, Name = "ИСПП-43", Course = 2 },
+                 new Group { Id = 12, Name = "ИСПП-45", Course = 2 },
+                 new Group { Id = 13, Name = "ИСПП-51", Course = 1 },
+                 new Group { Id = 14, Name = "ИСПП-55", Course = 1 },
+                 new Group { Id = 15, Name = "ИСС-11", Course = 5 },
+                 new Group { Id = 16, Name = "ИСС-12", Course = 5 },
+                 new Group { Id = 17, Name = "ИСС-21", Course = 4 },
+                 new Group { Id = 18, Name = "ИСС-22", Course = 4 },
+                 new Group { Id = 19, Name = "ИСС-25", Course = 4 },
+                 new Group { Id = 20, Name = "ИСС-31", Course = 3 },
+                 new Group { Id = 21, Name = "ИСС-32", Course = 3 },
+                 new Group { Id = 22, Name = "ИСС-35", Course = 3 },
+                 new Group { Id = 23, Name = "ИСС-41", Course = 2 },
+                 new Group { Id = 24, Name = "ИСС-45", Course = 2 },
+                 new Group { Id = 25, Name = "ИСС-51", Course = 1 },
+                 new Group { Id = 26, Name = "ИСС-52", Course = 1 },
+                 new Group { Id = 27, Name = "КСК-21", Course = 4 },
+                 new Group { Id = 28, Name = "КСК-22", Course = 4 },
+                 new Group { Id = 29, Name = "КСК-31", Course = 3 },
+                 new Group { Id = 30, Name = "КСК-41", Course = 2 },
+                 new Group { Id = 31, Name = "КСК-51", Course = 1 },
+                 new Group { Id = 32, Name = "ОИБ-21", Course = 4 },
+                 new Group { Id = 33, Name = "ОИБ-31", Course = 3 },
+                 new Group { Id = 34, Name = "ОИБ-35", Course = 3 },
+                 new Group { Id = 35, Name = "ОИБ-41", Course = 2 },
+                 new Group { Id = 36, Name = "ОИБ-51", Course = 1 },
+                 new Group { Id = 37, Name = "П-41", Course = 2 },
+                 new Group { Id = 38, Name = "Р-21", Course = 4 },
+                 new Group { Id = 39, Name = "РМТ-31", Course = 3 },
+                 new Group { Id = 40, Name = "РМТ-35", Course = 3 },
+                 new Group { Id = 41, Name = "РМТ-41", Course = 2 },
+                 new Group { Id = 42, Name = "РМТ-45", Course = 2 },
+                 new Group { Id = 43, Name = "РМТ-51", Course = 1 },
+                 new Group { Id = 44, Name = "РМТ-52", Course = 1 },
+                 new Group { Id = 45, Name = "ССА-21", Course = 4 },
+                 new Group { Id = 46, Name = "ССА-22", Course = 4 },
+                 new Group { Id = 47, Name = "ССА-31", Course = 3 },
+                 new Group { Id = 48, Name = "ССА-35", Course = 3 },
+                 new Group { Id = 49, Name = "ССА-41", Course = 2 },
+                 new Group { Id = 50, Name = "ССА-51", Course = 1 },
+                 new Group { Id = 51, Name = "ССА-55", Course = 1 }
+             );
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, Name = "Администратор" },

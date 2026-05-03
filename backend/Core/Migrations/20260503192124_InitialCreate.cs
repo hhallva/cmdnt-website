@@ -78,30 +78,30 @@ namespace Core.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "StationaryTypes",
+                name: "StationaryType",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StationaryTypes", x => x.Id);
+                    table.PrimaryKey("PK_Type", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Statuses",
+                name: "Status",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(9)", maxLength: 9, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Statuses", x => x.Id);
+                    table.PrimaryKey("PK_Status", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -202,37 +202,35 @@ namespace Core.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "StationaryEquipments",
+                name: "StationaryEquipment",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    InventoryNumber = table.Column<string>(type: "longtext", nullable: false),
+                    InventoryNumber = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false),
                     TypeId = table.Column<int>(type: "int", nullable: false),
                     StatusId = table.Column<int>(type: "int", nullable: false),
                     RoomId = table.Column<int>(type: "int", nullable: true),
-                    Description = table.Column<string>(type: "longtext", nullable: true)
+                    Description = table.Column<string>(type: "varchar(300)", maxLength: 300, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StationaryEquipments", x => x.Id);
+                    table.PrimaryKey("PK_StationaryEquipment", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StationaryEquipments_Room_RoomId",
+                        name: "FK_Equipment_Room",
                         column: x => x.RoomId,
                         principalTable: "Room",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_StationaryEquipments_StationaryTypes_TypeId",
-                        column: x => x.TypeId,
-                        principalTable: "StationaryTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_StationaryEquipments_Statuses_StatusId",
+                        name: "FK_Equipment_Status",
                         column: x => x.StatusId,
-                        principalTable: "Statuses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalTable: "Status",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Equipment_Type",
+                        column: x => x.TypeId,
+                        principalTable: "StationaryType",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -258,7 +256,7 @@ namespace Core.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ExpendablesDistribution",
+                name: "ExpendableDistribution",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -269,14 +267,14 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Оccupancy", x => x.Id);
+                    table.PrimaryKey("PK_ExpendableDistribution", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ExpendablesDistribution_ExpendableEquipment",
+                        name: "FK_ExpendableDistribution_ExpendableEquipment",
                         column: x => x.ExpendableId,
                         principalTable: "ExpendableEquipment",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_ExpendablesDistribution_Student",
+                        name: "FK_ExpendableDistribution_Student",
                         column: x => x.StudentId,
                         principalTable: "Student",
                         principalColumn: "Id");
@@ -414,19 +412,19 @@ namespace Core.Migrations
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExpendableEquipment_TypeId",
-                table: "ExpendableEquipment",
-                column: "TypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ExpendablesDistribution_ExpendableId",
-                table: "ExpendablesDistribution",
+                name: "IX_ExpendableDistribution_ExpendableId",
+                table: "ExpendableDistribution",
                 column: "ExpendableId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExpendablesDistribution_StudentId",
-                table: "ExpendablesDistribution",
+                name: "IX_ExpendableDistribution_StudentId",
+                table: "ExpendableDistribution",
                 column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExpendableEquipment_TypeId",
+                table: "ExpendableEquipment",
+                column: "TypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Note_StudentId",
@@ -454,18 +452,18 @@ namespace Core.Migrations
                 column: "BuildingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StationaryEquipments_RoomId",
-                table: "StationaryEquipments",
+                name: "IX_StationaryEquipment_RoomId",
+                table: "StationaryEquipment",
                 column: "RoomId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StationaryEquipments_StatusId",
-                table: "StationaryEquipments",
+                name: "IX_StationaryEquipment_StatusId",
+                table: "StationaryEquipment",
                 column: "StatusId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StationaryEquipments_TypeId",
-                table: "StationaryEquipments",
+                name: "IX_StationaryEquipment_TypeId",
+                table: "StationaryEquipment",
                 column: "TypeId");
 
             migrationBuilder.CreateIndex(
@@ -486,7 +484,7 @@ namespace Core.Migrations
                 name: "Contact");
 
             migrationBuilder.DropTable(
-                name: "ExpendablesDistribution");
+                name: "ExpendableDistribution");
 
             migrationBuilder.DropTable(
                 name: "Note");
@@ -495,7 +493,7 @@ namespace Core.Migrations
                 name: "Resettlement");
 
             migrationBuilder.DropTable(
-                name: "StationaryEquipments");
+                name: "StationaryEquipment");
 
             migrationBuilder.DropTable(
                 name: "ExpendableEquipment");
@@ -510,10 +508,10 @@ namespace Core.Migrations
                 name: "Room");
 
             migrationBuilder.DropTable(
-                name: "StationaryTypes");
+                name: "Status");
 
             migrationBuilder.DropTable(
-                name: "Statuses");
+                name: "StationaryType");
 
             migrationBuilder.DropTable(
                 name: "ExpendableType");

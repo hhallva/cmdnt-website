@@ -1,6 +1,6 @@
 ﻿namespace Core.Models;
 
-public partial class ExpendablesDistribution
+public partial class ExpendableDistribution
 {
     public int Id { get; set; }
 

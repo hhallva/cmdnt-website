@@ -26,7 +26,7 @@ public partial class Student
 
     public bool IsArchived { get; set; }
 
-    public virtual ICollection<ExpendablesDistribution> ExpendablesDistributions { get; set; } = [];
+    public virtual ICollection<ExpendableDistribution> ExpendableDistributions { get; set; } = [];
 
     public virtual ICollection<Contact> Contacts { get; set; } = [];
 
@@ -34,5 +34,5 @@ public partial class Student
 
     public virtual ICollection<Note> Notes { get; set; } = [];
 
-    public virtual ICollection<Resettlement> Resettlements { get; set; } = []       ;
+    public virtual ICollection<Resettlement> Resettlements { get; set; } = [];
 }
