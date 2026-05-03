@@ -23,19 +23,15 @@ namespace Core.Data
 
         public virtual DbSet<Resettlement> Resettlements { get; set; } = null!;
 
-
         public virtual DbSet<ExpendableEquipment> ExpendableEquipments { get; set; } = null!;
 
         public virtual DbSet<ExpendableType> ExpendableTypes { get; set; } = null!;
 
-        public virtual DbSet<ExpendablesDistribution> ExpendablesDistributions { get; set; } = null!;
-
+        public virtual DbSet<ExpendablesDistribution> ExpendablesDistributions { get; set; } = null!
 
         public virtual DbSet<StationaryEquipment> StationaryEquipments { get; set; } = null!;
 
         public virtual DbSet<StationaryType> StationaryTypes { get; set; } = null!;
-
-
 
         public virtual DbSet<Status> Statuses { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -252,7 +248,6 @@ namespace Core.Data
                 new Role { Id = 2, Name = "Комендант" },
                 new Role { Id = 3, Name = "Воспитатель" }
             );
-
 
             OnModelCreatingPartial(modelBuilder);
         }
