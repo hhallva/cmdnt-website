@@ -20,6 +20,8 @@ import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/
 import type { ResettlementHistoryDto } from '../types/resettlements'
 import type { StationaryTypeDto, PostStationaryTypeDto } from '../types/stationaryTypes'
 import type { ExpendableTypeDto, PostExpendableTypeDto } from '../types/expendableTypes'
+import type { StatusDto } from '../types/statuses'
+import type { StationaryEquipmentDto, PostStationaryEquipmentDto, UpdateStationaryEquipmentDto } from '../types/stationaryEquipment'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -180,6 +182,48 @@ export const apiClient = {
 
   deleteExpendableType: async (id: number): Promise<void> => {
     await apiClient.requestWithAuth(`/api/v1/Expendable/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  //#endregion
+
+  //#region Статусы оборудования
+  getStatuses: async (): Promise<StatusDto[]> => {
+    return apiClient.requestWithAuth<StatusDto[]>('/api/v1/Statuses');
+  },
+  //#endregion
+
+  //#region Стационарное оборудование
+  getStationaryEquipment: async (): Promise<StationaryEquipmentDto[]> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto[]>('/api/v1/StationaryEquipment');
+  },
+
+  getStationaryEquipmentById: async (id: number): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${id}`);
+  },
+
+  createStationaryEquipment: async (payload: PostStationaryEquipmentDto): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>('/api/v1/StationaryEquipment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateStationaryEquipment: async (id: number, payload: UpdateStationaryEquipmentDto): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteStationaryEquipment: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/StationaryEquipment/${id}`, {
       method: 'DELETE',
     });
   },
