@@ -9,9 +9,9 @@ import { apiClient } from '../../../../api/client';
 import type { ExpendableDistributionDto, ExpendableDistributionUpsertDto } from '../../../../types/expendableDistribution';
 import type { ExpendableEquipmentDto } from '../../../../types/expendableEquipment';
 import type { StudentsDto } from '../../../../types/students';
-import styles from '../Expendable.module.css';
+import styles from '../../Expendable/Expendable.module.css';
 
-type ExpendableDistributionRow = {
+type BeddingDistributionRow = {
     id: number;
     studentName: string;
     pillow: number;
@@ -25,7 +25,15 @@ type ExpendableDistributionRow = {
 };
 
 type DistributionItemKey = 'pillow' | 'mattress' | 'blanket' | 'pillowcase' | 'sheet' | 'duvetCover' | 'plaid';
+
 type SortableKey = 'studentName' | DistributionItemKey;
+
+type BeddingDistributionTabProps = {
+    searchTerm: string;
+    students: StudentsDto[];
+    onExportReady?: (handler: (() => void) | null) => void;
+    resetSignal?: number;
+};
 
 const distributionItems: Array<{ key: DistributionItemKey; label: string }> = [
     { key: 'mattress', label: 'Матрас' },
@@ -37,7 +45,7 @@ const distributionItems: Array<{ key: DistributionItemKey; label: string }> = [
     { key: 'plaid', label: 'Плед' },
 ];
 
-const columns: ColumnDefinition<ExpendableDistributionRow>[] = [
+const columns: ColumnDefinition<BeddingDistributionRow>[] = [
     { key: 'studentName', title: 'Студент', sortable: true, render: (item) => item.studentName || '—' },
     { key: 'mattress', title: 'Матрас', sortable: true, render: (item) => item.mattress },
     { key: 'sheet', title: 'Простынь', sortable: true, render: (item) => item.sheet },
@@ -48,24 +56,18 @@ const columns: ColumnDefinition<ExpendableDistributionRow>[] = [
     { key: 'plaid', title: 'Плед', sortable: true, render: (item) => item.plaid },
 ];
 
-type ExpendableDistributionTabProps = {
-    searchTerm: string;
-    onExportReady?: (handler: (() => void) | null) => void;
-    resetSignal?: number;
-};
-
-const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
+const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     searchTerm,
+    students,
     onExportReady,
     resetSignal,
 }) => {
     const [distributions, setDistributions] = useState<ExpendableDistributionDto[]>([]);
-    const [students, setStudents] = useState<StudentsDto[]>([]);
     const [stock, setStock] = useState<ExpendableEquipmentDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [editingRow, setEditingRow] = useState<ExpendableDistributionRow | null>(null);
+    const [editingRow, setEditingRow] = useState<BeddingDistributionRow | null>(null);
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [fieldValues, setFieldValues] = useState<Record<DistributionItemKey, string>>({
         pillow: '',
@@ -88,12 +90,10 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         setLoading(true);
         setError(null);
         try {
-            const [studentsData, stockData, distributionData] = await Promise.all([
-                apiClient.getAllStudents(),
+            const [stockData, distributionData] = await Promise.all([
                 apiClient.getExpendableEquipment(),
                 apiClient.getExpendableDistributions(),
             ]);
-            setStudents(studentsData);
             setStock(stockData);
             setDistributions(distributionData);
         } catch (err: any) {
@@ -133,9 +133,16 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         return map;
     }, [normalize]);
 
+    const studentIdSet = useMemo(() => new Set(students.map(student => student.id)), [students]);
+
+    const buildingDistributions = useMemo(
+        () => distributions.filter(item => studentIdSet.has(item.studentId)),
+        [distributions, studentIdSet]
+    );
+
     const rows = useMemo(() => {
-        const map = new Map<number, ExpendableDistributionRow>();
-        distributions.forEach(item => {
+        const map = new Map<number, BeddingDistributionRow>();
+        buildingDistributions.forEach(item => {
             const key = keyByTypeName.get(normalize(item.typeName));
             if (!key) {
                 return;
@@ -161,7 +168,7 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         });
 
         return Array.from(map.values());
-    }, [distributions, keyByTypeName, normalize]);
+    }, [buildingDistributions, keyByTypeName, normalize]);
 
     const filteredRows = useMemo(() => {
         const normalized = searchTerm.trim().toLowerCase();
@@ -186,8 +193,8 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
 
         const worksheet = XLSX.utils.aoa_to_sheet([headerRow, ...bodyRows]);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Распределение');
-        XLSX.writeFile(workbook, `Распределение_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Постельное');
+        XLSX.writeFile(workbook, `Постельное_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }, [filteredRows]);
 
     const requestSort = useCallback((key: string) => {
@@ -242,13 +249,36 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         };
     }, [handleExport, onExportReady]);
 
-    const studentOptions = useMemo(() => [
-        { value: '', label: 'Выберите студента' },
-        ...students.map(student => {
+    const studentsWithDistribution = useMemo(() => {
+        const map = new Set<number>();
+        buildingDistributions.forEach(item => map.add(item.studentId));
+        return map;
+    }, [buildingDistributions]);
+
+    const eligibleStudents = useMemo(
+        () => students.filter(student => !studentsWithDistribution.has(student.id)),
+        [students, studentsWithDistribution]
+    );
+
+    const isEditing = Boolean(editingRow);
+
+    const studentOptions = useMemo(() => {
+        const source = isEditing ? students : eligibleStudents;
+        const options = source.map(student => {
             const fullName = [student.surname, student.name, student.patronymic].filter(Boolean).join(' ');
             return { value: String(student.id), label: fullName || `Студент ${student.id}` };
-        }),
-    ], [students]);
+        });
+
+        if (isEditing && selectedStudentId && !options.some(option => option.value === selectedStudentId)) {
+            const fallback = students.find(student => String(student.id) === selectedStudentId);
+            if (fallback) {
+                const fullName = [fallback.surname, fallback.name, fallback.patronymic].filter(Boolean).join(' ');
+                options.unshift({ value: String(fallback.id), label: fullName || `Студент ${fallback.id}` });
+            }
+        }
+
+        return [{ value: '', label: 'Выберите студента' }, ...options];
+    }, [eligibleStudents, isEditing, selectedStudentId, students]);
 
     const openAddModal = useCallback(() => {
         setEditingRow(null);
@@ -267,7 +297,7 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         setIsAddModalOpen(true);
     }, []);
 
-    const openEditModal = useCallback((row: ExpendableDistributionRow) => {
+    const openEditModal = useCallback((row: BeddingDistributionRow) => {
         setEditingRow(row);
         setSelectedStudentId(String(row.id));
         setFieldValues({
@@ -348,13 +378,34 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         try {
             const operations: Array<Promise<unknown>> = [];
             let hasInvalidType = false;
+            const isStudentChanged = Boolean(editingRow) && studentId !== editingRow?.id;
+            const targetRecordMap = new Map<DistributionItemKey, ExpendableDistributionDto>();
+
+            if (isStudentChanged) {
+                distributions.forEach(item => {
+                    if (item.studentId !== studentId) {
+                        return;
+                    }
+                    const key = keyByTypeName.get(normalize(item.typeName));
+                    if (!key) {
+                        return;
+                    }
+                    targetRecordMap.set(key, item);
+                });
+
+                Object.values(editingRow?.recordMap ?? {}).forEach(record => {
+                    if (record) {
+                        operations.push(apiClient.deleteExpendableDistribution(record.id));
+                    }
+                });
+            }
 
             distributionItems.forEach(item => {
                 const rawValue = fieldValues[item.key];
                 const nextCount = rawValue ? Number.parseInt(rawValue, 10) : 0;
                 const stockInfo = getStockForLabel(item.label);
                 const typeId = stockInfo?.typeId;
-                const existing = editingRow?.recordMap[item.key];
+                const existing = isStudentChanged ? targetRecordMap.get(item.key) : editingRow?.recordMap[item.key];
 
                 if (!typeId && nextCount > 0) {
                     setFormError(`Категория "${item.label}" не найдена на складе`);
@@ -391,7 +442,7 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         }
     }, [buildPayload, editingRow, fieldValues, getStockForLabel, loadData, selectedStudentId, validateForm]);
 
-    const handleDeleteRow = useCallback(async (row: ExpendableDistributionRow) => {
+    const handleDeleteRow = useCallback(async (row: BeddingDistributionRow) => {
         if (!window.confirm('Удалить распределение для студента?')) {
             return;
         }
@@ -411,7 +462,7 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
         }
     }, [loadData]);
 
-    const rowAction = useMemo<RowActionConfig<ExpendableDistributionRow>>(() => ({
+    const rowAction = useMemo<RowActionConfig<BeddingDistributionRow>>(() => ({
         icon: 'bi-three-dots-vertical',
         title: 'Действия',
         popupActions: [
@@ -490,7 +541,7 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
                         }}
                         options={studentOptions}
                         error={formError ?? undefined}
-                        disabled={isSaving}
+                        disabled={isSaving || isEditing}
                     />
 
                     <div className={styles.modalGrid}>
@@ -527,4 +578,4 @@ const ExpendableDistributionTab: React.FC<ExpendableDistributionTabProps> = ({
     );
 };
 
-export default ExpendableDistributionTab;
+export default BeddingDistributionTab;

@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import ActionButton from '../../../components/ActionButton/ActionButton';
+import InputField from '../../../components/InputField/InputField';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
@@ -9,12 +11,14 @@ import type { StructureStatisticDto } from '../../../types/structures';
 import type { UserSession } from '../../../types/UserSession';
 import type { RoomWithOccupants } from './types';
 import AddRoomModal from './components/AddRoomModal';
+import BeddingDistributionTab from './components/BeddingDistributionTab';
 import BlockModal from './components/BlockModal';
 import SettlementToast from './components/SettlementToast';
 import SideMenuPortal from './components/SideMenuPortal';
 import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
 import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
 import styles from './Structure.module.css';
+import expendableStyles from '../Expendable/Expendable.module.css';
 import {
     formatBirthday,
     formatFullName,
@@ -110,6 +114,9 @@ const StructureLayout: React.FC = () => {
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
     const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+    const [beddingSearchTerm, setBeddingSearchTerm] = useState('');
+    const [beddingResetSignal, setBeddingResetSignal] = useState(0);
+    const [beddingExportHandler, setBeddingExportHandler] = useState<(() => void) | null>(null);
     const dragImageRef = useRef<HTMLElement | null>(null);
     const sideMenuDragImageRef = useRef<HTMLElement | null>(null);
 
@@ -701,6 +708,20 @@ const StructureLayout: React.FC = () => {
         setIsSideMenuOpen(false);
     }, []);
 
+    const buildingStudents = useMemo(() => {
+        const roomIds = new Set(rooms.map(room => room.id));
+        return students.filter(student => student.roomId !== null && student.roomId !== undefined && roomIds.has(student.roomId));
+    }, [rooms, students]);
+
+    const handleBeddingExport = useCallback(() => {
+        beddingExportHandler?.();
+    }, [beddingExportHandler]);
+
+    const handleBeddingReset = useCallback(() => {
+        setBeddingSearchTerm('');
+        setBeddingResetSignal(prev => prev + 1);
+    }, []);
+
 
     if (isNotFound) {
         return null;
@@ -797,13 +818,69 @@ const StructureLayout: React.FC = () => {
         />
     );
 
+    const beddingHeaderContent = (
+        <div className={expendableStyles.searchPanelRow}>
+            <div className={expendableStyles.searchLeft}>
+                <div className={expendableStyles.searchInputWrapper}>
+                    <InputField
+                        label=""
+                        type="text"
+                        placeholder="Поиск..."
+                        value={beddingSearchTerm}
+                        onChange={(event) => setBeddingSearchTerm(event.target.value)}
+                    />
+                </div>
+                <div className={expendableStyles.searchButtons}>
+                    <ActionButton
+                        variant="secondary"
+                        size="md"
+                        onClick={handleBeddingReset}
+                        className={expendableStyles.resetButton}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
+            </div>
+            <div className={expendableStyles.searchRight}>
+                <ActionButton
+                    size="md"
+                    variant="primary"
+                    onClick={handleBeddingExport}
+                    className={expendableStyles.exportButton}
+                >
+                    <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                    Скачать Excel
+                </ActionButton>
+            </div>
+        </div>
+    );
+
+    const furnitureTabContent = (
+        <div className="p-3">
+            <p className="mb-0">Раздел в разработке.</p>
+        </div>
+    );
+
+    const beddingTabContent = (
+        <BeddingDistributionTab
+            searchTerm={beddingSearchTerm}
+            students={buildingStudents}
+            onExportReady={setBeddingExportHandler}
+            resetSignal={beddingResetSignal}
+        />
+    );
+
     const tabs = canManageRooms
         ? [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
             { id: SETTLEMENT_TAB_ID, title: 'Расселение', headerContent: settlementHeaderContent, content: settlementTabContent },
+            { id: 'furniture', title: 'Мебель', headerContent: null, content: furnitureTabContent },
+            { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
         ]
         : [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
+            { id: 'furniture', title: 'Мебель', headerContent: null, content: furnitureTabContent },
+            { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
         ];
 
     return (
