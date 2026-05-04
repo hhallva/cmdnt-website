@@ -3,11 +3,11 @@ import * as XLSX from 'xlsx';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
 import CommonTable, { type ColumnDefinition, type RowActionConfig } from '../../../../components/CommonTable/CommonTable';
 import { apiClient } from '../../../../api/client';
-import type { StationaryTypeDto } from '../../../../types/stationaryTypes';
+import type { ExpendableTypeDto } from '../../../../types/expendableTypes';
 import CategoryModal from '../../components/CategoryModal';
-import styles from '../Furniche.module.css';
+import styles from '../Expendable.module.css';
 
-const columns: ColumnDefinition<StationaryTypeDto>[] = [
+const columns: ColumnDefinition<ExpendableTypeDto>[] = [
     {
         key: 'name',
         title: 'Название',
@@ -16,13 +16,13 @@ const columns: ColumnDefinition<StationaryTypeDto>[] = [
     },
 ];
 
-type FurnicheCategoriesTabProps = {
+type ExpendableCategoriesTabProps = {
     searchTerm: string;
     onExportReady?: (handler: (() => void) | null) => void;
 };
 
-const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTerm, onExportReady }) => {
-    const [types, setTypes] = useState<StationaryTypeDto[]>([]);
+const ExpendableCategoriesTab: React.FC<ExpendableCategoriesTabProps> = ({ searchTerm, onExportReady }) => {
+    const [types, setTypes] = useState<ExpendableTypeDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -30,7 +30,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
     const [nameError, setNameError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<StationaryTypeDto | null>(null);
+    const [editTarget, setEditTarget] = useState<ExpendableTypeDto | null>(null);
     const [editName, setEditName] = useState('');
     const [editError, setEditError] = useState<string | null>(null);
     const [isEditSaving, setIsEditSaving] = useState(false);
@@ -43,7 +43,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
         setLoading(true);
         setError(null);
         try {
-            const data = await apiClient.getStationaryTypes();
+            const data = await apiClient.getExpendableTypes();
             setTypes(data);
         } catch (err: any) {
             setError(err?.message || 'Не удалось загрузить типы');
@@ -105,7 +105,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
         const worksheet = XLSX.utils.aoa_to_sheet([headerRow, ...bodyRows]);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Категории');
-        XLSX.writeFile(workbook, `Типы_мебели_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        XLSX.writeFile(workbook, `Типы_расходников_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }, [filteredTypes]);
 
     useEffect(() => {
@@ -138,7 +138,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
         setIsSaving(true);
         setNameError(null);
         try {
-            await apiClient.createStationaryType({ name: trimmed });
+            await apiClient.createExpendableType({ name: trimmed });
             setIsAddModalOpen(false);
             setNewName('');
             await loadTypes();
@@ -149,7 +149,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
         }
     };
 
-    const openEditModal = useCallback((type: StationaryTypeDto) => {
+    const openEditModal = useCallback((type: ExpendableTypeDto) => {
         setEditTarget(type);
         setEditName(type.name);
         setEditError(null);
@@ -177,7 +177,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
         setIsEditSaving(true);
         setEditError(null);
         try {
-            await apiClient.updateStationaryType(editTarget.id, {
+            await apiClient.updateExpendableType(editTarget.id, {
                 id: editTarget.id,
                 name: trimmed,
             });
@@ -191,19 +191,19 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
         }
     };
 
-    const handleDeleteType = useCallback(async (type: StationaryTypeDto) => {
+    const handleDeleteType = useCallback(async (type: ExpendableTypeDto) => {
         if (!window.confirm(`Удалить категорию "${type.name}"?`)) {
             return;
         }
         try {
-            await apiClient.deleteStationaryType(type.id);
+            await apiClient.deleteExpendableType(type.id);
             await loadTypes();
         } catch (err: any) {
             alert(err?.message || 'Не удалось удалить');
         }
     }, [loadTypes]);
 
-    const rowAction = useMemo<RowActionConfig<StationaryTypeDto>>(() => ({
+    const rowAction = useMemo<RowActionConfig<ExpendableTypeDto>>(() => ({
         icon: 'bi-three-dots-vertical',
         title: 'Действия',
         popupActions: [
@@ -304,4 +304,4 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
     return content;
 };
 
-export default FurnicheCategoriesTab;
+export default ExpendableCategoriesTab;

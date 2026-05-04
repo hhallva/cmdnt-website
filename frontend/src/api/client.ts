@@ -19,6 +19,7 @@ import type { StructureStatisticDto, OverallStructureStatisticDto } from '../typ
 import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/buildings'
 import type { ResettlementHistoryDto } from '../types/resettlements'
 import type { StationaryTypeDto, PostStationaryTypeDto } from '../types/stationaryTypes'
+import type { ExpendableTypeDto, PostExpendableTypeDto } from '../types/expendableTypes'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -143,6 +144,42 @@ export const apiClient = {
 
   deleteStationaryType: async (id: number): Promise<void> => {
     await apiClient.requestWithAuth(`/api/v1/Stationary/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  //#endregion
+
+  //#region Типы расходных материалов
+  getExpendableTypes: async (): Promise<ExpendableTypeDto[]> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto[]>('/api/v1/Expendable');
+  },
+
+  getExpendableTypeById: async (id: number): Promise<ExpendableTypeDto> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto>(`/api/v1/Expendable/${id}`);
+  },
+
+  createExpendableType: async (payload: PostExpendableTypeDto): Promise<ExpendableTypeDto> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto>('/api/v1/Expendable', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateExpendableType: async (id: number, payload: ExpendableTypeDto): Promise<ExpendableTypeDto> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto>(`/api/v1/Expendable/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteExpendableType: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Expendable/${id}`, {
       method: 'DELETE',
     });
   },
