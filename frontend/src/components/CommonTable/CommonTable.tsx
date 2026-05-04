@@ -95,10 +95,12 @@ const CommonTable = <T extends Record<string, any>>({
     const triggerButtonRef = useRef<HTMLElement | null>(null);
     const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number | null; right: number | null } | null>(null);
+    const [menuAnchorRect, setMenuAnchorRect] = useState<DOMRect | null>(null);
 
     const closeRowActionMenu = () => {
         setActiveRowIndex(null);
         setMenuPosition(null);
+        setMenuAnchorRect(null);
         triggerButtonRef.current = null;
     };
 
@@ -143,6 +145,8 @@ const CommonTable = <T extends Record<string, any>>({
         const viewportWidth = window.innerWidth;
         const shouldAlignRight = anchorRect.left + MENU_WIDTH > viewportWidth - 16;
 
+        setMenuAnchorRect(anchorRect);
+
         if (shouldAlignRight) {
             setMenuPosition({
                 top: anchorRect.bottom + 4,
@@ -157,6 +161,29 @@ const CommonTable = <T extends Record<string, any>>({
             });
         }
     };
+
+    useEffect(() => {
+        if (!menuRef.current || !menuPosition || !menuAnchorRect) {
+            return;
+        }
+
+        const menuRect = menuRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const bottomOverflow = menuRect.bottom > viewportHeight - 8;
+
+        if (!bottomOverflow) {
+            return;
+        }
+
+        const desiredTop = Math.max(menuAnchorRect.top - menuRect.height - 4, 8);
+        if (menuPosition.top !== desiredTop) {
+            setMenuPosition({
+                top: desiredTop,
+                left: menuPosition.left,
+                right: menuPosition.right,
+            });
+        }
+    }, [menuAnchorRect, menuPosition]);
 
     const handleRowActionClick = (event: React.MouseEvent<HTMLButtonElement>, item: T, rowIndex: number) => {
         event.stopPropagation();

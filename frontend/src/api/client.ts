@@ -18,6 +18,7 @@ import type { NoteDto, CreateNoteDto } from '../types/notes'
 import type { StructureStatisticDto, OverallStructureStatisticDto } from '../types/structures'
 import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/buildings'
 import type { ResettlementHistoryDto } from '../types/resettlements'
+import type { StationaryTypeDto, PostStationaryTypeDto } from '../types/stationaryTypes'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -108,6 +109,42 @@ export const apiClient = {
   //#region Роли
   getAllRoles: async (): Promise<RoleDto[]> => {
     return apiClient.requestWithAuth<RoleDto[]>('/api/v1/Roles');
+  },
+  //#endregion
+
+  //#region Типы стационарного оборудования
+  getStationaryTypes: async (): Promise<StationaryTypeDto[]> => {
+    return apiClient.requestWithAuth<StationaryTypeDto[]>('/api/v1/Stationary');
+  },
+
+  getStationaryTypeById: async (id: number): Promise<StationaryTypeDto> => {
+    return apiClient.requestWithAuth<StationaryTypeDto>(`/api/v1/Stationary/${id}`);
+  },
+
+  createStationaryType: async (payload: PostStationaryTypeDto): Promise<StationaryTypeDto> => {
+    return apiClient.requestWithAuth<StationaryTypeDto>('/api/v1/Stationary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateStationaryType: async (id: number, payload: StationaryTypeDto): Promise<StationaryTypeDto> => {
+    return apiClient.requestWithAuth<StationaryTypeDto>(`/api/v1/Stationary/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteStationaryType: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Stationary/${id}`, {
+      method: 'DELETE',
+    });
   },
   //#endregion
 

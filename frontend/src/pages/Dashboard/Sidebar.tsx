@@ -12,6 +12,7 @@ type MenuItem = {
     label: string;
     path?: string;
     action?: () => void;
+    children?: MenuItem[];
 };
 
 interface SidebarProps {
@@ -55,7 +56,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
 
         if (userSession.role?.name?.includes('Администратор') || userSession.role?.name?.includes('Комендант')) {
             items.push(
-                { icon: 'bi-lamp', label: 'Оборудование', path: '/dashboard/equipment' },
+                { icon: 'bi-lamp', label: 'Мебель', path: '/dashboard/furniche' },
+                { icon: 'bi-box-seam', label: 'Расходники', path: '/dashboard/expendable' },
             );
         }
 
@@ -73,12 +75,26 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
     };
 
     const menuItems = getMenuItems();
+    const currentPath = `${location.pathname}${location.hash ?? ''}`;
 
     const isPathActive = (path?: string) => {
         if (!path) {
             return false;
         }
+        if (path.includes('#')) {
+            return currentPath === path;
+        }
         return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    };
+
+    const isMenuItemActive = (item: MenuItem) => {
+        if (isPathActive(item.path)) {
+            return true;
+        }
+        if (!item.children?.length) {
+            return false;
+        }
+        return item.children.some(child => isPathActive(child.path));
     };
 
     const buildLinkClasses = (isActiveFromNavLink: boolean) => [
@@ -91,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
         index: number,
         variant: 'mobile' | 'desktop'
     ) => {
-        const isActive = isPathActive(item.path);
+        const isActive = isMenuItemActive(item);
         const baseClass = variant === 'mobile' ? styles.mobileNavItem : styles.navItem;
         const activeClass = isActive
             ? variant === 'mobile'
