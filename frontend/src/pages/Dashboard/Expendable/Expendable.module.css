@@ -109,6 +109,23 @@
     gap: 1rem;
 }
 
+.modalGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.modalGridItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.stockHint {
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+}
+
 .modalActions {
     display: flex;
     justify-content: flex-end;

@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, userSession })
         if (userSession.role?.name?.includes('Администратор') || userSession.role?.name?.includes('Комендант')) {
             items.push(
                 { icon: 'bi-lamp', label: 'Мебель', path: '/dashboard/furniche' },
-                { icon: 'bi-box-seam', label: 'Расходники', path: '/dashboard/expendable' },
+                { icon: 'bi-box-seam', label: 'Постельное', path: '/dashboard/expendable' },
             );
         }
 

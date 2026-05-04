@@ -36,7 +36,7 @@ export const routes = [
       { path: "students", element: <StudentsLayout />, handle: { title: 'Студенты', requiredRole: 'educator' } },
       { path: "students/:studentId", element: <StudentCardLayout />, handle: { title: 'Карточка студента', requiredRole: 'educator' } },
       { path: "furniche", element: <FurnicheLayout />, handle: { title: 'Мебель', requiredRole: 'commandant' } },
-      { path: "expendable", element: <ExpendableLayout />, handle: { title: 'Расходники', requiredRole: 'commandant' } },
+      { path: "expendable", element: <ExpendableLayout />, handle: { title: 'Постельное', requiredRole: 'commandant' } },
 
       // Раздел пользователей (требуется роль admin)
       { path: "users", element: <UsersLayout />, handle: { title: 'Пользователи', requiredRole: 'admin' } },

@@ -14,6 +14,7 @@ type SortableKey = 'typeName' | 'totalCount' | 'usedCount' | 'inStockCount';
 type ExpendableListTabProps = {
     searchTerm: string;
     onExportReady?: (handler: (() => void) | null) => void;
+    resetSignal?: number;
 };
 
 const columns: ColumnDefinition<ExpendableEquipmentDto>[] = [
@@ -46,6 +47,7 @@ const columns: ColumnDefinition<ExpendableEquipmentDto>[] = [
 const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
     searchTerm,
     onExportReady,
+    resetSignal,
 }) => {
     const [items, setItems] = useState<ExpendableEquipmentDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,6 +79,12 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
     useEffect(() => {
         void loadData();
     }, [loadData]);
+
+    useEffect(() => {
+        if (resetSignal !== undefined) {
+            setSortConfig({ key: 'typeName', direction: 'asc' });
+        }
+    }, [resetSignal]);
 
     const filteredItems = useMemo(() => {
         const normalized = searchTerm.trim().toLowerCase();

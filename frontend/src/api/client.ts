@@ -21,6 +21,7 @@ import type { ResettlementHistoryDto } from '../types/resettlements'
 import type { StationaryTypeDto, PostStationaryTypeDto } from '../types/stationaryTypes'
 import type { ExpendableTypeDto, PostExpendableTypeDto } from '../types/expendableTypes'
 import type { ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto } from '../types/expendableEquipment'
+import type { ExpendableDistributionDto, ExpendableDistributionUpsertDto } from '../types/expendableDistribution'
 import type { StatusDto } from '../types/statuses'
 import type { StationaryEquipmentDto, PostStationaryEquipmentDto, UpdateStationaryEquipmentDto } from '../types/stationaryEquipment'
 
@@ -138,6 +139,36 @@ export const apiClient = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+    });
+  },
+
+  getExpendableDistributions: async (): Promise<ExpendableDistributionDto[]> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto[]>('/api/v1/ExpendableDistribution');
+  },
+
+  createExpendableDistribution: async (payload: ExpendableDistributionUpsertDto): Promise<ExpendableDistributionDto> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto>('/api/v1/ExpendableDistribution', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateExpendableDistribution: async (id: number, payload: ExpendableDistributionUpsertDto): Promise<ExpendableDistributionDto> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto>(`/api/v1/ExpendableDistribution/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteExpendableDistribution: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/ExpendableDistribution/${id}`, {
+      method: 'DELETE',
     });
   },
   //#endregion
