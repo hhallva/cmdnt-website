@@ -20,6 +20,7 @@ import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/
 import type { ResettlementHistoryDto } from '../types/resettlements'
 import type { StationaryTypeDto, PostStationaryTypeDto } from '../types/stationaryTypes'
 import type { ExpendableTypeDto, PostExpendableTypeDto } from '../types/expendableTypes'
+import type { ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto } from '../types/expendableEquipment'
 import type { StatusDto } from '../types/statuses'
 import type { StationaryEquipmentDto, PostStationaryEquipmentDto, UpdateStationaryEquipmentDto } from '../types/stationaryEquipment'
 
@@ -112,6 +113,32 @@ export const apiClient = {
   //#region Роли
   getAllRoles: async (): Promise<RoleDto[]> => {
     return apiClient.requestWithAuth<RoleDto[]>('/api/v1/Roles');
+  },
+  //#endregion
+
+  //#region Расходные материалы
+  getExpendableEquipment: async (): Promise<ExpendableEquipmentDto[]> => {
+    return apiClient.requestWithAuth<ExpendableEquipmentDto[]>('/api/v1/ExpendableEquipment');
+  },
+
+  addExpendableEquipment: async (payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> => {
+    return apiClient.requestWithAuth<ExpendableEquipmentDto>('/api/v1/ExpendableEquipment/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  subtractExpendableEquipment: async (payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> => {
+    return apiClient.requestWithAuth<ExpendableEquipmentDto>('/api/v1/ExpendableEquipment/subtract', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
   },
   //#endregion
 

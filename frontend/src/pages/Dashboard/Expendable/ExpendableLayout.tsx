@@ -4,7 +4,6 @@ import InputField from '../../../components/InputField/InputField';
 import Tabs from '../../../components/Tabs/Tabs';
 import ExpendableCategoriesTab from './components/ExpendableCategoriesTab';
 import ExpendableDistributionTab from './components/ExpendableDistributionTab';
-import ExpendableImportTab from './components/ExpendableImportTab';
 import ExpendableListTab from './components/ExpendableListTab';
 import styles from './Expendable.module.css';
 
@@ -17,6 +16,8 @@ const ExpendableLayout: React.FC = () => {
     });
     const [searchTerm, setSearchTerm] = useState('');
     const [exportHandler, setExportHandler] = useState<(() => void) | null>(null);
+    const [listExportHandler, setListExportHandler] = useState<(() => void) | null>(null);
+    const [listSearchTerm, setListSearchTerm] = useState('');
 
     const handleReset = useCallback(() => {
         setSearchTerm('');
@@ -25,6 +26,14 @@ const ExpendableLayout: React.FC = () => {
     const handleExport = useCallback(() => {
         exportHandler?.();
     }, [exportHandler]);
+
+    const handleListExport = useCallback(() => {
+        listExportHandler?.();
+    }, [listExportHandler]);
+
+    const handleListReset = useCallback(() => {
+        setListSearchTerm('');
+    }, []);
 
     const searchBar = (
         <div className={styles.searchPanelRow}>
@@ -62,12 +71,53 @@ const ExpendableLayout: React.FC = () => {
         </div>
     );
 
+    const listHeaderContent = (
+        <div className={styles.searchPanelRow}>
+            <div className={styles.searchLeft}>
+                <div className={styles.searchInputWrapper}>
+                    <InputField
+                        label=""
+                        type="text"
+                        placeholder="Поиск..."
+                        value={listSearchTerm}
+                        onChange={(event) => setListSearchTerm(event.target.value)}
+                    />
+                </div>
+                <div className={styles.searchButtons}>
+                    <ActionButton
+                        variant="secondary"
+                        size="md"
+                        onClick={handleListReset}
+                        className={styles.resetButton}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
+            </div>
+            <div className={styles.searchRight}>
+                <ActionButton
+                    size="md"
+                    variant="primary"
+                    onClick={handleListExport}
+                    className={styles.exportButton}
+                >
+                    <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                    Скачать Excel
+                </ActionButton>
+            </div>
+        </div>
+    );
+
     const tabs = useMemo(() => [
         {
             id: 'list',
             title: 'Список',
+            headerContent: listHeaderContent,
             content: (
-                <ExpendableListTab />
+                <ExpendableListTab
+                    searchTerm={listSearchTerm}
+                    onExportReady={setListExportHandler}
+                />
             ),
         },
         {
@@ -78,13 +128,6 @@ const ExpendableLayout: React.FC = () => {
             ),
         },
         {
-            id: 'import',
-            title: 'Импорт',
-            content: (
-                <ExpendableImportTab />
-            ),
-        },
-        {
             id: 'categories',
             title: 'Категории',
             headerContent: searchBar,
@@ -92,7 +135,14 @@ const ExpendableLayout: React.FC = () => {
                 <ExpendableCategoriesTab searchTerm={searchTerm} onExportReady={setExportHandler} />
             ),
         },
-    ], [searchBar, searchTerm]);
+    ], [
+        handleListExport,
+        handleListReset,
+        listHeaderContent,
+        searchBar,
+        searchTerm,
+        listSearchTerm,
+    ]);
 
     React.useEffect(() => {
         if (typeof window !== 'undefined') {
