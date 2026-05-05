@@ -7,12 +7,14 @@ export const useStudentData = (studentId: number) => {
     const [student, setStudent] = useState<StudentsDto | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [notFound, setNotFound] = useState(false);
     const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         if (isNaN(studentId) || studentId <= 0) {
             setLoading(false);
             setError('Некорректный ID студента');
+            setNotFound(false);
             return;
         }
 
@@ -20,6 +22,7 @@ export const useStudentData = (studentId: number) => {
             try {
                 setLoading(true);
                 setError(null);
+                setNotFound(false);
 
                 const [studentRes, contactsRes, extRes] = await Promise.all([
                     apiClient.getStudentById(studentId),
@@ -35,6 +38,11 @@ export const useStudentData = (studentId: number) => {
                 });
                 console.info(`Получение данных студента с ID: ${studentId}`);
             } catch (err: any) {
+                if (err?.status === 404) {
+                    setNotFound(true);
+                    setError(null);
+                    return;
+                }
                 const msg = err.message || 'Ошибка при загрузке данных студента';
                 setError(msg);
                 console.error('Ошибка при загрузке данных студента:', err);
@@ -50,5 +58,5 @@ export const useStudentData = (studentId: number) => {
         setReloadKey(prev => prev + 1);
     }, []);
 
-    return { student, loading, error, refetch };
+    return { student, loading, error, notFound, refetch };
 };

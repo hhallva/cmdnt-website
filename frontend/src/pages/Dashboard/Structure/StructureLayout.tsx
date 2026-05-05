@@ -1,10 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ActionButton from '../../../components/ActionButton/ActionButton';
-import CommonModal from '../../../components/CommonModal/CommonModal';
-import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import InputField from '../../../components/InputField/InputField';
+import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
 import { apiClient } from '../../../api/client';
@@ -12,13 +10,21 @@ import type { StudentsDto } from '../../../types/students';
 import type { StructureStatisticDto } from '../../../types/structures';
 import type { UserSession } from '../../../types/UserSession';
 import type { RoomWithOccupants } from './types';
+import AddRoomModal from './components/AddRoomModal';
+import BeddingDistributionTab from './components/BeddingDistributionTab';
+import BlockModal from './components/BlockModal';
+import SettlementToast from './components/SettlementToast';
+import SideMenuPortal from './components/SideMenuPortal';
 import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
 import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
+import FurnitureTab, { FurnitureTabHeader, useFurnitureTabState } from './components/FurnitureTab';
 import styles from './Structure.module.css';
+import expendableStyles from '../Expendable/Expendable.module.css';
 import {
     formatBirthday,
     formatFullName,
     formatShortName,
+    doesRoomMatchStudentGender,
     getGenderLabel,
     getInitials,
     getStatus,
@@ -28,6 +34,7 @@ import { SETTLEMENT_TAB_ID, STRUCTURE_TAB_IDS } from './constants';
 import { useStructureTabs } from './hooks/useStructureTabs';
 import { useStructureFilters } from './hooks/useStructureFilters';
 import { useSettlementForm } from './hooks/useSettlementForm';
+import { getStudentImageSrc } from '../../../utils/students';
 
 type NewRoomFormState = {
     floorNumber: string;
@@ -39,12 +46,61 @@ type NewRoomFormErrors = Partial<Record<keyof NewRoomFormState, string>>;
 
 const StructureLayout: React.FC = () => {
     const navigate = useNavigate();
-    const { rooms, students, loading, error, refetch } = useDormStructureData();
+    const location = useLocation();
+    const { buildingId } = useParams<{ buildingId: string }>();
+    const buildingIdNum = buildingId ? Number(buildingId) : null;
+    const { rooms, students, loading, error, refetch } = useDormStructureData(buildingIdNum ?? undefined);
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
     const roleName = userSession?.role?.name?.toLowerCase() ?? '';
     const isEducator = roleName.includes('воспитатель');
     const canManageRooms = !isEducator;
+    const [isNotFound, setIsNotFound] = useState(false);
+
+    const isNotFoundMessage = useCallback((message?: string) => {
+        const normalized = message?.toLowerCase() ?? '';
+        return normalized.includes('не найдено') || normalized.includes('404');
+    }, []);
+
+    const markNotFound = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('active-building');
+        }
+        setIsNotFound(true);
+        navigate('/not-found', { replace: true });
+    }, [navigate]);
+
+    useEffect(() => {
+        if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
+            markNotFound();
+            return;
+        }
+
+        const stateBuilding = (location.state as { building?: { id: number; name: string; address: string } } | null)?.building;
+        if (stateBuilding && stateBuilding.id === buildingIdNum) {
+            sessionStorage.setItem('active-building', JSON.stringify(stateBuilding));
+            return;
+        }
+
+        const loadBuilding = async () => {
+            try {
+                const building = await apiClient.getBuildingById(buildingIdNum);
+                sessionStorage.setItem('active-building', JSON.stringify({
+                    id: building.id,
+                    name: building.name,
+                    address: building.address,
+                }));
+            } catch (err: any) {
+                if (isNotFoundMessage(err?.message)) {
+                    markNotFound();
+                    return;
+                }
+                console.error('Ошибка при загрузке здания:', err);
+            }
+        };
+
+        loadBuilding();
+    }, [buildingIdNum, location.state, isNotFoundMessage, markNotFound]);
 
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -58,12 +114,34 @@ const StructureLayout: React.FC = () => {
     const [newRoomErrors, setNewRoomErrors] = useState<NewRoomFormErrors>({});
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
+    const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+    const [beddingSearchTerm, setBeddingSearchTerm] = useState('');
+    const [beddingResetSignal, setBeddingResetSignal] = useState(0);
+    const [beddingExportHandler, setBeddingExportHandler] = useState<(() => void) | null>(null);
+    const dragImageRef = useRef<HTMLElement | null>(null);
+    const sideMenuDragImageRef = useRef<HTMLElement | null>(null);
 
-    const loadStructureStats = useCallback(async () => {
-        setStatsLoading(true);
+    const clearDragImage = useCallback((ref: React.MutableRefObject<HTMLElement | null>) => {
+        if (ref.current) {
+            ref.current.remove();
+            ref.current = null;
+        }
+    }, []);
+
+    const loadStructureStats = useCallback(async (options?: { silent?: boolean }) => {
+        if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
+            setStructureStats(null);
+            setStatsError('Не удалось определить здание для статистики');
+            setStatsLoading(false);
+            return;
+        }
+
+        if (!options?.silent) {
+            setStatsLoading(true);
+        }
         setStatsError(null);
         try {
-            const data = await apiClient.getStructureStatistics();
+            const data = await apiClient.getStructureStatistics(buildingIdNum);
             setStructureStats(data);
         } catch (err: any) {
             const message = err?.message || 'Не удалось загрузить статистику общежития';
@@ -72,7 +150,7 @@ const StructureLayout: React.FC = () => {
         } finally {
             setStatsLoading(false);
         }
-    }, []);
+    }, [buildingIdNum]);
 
     useEffect(() => {
         void loadStructureStats();
@@ -134,48 +212,130 @@ const StructureLayout: React.FC = () => {
         unassignedStudents,
         canManageRooms,
         onSuccess: async () => {
-            await refetch();
+            await refetch({ silent: true });
         },
-        refreshStatistics: loadStructureStats,
+        refreshStatistics: () => loadStructureStats({ silent: true }),
         activateSettlementTab,
     });
 
+    const [unassignedSortConfig, setUnassignedSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
+    });
+
+    const requestUnassignedSort = (key: string) => {
+        setUnassignedSortConfig(prevConfig => {
+            if (prevConfig && prevConfig.key === key) {
+                return {
+                    key,
+                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
+                };
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
     const unassignedStudentsSorted = useMemo(() => {
-        return unassignedStudents
-            .slice()
-            .sort((a, b) => formatFullName(a).localeCompare(formatFullName(b), 'ru'));
-    }, [unassignedStudents]);
+        const result = unassignedStudents.slice();
+        if (!unassignedSortConfig) {
+            return result;
+        }
+
+        const { key, direction } = unassignedSortConfig;
+        const dirMultiplier = direction === 'asc' ? 1 : -1;
+
+        result.sort((a, b) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            switch (key) {
+                case 'fullName':
+                    aValue = formatFullName(a).toLowerCase();
+                    bValue = formatFullName(b).toLowerCase();
+                    break;
+                case 'group.name':
+                    aValue = (a.group?.name ?? '').toLowerCase();
+                    bValue = (b.group?.name ?? '').toLowerCase();
+                    break;
+                case 'group.course':
+                    aValue = a.group?.course ?? 0;
+                    bValue = b.group?.course ?? 0;
+                    break;
+                case 'gender':
+                    aValue = a.gender ? 1 : 0;
+                    bValue = b.gender ? 1 : 0;
+                    break;
+                case 'phone':
+                    aValue = (a.phone ?? '').toLowerCase();
+                    bValue = (b.phone ?? '').toLowerCase();
+                    break;
+                case 'birthday':
+                    aValue = a.birthday ? new Date(a.birthday).getTime() : 0;
+                    bValue = b.birthday ? new Date(b.birthday).getTime() : 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aValue < bValue) return -1 * dirMultiplier;
+            if (aValue > bValue) return 1 * dirMultiplier;
+            return 0;
+        });
+
+        return result;
+    }, [unassignedStudents, unassignedSortConfig]);
 
     const unassignedColumns = useMemo(() => ([
         {
             key: 'fullName',
             title: 'ФИО',
-            render: (student: StudentsDto) => formatFullName(student) || '—',
+            sortable: true,
+            render: (student: StudentsDto) => {
+                const fullName = formatFullName(student) || '—';
+                const imageSrc = getStudentImageSrc(student.image);
+                return (
+                    <div className={styles.fioCell}>
+                        <div className={styles.fioAvatar}>
+                            {imageSrc ? (
+                                <img src={imageSrc} alt={student.surname || 'Фото студента'} />
+                            ) : (
+                                <span>{getInitials(student) || '—'}</span>
+                            )}
+                        </div>
+                        <span className={styles.fioText}>{fullName}</span>
+                    </div>
+                );
+            },
         },
         {
             key: 'group.name',
             title: 'Группа',
+            sortable: true,
             render: (student: StudentsDto) => student.group?.name ?? '—',
         },
         {
             key: 'group.course',
             title: 'Курс',
+            sortable: true,
             render: (student: StudentsDto) => student.group?.course ?? '—',
             className: styles.tableNumericCell,
         },
         {
             key: 'gender',
             title: 'Пол',
+            sortable: true,
             render: (student: StudentsDto) => getStudentGenderLabel(student.gender),
         },
         {
             key: 'phone',
             title: 'Телефон',
+            sortable: true,
             render: (student: StudentsDto) => student.phone ?? '—',
         },
         {
             key: 'birthday',
             title: 'Дата рождения',
+            sortable: true,
             render: (student: StudentsDto) => formatBirthday(student.birthday),
         },
     ]), [navigate]);
@@ -196,7 +356,6 @@ const StructureLayout: React.FC = () => {
         setIsAddRoomModalOpen(false);
         setNewRoomErrors({});
     };
-
 
     const handleNewRoomFieldChange = (field: keyof NewRoomFormState, value: string) => {
         setNewRoomForm(prev => ({ ...prev, [field]: value }));
@@ -220,6 +379,13 @@ const StructureLayout: React.FC = () => {
             const parsed = Number(rawValue);
             if (!Number.isInteger(parsed) || parsed <= 0) {
                 errors[field] = 'Введите положительное число';
+                return;
+            }
+            if (field === 'roomNumber' && parsed > 99) {
+                errors[field] = 'Максимум 99';
+            }
+            if (field === 'capacity' && parsed > 10) {
+                errors[field] = 'Максимум 10';
             }
         });
 
@@ -229,13 +395,30 @@ const StructureLayout: React.FC = () => {
 
     const handleAddRoomSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const storedBuilding = typeof window !== 'undefined' ? sessionStorage.getItem('active-building') : null;
+        const storedBuildingId = storedBuilding ? (() => {
+            try {
+                const parsed = JSON.parse(storedBuilding) as { id?: number };
+                return typeof parsed?.id === 'number' ? parsed.id : null;
+            } catch {
+                return null;
+            }
+        })() : null;
+        const activeBuildingId = storedBuildingId ?? buildingIdNum;
+
+        if (!activeBuildingId) {
+            alert('Не удалось определить выбранное здание. Попробуйте открыть общежитие заново.');
+            return;
+        }
+
         if (!validateNewRoomForm()) {
             return;
         }
 
         const payload = {
-            floorNumber: Number(newRoomForm.floorNumber),
-            roomNumber: Number(newRoomForm.roomNumber),
+            buildingId: activeBuildingId,
+            floor: Number(newRoomForm.floorNumber),
+            number: Number(newRoomForm.roomNumber),
             capacity: Number(newRoomForm.capacity),
         };
 
@@ -246,7 +429,7 @@ const StructureLayout: React.FC = () => {
             setNewRoomForm({ floorNumber: '', roomNumber: '', capacity: '' });
             setNewRoomErrors({});
             refetch();
-            await loadStructureStats();
+            await loadStructureStats({ silent: true });
         } catch (err: any) {
             console.error('Ошибка при добавлении комнаты:', err);
             alert(err?.message || 'Не удалось добавить комнату');
@@ -272,7 +455,7 @@ const StructureLayout: React.FC = () => {
         try {
             await apiClient.deleteRoom(roomId);
             refetch();
-            await loadStructureStats();
+            await loadStructureStats({ silent: true });
         } catch (err: any) {
             console.error('Ошибка при удалении комнаты:', err);
             alert(err?.message || 'Не удалось удалить комнату');
@@ -285,6 +468,282 @@ const StructureLayout: React.FC = () => {
         prefillRoomSelection(room);
         closeBlockModal();
     }, [closeBlockModal, prefillRoomSelection]);
+
+    const setDraggingState = useCallback((element: HTMLElement, isDragging: boolean) => {
+        if (isDragging) {
+            element.setAttribute('data-dragging', 'true');
+            element.style.opacity = '1';
+            element.style.transform = 'none';
+        } else {
+            element.removeAttribute('data-dragging');
+            element.style.removeProperty('opacity');
+            element.style.removeProperty('transform');
+        }
+    }, []);
+
+    const createDragImage = useCallback((element: HTMLElement) => {
+        if (typeof document === 'undefined') {
+            return null;
+        }
+        const rect = element.getBoundingClientRect();
+        const width = Math.ceil(rect.width);
+        const height = Math.ceil(rect.height);
+        const computed = window.getComputedStyle(element);
+        const clone = element.cloneNode(true) as HTMLElement;
+        clone.style.width = `${width}px`;
+        clone.style.height = `${height}px`;
+        clone.style.position = 'absolute';
+        clone.style.top = '-1000px';
+        clone.style.left = '-1000px';
+        clone.style.opacity = '1';
+        clone.style.transform = 'none';
+        clone.style.filter = 'none';
+        clone.style.backdropFilter = 'none';
+        clone.style.boxShadow = 'none';
+        clone.style.outline = 'none';
+        clone.style.borderRadius = computed.borderRadius;
+        clone.style.backgroundColor = computed.backgroundColor;
+        clone.style.border = computed.border;
+        clone.style.overflow = 'hidden';
+        clone.style.maskImage = 'none';
+        clone.style.webkitMaskImage = 'none';
+        clone.style.pointerEvents = 'none';
+        clone.style.boxSizing = 'border-box';
+        document.body.appendChild(clone);
+        return clone;
+    }, []);
+
+    const createSideMenuDragImage = useCallback((student: StudentsDto) => {
+        if (typeof document === 'undefined') {
+            return null;
+        }
+        const imageSrc = getStudentImageSrc(student.image);
+        const card = document.createElement('div');
+        card.className = styles.sideMenuCard;
+        card.style.width = '220px';
+        card.style.position = 'absolute';
+        card.style.top = '-1000px';
+        card.style.left = '-1000px';
+        card.style.opacity = '1';
+        card.style.transform = 'none';
+        card.style.filter = 'none';
+        card.style.backdropFilter = 'none';
+        card.style.boxShadow = 'none';
+        card.style.outline = 'none';
+        card.style.overflow = 'hidden';
+        card.style.pointerEvents = 'none';
+        card.style.boxSizing = 'border-box';
+
+        const avatar = document.createElement('div');
+        avatar.className = styles.sideMenuAvatar;
+
+        if (imageSrc) {
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.alt = student.surname || 'Фотография студента';
+            avatar.appendChild(img);
+        } else {
+            const initials = document.createElement('span');
+            initials.textContent = getInitials(student) || '—';
+            avatar.appendChild(initials);
+        }
+
+        const info = document.createElement('div');
+        info.className = styles.sideMenuCardInfo;
+
+        const name = document.createElement('p');
+        name.className = styles.sideMenuName;
+        name.textContent = formatShortName(student);
+
+        const meta = document.createElement('p');
+        meta.className = styles.sideMenuMeta;
+        meta.textContent = `Группа ${student.group?.name ?? '—'}, ${student.group?.course ?? '—'} курс`;
+
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        card.appendChild(avatar);
+        card.appendChild(info);
+
+        document.body.appendChild(card);
+        return card;
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            clearDragImage(dragImageRef);
+            clearDragImage(sideMenuDragImageRef);
+        };
+    }, [clearDragImage]);
+
+    const handleStudentDragStart = useCallback((event: React.DragEvent<HTMLButtonElement>, studentId: number) => {
+        event.dataTransfer.setData('text/plain', studentId.toString());
+        event.dataTransfer.setData('application/x-student-id', studentId.toString());
+        event.dataTransfer.effectAllowed = 'move';
+        setDraggingState(event.currentTarget, true);
+        clearDragImage(dragImageRef);
+        const dragImage = createDragImage(event.currentTarget);
+        if (dragImage) {
+            event.dataTransfer.setDragImage(
+                dragImage,
+                Math.floor(dragImage.offsetWidth / 2),
+                Math.floor(dragImage.offsetHeight / 2)
+            );
+            dragImageRef.current = dragImage;
+        }
+    }, [clearDragImage, createDragImage, setDraggingState]);
+
+    const handleStudentDragEnd = useCallback((event: React.DragEvent<HTMLButtonElement>) => {
+        setDraggingState(event.currentTarget, false);
+        clearDragImage(dragImageRef);
+    }, [clearDragImage, setDraggingState]);
+
+    const handleAssignedStudentDragStart = useCallback((event: React.DragEvent<HTMLDivElement>, student: StudentsDto) => {
+        event.dataTransfer.setData('text/plain', student.id.toString());
+        event.dataTransfer.setData('application/x-student-id', student.id.toString());
+        event.dataTransfer.effectAllowed = 'move';
+        setDraggingState(event.currentTarget, true);
+        clearDragImage(sideMenuDragImageRef);
+        const dragImage = createSideMenuDragImage(student);
+        if (dragImage) {
+            event.dataTransfer.setDragImage(
+                dragImage,
+                Math.floor(dragImage.offsetWidth / 2),
+                Math.floor(dragImage.offsetHeight / 2)
+            );
+            sideMenuDragImageRef.current = dragImage;
+        }
+    }, [clearDragImage, createSideMenuDragImage, setDraggingState]);
+
+    const handleAssignedStudentDragEnd = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        setDraggingState(event.currentTarget, false);
+        clearDragImage(sideMenuDragImageRef);
+    }, [clearDragImage, setDraggingState]);
+
+    const handleRoomDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
+
+    const handleSideMenuDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
+
+    const handleRoomDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>, room: RoomWithOccupants) => {
+        event.preventDefault();
+        if (!canManageRooms) {
+            return;
+        }
+        const studentIdRaw = event.dataTransfer.getData('application/x-student-id') || event.dataTransfer.getData('text/plain');
+        const studentId = Number(studentIdRaw);
+        if (!studentIdRaw || Number.isNaN(studentId)) {
+            return;
+        }
+
+        const student = students.find(item => item.id === studentId);
+        if (!student) {
+            setSettlementAlert({ type: 'error', message: 'Студент недоступен для заселения' });
+            return;
+        }
+
+        if (student.roomId === room.id) {
+            return;
+        }
+
+        if (!doesRoomMatchStudentGender(room, student.gender)) {
+            setSettlementAlert({ type: 'error', message: 'Нельзя заселить студента в эту комнату' });
+            return;
+        }
+
+        setSettlementAlert(null);
+        try {
+            if (student.roomId && student.roomId !== room.id) {
+                await apiClient.evictStudent(studentId);
+            }
+            await apiClient.assignStudentToRoom(studentId, room.id);
+            setSettlementAlert({ type: 'success', message: 'Студент успешно заселён' });
+            await refetch({ silent: true });
+            await loadStructureStats({ silent: true });
+        } catch (err: any) {
+            setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось заселить студента' });
+        }
+    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, students]);
+
+    const handleSideMenuDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        if (!canManageRooms) {
+            return;
+        }
+        const studentIdRaw = event.dataTransfer.getData('application/x-student-id') || event.dataTransfer.getData('text/plain');
+        const studentId = Number(studentIdRaw);
+        if (!studentIdRaw || Number.isNaN(studentId)) {
+            return;
+        }
+
+        const isUnassigned = unassignedStudents.some(item => item.id === studentId);
+        if (isUnassigned) {
+            return;
+        }
+
+        setSettlementAlert(null);
+        try {
+            await apiClient.evictStudent(studentId);
+            setSettlementAlert({ type: 'success', message: 'Студент успешно выселен' });
+            await refetch({ silent: true });
+            await loadStructureStats({ silent: true });
+        } catch (err: any) {
+            setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось выселить студента' });
+        }
+    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, unassignedStudents]);
+
+    const handleCloseBlockModal = useCallback(() => {
+        closeBlockModal();
+    }, [closeBlockModal]);
+
+    const toggleSideMenu = useCallback(() => {
+        setIsSideMenuOpen(prev => !prev);
+    }, []);
+
+    const closeSideMenu = useCallback(() => {
+        setIsSideMenuOpen(false);
+    }, []);
+
+    const buildingStudents = useMemo(() => {
+        const roomIds = new Set(rooms.map(room => room.id));
+        return students.filter(student => student.roomId !== null && student.roomId !== undefined && roomIds.has(student.roomId));
+    }, [rooms, students]);
+
+    const handleBeddingExport = useCallback(() => {
+        beddingExportHandler?.();
+    }, [beddingExportHandler]);
+
+    const handleBeddingReset = useCallback(() => {
+        setBeddingSearchTerm('');
+        setBeddingResetSignal(prev => prev + 1);
+    }, []);
+
+    const furnitureTabState = useFurnitureTabState(buildingIdNum ?? null);
+
+    const handleRoomFurnitureClick = useCallback((room: RoomWithOccupants) => {
+        furnitureTabState.actions.selectRoomById(room.id);
+        setActiveTabId('furniture');
+    }, [furnitureTabState.actions, setActiveTabId]);
+
+    useEffect(() => {
+        const furnitureEquipmentId = (location.state as { furnitureEquipmentId?: number } | null)?.furnitureEquipmentId;
+        if (typeof furnitureEquipmentId !== 'number') {
+            return;
+        }
+        furnitureTabState.actions.selectEquipmentById(furnitureEquipmentId);
+        setActiveTabId('furniture');
+        navigate(location.pathname, { replace: true, state: {} });
+    }, [furnitureTabState.actions, location.pathname, location.state, navigate, setActiveTabId]);
+
+
+    if (isNotFound) {
+        return null;
+    }
 
     if (loading) {
         return (
@@ -367,6 +826,9 @@ const StructureLayout: React.FC = () => {
             students={unassignedStudentsSorted}
             columns={unassignedColumns}
             rowAction={rowAction}
+            enableSorting={true}
+            onSortRequest={requestUnassignedSort}
+            sortConfig={unassignedSortConfig}
             formatFullName={formatFullName}
             formatBirthday={formatBirthday}
             getStudentGenderLabel={getStudentGenderLabel}
@@ -374,228 +836,134 @@ const StructureLayout: React.FC = () => {
         />
     );
 
+    const beddingHeaderContent = (
+        <div className={expendableStyles.searchPanelRow}>
+            <div className={expendableStyles.searchLeft}>
+                <div className={expendableStyles.searchInputWrapper}>
+                    <InputField
+                        label=""
+                        type="text"
+                        placeholder="Поиск..."
+                        value={beddingSearchTerm}
+                        onChange={(event) => setBeddingSearchTerm(event.target.value)}
+                    />
+                </div>
+                <div className={expendableStyles.searchButtons}>
+                    <ActionButton
+                        variant="secondary"
+                        size="md"
+                        onClick={handleBeddingReset}
+                        className={expendableStyles.resetButton}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
+            </div>
+            <div className={expendableStyles.searchRight}>
+                <ActionButton
+                    size="md"
+                    variant="primary"
+                    onClick={handleBeddingExport}
+                    className={expendableStyles.exportButton}
+                >
+                    <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                    Скачать Excel
+                </ActionButton>
+            </div>
+        </div>
+    );
+
+    const furnitureTabContent = (
+        <FurnitureTab {...furnitureTabState.contentProps} />
+    );
+
+    const furnitureHeaderContent = (
+        <FurnitureTabHeader {...furnitureTabState.headerProps} />
+    );
+
+    const beddingTabContent = (
+        <BeddingDistributionTab
+            searchTerm={beddingSearchTerm}
+            students={buildingStudents}
+            onExportReady={setBeddingExportHandler}
+            resetSignal={beddingResetSignal}
+        />
+    );
+
     const tabs = canManageRooms
         ? [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
             { id: SETTLEMENT_TAB_ID, title: 'Расселение', headerContent: settlementHeaderContent, content: settlementTabContent },
+            { id: 'furniture', title: 'Мебель', headerContent: furnitureHeaderContent, content: furnitureTabContent },
+            { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
         ]
         : [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
+            { id: 'furniture', title: 'Мебель', headerContent: furnitureHeaderContent, content: furnitureTabContent },
+            { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
         ];
-
-    const settlementToast = settlementAlert && typeof document !== 'undefined'
-        ? createPortal(
-            <div className={styles.toastContainer}>
-                <div className={`${styles.toast} ${settlementAlert.type === 'success' ? styles.toastSuccess : styles.toastError}`}>
-                    <span>{settlementAlert.message}</span>
-                    <button
-                        type="button"
-                        className={styles.toastCloseButton}
-                        onClick={() => setSettlementAlert(null)}
-                        aria-label="Закрыть уведомление"
-                    >
-                        ×
-                    </button>
-                </div>
-            </div>,
-            document.body
-        )
-        : null;
 
     return (
         <>
-
-            {settlementToast}
-
-
+            <SettlementToast alert={settlementAlert} onClose={() => setSettlementAlert(null)} />
             {canManageRooms && (
-                <CommonModal
-                    title="Добавить комнату"
-                    isOpen={isAddRoomModalOpen}
-                    onClose={closeAddRoomModal}
-                    minWidth={520}
-                >
-                    <form className={styles.addRoomForm} onSubmit={handleAddRoomSubmit}>
-                        <div className={styles.addRoomFormGrid}>
-                            <InputField
-                                label="Номер этажа"
-                                type="number"
-                                min="1"
-                                inputMode="numeric"
-                                value={newRoomForm.floorNumber}
-                                onChange={(e) => handleNewRoomFieldChange('floorNumber', e.target.value)}
-                                disabled={isCreatingRoom}
-                                error={newRoomErrors.floorNumber}
-                            />
-                            <InputField
-                                label="Номер комнаты"
-                                type="number"
-                                min="1"
-                                inputMode="numeric"
-                                value={newRoomForm.roomNumber}
-                                onChange={(e) => handleNewRoomFieldChange('roomNumber', e.target.value)}
-                                disabled={isCreatingRoom}
-                                error={newRoomErrors.roomNumber}
-                            />
-                            <InputField
-                                label="Вместимость"
-                                type="number"
-                                min="1"
-                                inputMode="numeric"
-                                value={newRoomForm.capacity}
-                                onChange={(e) => handleNewRoomFieldChange('capacity', e.target.value)}
-                                disabled={isCreatingRoom}
-                                error={newRoomErrors.capacity}
-                            />
-                        </div>
-                        <div className={styles.addRoomActions}>
-                            <ActionButton
-                                size='md'
-                                variant='secondary'
-                                type='button'
-                                className={styles.fullWidthMobileButton}
-                                onClick={closeAddRoomModal}
-                                disabled={isCreatingRoom}
-                            >
-                                Отмена
-                            </ActionButton>
-                            <ActionButton
-                                size='md'
-                                variant='primary'
-                                type='submit'
-                                className={styles.fullWidthMobileButton}
-                                disabled={isCreatingRoom}
-                            >
-                                {isCreatingRoom ? 'Добавляем…' : 'Добавить'}
-                            </ActionButton>
-                        </div>
-                    </form>
-                </CommonModal>
+                <SideMenuPortal
+                    isActive={Boolean(activeBlock)}
+                    isOpen={isSideMenuOpen}
+                    students={unassignedStudentsSorted}
+                    onToggle={toggleSideMenu}
+                    onClose={closeSideMenu}
+                    onStudentSelect={handleSettlementStudentSelect}
+                    onDragStart={handleStudentDragStart}
+                    onDragEnd={handleStudentDragEnd}
+                    onDragOver={handleSideMenuDragOver}
+                    onDrop={handleSideMenuDrop}
+                />
             )}
 
-            {!statsLoading && !statsError && structureStats && (
-                <StatisticsCard
-                    stats={[
-                        { value: students.length, label: 'Всего студентов' },
-                        { value: structureStats.studentCount, label: 'Заселено студентов' },
-                        { value: Math.max(students.length - structureStats.studentCount, 0), label: 'Свободно студентов' },
-                        { value: structureStats.totalCopacity, label: 'Всего мест' },
-                        { value: structureStats.freeCount, label: 'Свободных мест' },
-                    ]}
+            {canManageRooms && (
+                <AddRoomModal
+                    isOpen={isAddRoomModalOpen}
+                    isCreating={isCreatingRoom}
+                    form={newRoomForm}
+                    errors={newRoomErrors}
+                    onClose={closeAddRoomModal}
+                    onFieldChange={handleNewRoomFieldChange}
+                    onSubmit={handleAddRoomSubmit}
                 />
+            )}
+
+            {!statsLoading && !statsError && structureStats && (<StatisticsCard
+                stats={[
+                    { value: structureStats.totalCopacity, label: 'мест' },
+                    { value: structureStats.occupiedCount, label: 'заселено' },
+                    { value: structureStats.freeCount, label: 'свободно' },
+                    { value: structureStats.studentCount, label: 'всего студентов' },
+                ]}
+            />
             )}
 
             <Tabs
                 tabs={tabs}
                 activeTabId={activeTabId}
+
                 onTabChange={handleTabChange}
             />
 
-            <CommonModal
-                title={activeBlock && (
-                    <div className={styles.blockHeader}>
-                        <p className={styles.blockNumber}>
-                            <span className={styles.blockNumberBadge}>{activeBlock.blockNumber}</span>
-                        </p>
-                        <div className={styles.blockMetaColumn}>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Тип</span>
-                                <span className={styles.blockMetaValue}>{getGenderLabel(activeBlock)}</span>
-                            </p>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Этаж</span>
-                                <span className={styles.blockMetaValue}>{activeBlock.floorNumber}</span>
-                            </p>
-                        </div>
-                        <div className={styles.blockMetaColumn}>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Статус</span>
-                                <span className={styles.blockMetaValue}>{getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'occupied' ? 'Занят' : getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'free' ? 'Свободен' : 'Частично занят'}</span>
-                            </p>
-                            <p className={styles.blockMeta}>
-                                <span className={styles.blockMetaLabel}>Заселено</span>
-                                <span className={styles.blockMetaValue}>{activeBlock.currentCapacity}/{activeBlock.capacity}</span>
-                            </p>
-
-                        </div>
-                    </div>
-                )}
-                isOpen={Boolean(activeBlock)}
-                onClose={closeBlockModal}
-                minWidth={720}
-            >
-                {activeBlock && (
-                    <div className={styles.modalContentWrapper}>
-                        {activeBlock.rooms.map((room, roomIndex) => {
-                            const freeSlotsCount = Math.max(room.capacity - room.currentCapacity, 0);
-                            return (
-                                <div key={room.id} className={styles.blockRoomSection}>
-                                    <div className={styles.blockRoomHeader}>
-                                        <p className={styles.blockRoomTitle}>Комната {roomIndex + 1}</p>
-                                        {canManageRooms && (
-                                            <ActionButton
-                                                variant='transparent-primary'
-                                                size='sm'
-                                                type='button'
-                                                className={styles.blockRoomDeleteButton}
-                                                disabled={deletingRoomId === room.id}
-                                                onClick={() => handleDeleteRoom(room.id, room.roomNumber)}
-                                            >
-                                                {deletingRoomId === room.id ? 'Удаляем…' : 'Удалить'}
-                                            </ActionButton>
-                                        )}
-                                    </div>
-                                    <div className={styles.studentsList}>
-                                        {room.occupants.map(student => (
-                                            <div key={student.id} className={styles.studentRow}>
-                                                <div className={styles.studentInfo}>
-                                                    <div className={styles.studentAvatar}>{getInitials(student)}</div>
-                                                    <div>
-                                                        <p className={styles.studentName}>{formatShortName(student)}</p>
-                                                        <p className={styles.studentMeta}>
-                                                            {student.group?.name ?? '—'} · {student.group?.course ?? '—'} курс
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <ActionButton
-                                                    variant='secondary'
-                                                    size='sm'
-                                                    className={styles.studentCardButton}
-                                                    onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                                                >
-                                                    Карточка
-                                                </ActionButton>
-                                            </div>
-                                        ))}
-                                        {freeSlotsCount > 0 && Array.from({ length: freeSlotsCount }).map((_, slotIndex) => (
-                                            <div
-                                                key={`${room.id}-free-${slotIndex}`}
-                                                className={`${styles.studentRow} ${styles.freeSlotCard}`}
-                                                role="button"
-                                                tabIndex={0}
-                                                onClick={() => handleFreeSlotClick(room)}
-                                                onKeyDown={(event) => {
-                                                    if (event.key === 'Enter' || event.key === ' ') {
-                                                        event.preventDefault();
-                                                        handleFreeSlotClick(room);
-                                                    }
-                                                }}
-                                            >
-                                                <div className={styles.studentInfo}>
-                                                    <div className={`${styles.studentAvatar} ${styles.freeSlotAvatar}`}>+</div>
-                                                    <div>
-                                                        <p className={styles.studentName}>Свободное место</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </CommonModal>
+            <BlockModal
+                activeBlock={activeBlock}
+                canManageRooms={canManageRooms}
+                deletingRoomId={deletingRoomId}
+                onClose={handleCloseBlockModal}
+                onDeleteRoom={handleDeleteRoom}
+                onRoomFurnitureClick={handleRoomFurnitureClick}
+                onFreeSlotClick={handleFreeSlotClick}
+                onRoomDragOver={handleRoomDragOver}
+                onRoomDrop={handleRoomDrop}
+                onStudentDragStart={handleAssignedStudentDragStart}
+                onStudentDragEnd={handleAssignedStudentDragEnd}
+                onStudentCardClick={(studentId) => navigate(`/dashboard/students/${studentId}`)}
+            />
         </>
     );
 };

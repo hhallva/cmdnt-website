@@ -20,7 +20,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: CmdntBackend/CmdntApi/Dockerfile
+      dockerfile: backend/API/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ConnectionStrings__DefaultConnection: Server=db;Port=3306;Database=${DB_NAME};User=${DB_USER};Password=${DB_PASSWORD}

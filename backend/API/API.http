@@ -1,0 +1,10 @@
+@Host = https://localhost:5001/api/v1
+
+POST {{Host}}/SignIn
+Accept: text/plain
+Content-Type: application/json
+{
+  "login": "superadmin",
+  "password": "sdflndsfjdsfe12"
+}
+###

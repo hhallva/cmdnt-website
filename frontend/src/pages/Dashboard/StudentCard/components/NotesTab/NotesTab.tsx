@@ -132,11 +132,8 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
     };
 
 
-    const notesHintText = isLoading
-        ? 'Загрузка заметок...'
-        : notes.length > 0
-            ? `Всего заметок: ${notes.length}`
-            : '';
+    const notesHintText = isLoading ? 'Загрузка заметок...' : '';
+    const hasNotes = notes.length > 0;
 
     return (
 
@@ -145,13 +142,20 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
                 <div
                     className={styles.notesToolbar}
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                    <span className={styles.notesHint}>{notesHintText}</span>
+                    <span className={styles.notesHint}>
+                        {isLoading && notesHintText}
+                        {!isLoading && hasNotes && (
+                            <>
+                                <span className={styles.notesHintLabel}>Всего заметок</span>
+                                <span className={styles.notesHintValue}>{notes.length}</span>
+                            </>
+                        )}
+                    </span>
                     <ActionButton
                         variant='primary'
                         size='md'
                         onClick={handleOpenModal}
                         disabled={isLoading}
-                        className={styles.notesToolbarButton}
                     >
                         Добавить
                     </ActionButton>
@@ -216,11 +220,6 @@ const NotesTab: React.FC<NotesTabProps> = ({ studentId, studentName, currentUser
                                         </span>
                                         <span
                                             className={`d-none d-sm-inline ${styles.noteDateText}`}
-                                        >
-                                            {formattedDate}
-                                        </span>
-                                        <span
-                                            className={`d-sm-none d-block ${styles.noteDateText}`}
                                         >
                                             {formattedDate}
                                         </span>

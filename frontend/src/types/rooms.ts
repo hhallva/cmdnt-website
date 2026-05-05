@@ -1,14 +1,15 @@
 export interface RoomDto {
     id: number;
-    floorNumber: number;
-    roomNumber: string;
+    floor: number;
+    number: string;
     capacity: number;
     currentCapacity: number;
     genderType: boolean | null;
 }
 
 export interface PostRoomDto {
-    floorNumber: number;
-    roomNumber: number;
+    buildingId: number;
+    floor: number;
+    number: number;
     capacity: number;
 }

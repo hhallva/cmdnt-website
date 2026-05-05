@@ -1,6 +1,6 @@
 import type { RoomDto } from '../../../types/rooms';
 import type { StudentsDto } from '../../../types/students';
-import type { RoomStatus, RoomWithOccupants } from './types';
+import type { BlockWithRooms, RoomStatus, RoomWithOccupants } from './types';
 
 export const getStatus = (currentCapacity: number, capacity: number): RoomStatus => {
     if (currentCapacity === 0) {
@@ -29,10 +29,30 @@ export const formatFullName = (student: StudentsDto): string => {
     return [student.surname, student.name, student.patronymic].filter(Boolean).join(' ').trim();
 };
 
-export const getGenderLabel = (entity: { genderType: RoomWithOccupants['genderType'] }): string => {
-    if (entity.genderType === null) {
-        return '-';
+export const getGenderLabel = (entity: Pick<BlockWithRooms, 'genderType' | 'currentCapacity' | 'rooms'>): string => {
+    if (entity.currentCapacity === 0) {
+        const roomGenders = entity.rooms
+            .map(room => room.genderType)
+            .filter((gender): gender is boolean => gender === true || gender === false);
+
+        if (roomGenders.length === 0) {
+            return '-';
+        }
+
+        const hasMaleRooms = roomGenders.some(gender => gender === true);
+        const hasFemaleRooms = roomGenders.some(gender => gender === false);
+
+        if (hasMaleRooms && hasFemaleRooms) {
+            return 'Смешаный';
+        }
+
+        return hasMaleRooms ? 'Мужской' : 'Женский';
     }
+
+    if (entity.genderType === null) {
+        return 'Смешаный';
+    }
+
     return entity.genderType ? 'Мужской' : 'Женский';
 };
 

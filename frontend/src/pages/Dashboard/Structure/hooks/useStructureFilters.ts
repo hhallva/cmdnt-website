@@ -31,12 +31,12 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
                 ...room,
                 occupants: students.filter(student => student.roomId === room.id),
             }))
-            .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber));
+            .sort((a, b) => Number(a.number) - Number(b.number));
     }, [rooms, students]);
 
     const floorOptions = useMemo(() => {
         const floorsSet = new Set<number>();
-        roomsWithOccupants.forEach(room => floorsSet.add(room.floorNumber));
+        roomsWithOccupants.forEach(room => floorsSet.add(room.floor));
         const options = Array.from(floorsSet)
             .sort((a, b) => a - b)
             .map(floor => ({ value: floor, label: `${floor} этаж` }));
@@ -46,12 +46,12 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
     const blockOptions = useMemo(() => {
         const filteredRooms = selectedFloor === 'all'
             ? roomsWithOccupants
-            : roomsWithOccupants.filter(room => room.floorNumber === selectedFloor);
+            : roomsWithOccupants.filter(room => room.floor === selectedFloor);
         const blockMap = new Map<string, { label: string }>();
         filteredRooms.forEach(room => {
-            const blockKey = getBlockKey(room.floorNumber, room.roomNumber);
+            const blockKey = getBlockKey(room.floor, room.number);
             if (!blockMap.has(blockKey)) {
-                blockMap.set(blockKey, { label: room.roomNumber });
+                blockMap.set(blockKey, { label: room.number });
             }
         });
         const options = Array.from(blockMap.entries())
@@ -73,7 +73,7 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
                 if (!room) {
                     return false;
                 }
-                return getBlockKey(room.floorNumber, room.roomNumber) === selectedBlockKey;
+                return getBlockKey(room.floor, room.number) === selectedBlockKey;
             });
         } else if (selectedFloor !== 'all') {
             filtered = filtered.filter(student => {
@@ -81,7 +81,7 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
                     return false;
                 }
                 const room = roomsById.get(student.roomId);
-                return room?.floorNumber === selectedFloor;
+                return room?.floor === selectedFloor;
             });
         }
         const allLabel = selectedBlockKey !== 'all'
@@ -123,7 +123,7 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
                 return 'all';
             }
             const room = roomsById.get(student.roomId);
-            return room && room.floorNumber === nextFloor ? prev : 'all';
+            return room && room.floor === nextFloor ? prev : 'all';
         });
     }, [roomsById, students]);
 
@@ -151,7 +151,7 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
             if (!room) {
                 return 'all';
             }
-            return getBlockKey(room.floorNumber, room.roomNumber) === value ? prev : 'all';
+            return getBlockKey(room.floor, room.number) === value ? prev : 'all';
         });
     }, [roomsById, students]);
 
@@ -169,8 +169,8 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
         }
         const room = roomsById.get(student.roomId);
         if (room) {
-            setSelectedBlockKey(getBlockKey(room.floorNumber, room.roomNumber));
-            setSelectedFloor(room.floorNumber);
+            setSelectedBlockKey(getBlockKey(room.floor, room.number));
+            setSelectedFloor(room.floor);
         } else {
             setSelectedBlockKey('all');
         }
@@ -180,7 +180,7 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
         const targetBlockKey = selectedBlockKey === 'all' ? null : selectedBlockKey;
 
         return roomsWithOccupants.filter(room => {
-            if (selectedFloor !== 'all' && room.floorNumber !== selectedFloor) {
+            if (selectedFloor !== 'all' && room.floor !== selectedFloor) {
                 return false;
             }
             if (selectedStudentId !== 'all' && !room.occupants.some(student => student.id === selectedStudentId)) {
@@ -188,7 +188,7 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
             }
 
             if (targetBlockKey) {
-                return getBlockKey(room.floorNumber, room.roomNumber) === targetBlockKey;
+                return getBlockKey(room.floor, room.number) === targetBlockKey;
             }
 
             return true;
@@ -199,17 +199,17 @@ export const useStructureFilters = ({ rooms, students }: UseStructureFiltersArgs
         const floorMap = new Map<number, Map<string, BlockWithRooms>>();
 
         filteredRooms.forEach(room => {
-            if (!floorMap.has(room.floorNumber)) {
-                floorMap.set(room.floorNumber, new Map());
+            if (!floorMap.has(room.floor)) {
+                floorMap.set(room.floor, new Map());
             }
 
-            const blocksMap = floorMap.get(room.floorNumber)!;
-            const blockNumber = room.roomNumber;
+            const blocksMap = floorMap.get(room.floor)!;
+            const blockNumber = room.number;
 
             if (!blocksMap.has(blockNumber)) {
                 blocksMap.set(blockNumber, {
                     blockNumber,
-                    floorNumber: room.floorNumber,
+                    floorNumber: room.floor,
                     rooms: [],
                     capacity: 0,
                     currentCapacity: 0,

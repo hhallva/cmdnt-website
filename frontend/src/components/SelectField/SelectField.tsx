@@ -7,14 +7,15 @@ interface SelectFieldProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>,
     label?: string;
     options: { value: string | number; label: string }[];
     error?: string; // Добавляем пропс для ошибки
+    labelClassName?: string;
 }
 
-const SelectField: React.FC<SelectFieldProps> = ({ label, options, error, ...selectProps }) => {
+const SelectField: React.FC<SelectFieldProps> = ({ label, options, error, labelClassName, ...selectProps }) => {
     return (
         <div className={styles.formGroup}>
             {(label || error) && (
                 <div className={styles.labelRow}>
-                    {label && <label className={styles.formLabel}>{label}</label>}
+                    {label && <label className={`${styles.formLabel} ${labelClassName ?? ''}`}>{label}</label>}
                     {error && <span className={styles.inlineError}>{error}</span>}
                 </div>
             )}

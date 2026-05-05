@@ -1,28 +1,44 @@
 import { useCallback, useEffect, useState } from 'react';
 import { dormitoryApi } from '../api/dormitory';
+import { apiClient } from '../api/client';
 import type { RoomDto } from '../types/rooms';
 import type { StudentsDto } from '../types/students';
 
-export const useDormStructureData = () => {
+export const useDormStructureData = (buildingId?: number) => {
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [students, setStudents] = useState<StudentsDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [reloadKey, setReloadKey] = useState(0);
+    const [silentReload, setSilentReload] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
 
         const loadData = async () => {
-            setLoading(true);
+            if (!silentReload) {
+                setLoading(true);
+            }
             setError(null);
             try {
-                const dataset = await dormitoryApi.fetchDataset();
-                if (!isMounted) {
-                    return;
+                if (buildingId) {
+                    const [rooms, students] = await Promise.all([
+                        apiClient.getRoomsByBuildingId(buildingId),
+                        apiClient.getAllStudents(),
+                    ]);
+                    if (!isMounted) {
+                        return;
+                    }
+                    setRooms(rooms);
+                    setStudents(students);
+                } else {
+                    const dataset = await dormitoryApi.fetchDataset();
+                    if (!isMounted) {
+                        return;
+                    }
+                    setRooms(dataset.rooms);
+                    setStudents(dataset.students);
                 }
-                setRooms(dataset.rooms);
-                setStudents(dataset.students);
             } catch (err: any) {
                 if (!isMounted) {
                     return;
@@ -33,6 +49,7 @@ export const useDormStructureData = () => {
             } finally {
                 if (isMounted) {
                     setLoading(false);
+                    setSilentReload(false);
                 }
             }
         };
@@ -42,9 +59,13 @@ export const useDormStructureData = () => {
         return () => {
             isMounted = false;
         };
-    }, [reloadKey]);
+    }, [buildingId, reloadKey]);
 
-    const refetch = useCallback(() => {
+    const refetch = useCallback((options?: { silent?: boolean }) => {
+        if (options?.silent) {
+            setSilentReload(true);
+            setLoading(false);
+        }
         setReloadKey(prev => prev + 1);
     }, []);
 
