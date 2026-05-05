@@ -40,119 +40,144 @@ namespace API.Controllers
             return Ok(grouped);
         }
 
-        [HttpPost]
+        [HttpPost("student/{studentId:int}")]
         [SwaggerOperation(
-            Summary = "Добавление распределения расходников",
-            Description = "Создает запись распределения расходников студенту.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Распределение успешно создано.", Type = typeof(ExpendableDistributionDto))]
+            Summary = "Массовое добавление распределений студенту",
+            Description = "Создает несколько записей распределения расходников для одного студента одним запросом.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Распределения успешно созданы.", Type = typeof(ExpendableDistributionDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<ExpendableDistributionDto>> CreateDistribution(
-            [SwaggerRequestBody("Данные для распределения", Required = true)] ExpendableDistributionUpsertDto dto)
+        public async Task<ActionResult<ExpendableDistributionDto>> CreateDistributionsForStudent(
+            int studentId,
+            [FromBody] List<ExpendableDistributionBatchItemDto> items)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
 
-            var studentExists = await _context.Students.AnyAsync(student => student.Id == dto.StudentId);
+            if (studentId <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
+
+            if (items == null || items.Count == 0)
+                return BadRequest(new ApiErrorDto("Список распределений не может быть пустым", StatusCodes.Status400BadRequest));
+
+            var studentExists = await _context.Students.AnyAsync(student => student.Id == studentId);
             if (!studentExists)
                 return BadRequest(new ApiErrorDto("Студент не найден", StatusCodes.Status400BadRequest));
 
-            var equipment = await _context.ExpendableEquipments
+            var duplicatedTypeIds = items
+                .GroupBy(item => item.Id)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+
+            if (duplicatedTypeIds.Count != 0)
+                return BadRequest(new ApiErrorDto("Категории расходников не должны повторяться в одном запросе", StatusCodes.Status400BadRequest));
+
+            var typeIds = items.Select(item => item.Id).ToList();
+
+            var equipmentByType = await _context.ExpendableEquipments
                 .Include(item => item.ExpendableDistributions)
                 .Include(item => item.Type)
-                .FirstOrDefaultAsync(item => item.TypeId == dto.TypeId);
+                .Where(item => typeIds.Contains(item.TypeId))
+                .ToDictionaryAsync(item => item.TypeId);
 
-            if (equipment == null)
-                return BadRequest(new ApiErrorDto("Категория расходников не найдена", StatusCodes.Status400BadRequest));
-
-            var used = equipment.ExpendableDistributions.Sum(dist => dist.Count);
-            var available = equipment.Count - used;
-
-            if (available < dto.Count)
-                return BadRequest(new ApiErrorDto("Недостаточно расходников на складе", StatusCodes.Status400BadRequest));
-
-            var distribution = new ExpendableDistribution
+            foreach (var item in items)
             {
-                StudentId = dto.StudentId,
-                ExpendableId = equipment.Id,
-                Count = dto.Count,
-            };
+                if (!equipmentByType.TryGetValue(item.Id, out var equipment))
+                    return BadRequest(new ApiErrorDto($"Категория расходников с ID={item.Id} не найдена", StatusCodes.Status400BadRequest));
 
-            _context.ExpendableDistributions.Add(distribution);
+                var used = equipment.ExpendableDistributions.Sum(dist => dist.Count);
+                var available = equipment.Count - used;
+
+                if (available < item.Count)
+                    return BadRequest(new ApiErrorDto($"Недостаточно расходников на складе для категории с ID={item.Id}", StatusCodes.Status400BadRequest));
+            }
+
+            var entities = items.Select(item => new ExpendableDistribution
+            {
+                StudentId = studentId,
+                ExpendableId = equipmentByType[item.Id].Id,
+                Count = item.Count,
+            });
+
+            _context.ExpendableDistributions.AddRange(entities);
             await _context.SaveChangesAsync();
 
-            var createdGrouped = await GetStudentGroupedDistributionAsync(distribution.StudentId);
+            var createdGrouped = await GetStudentGroupedDistributionAsync(studentId);
             return Ok(createdGrouped);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("student/{studentId:int}")]
         [SwaggerOperation(
-            Summary = "Обновление распределения расходников",
-            Description = "Обновляет данные распределения расходников для студента.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Распределение успешно обновлено.", Type = typeof(ExpendableDistributionDto))]
+            Summary = "Полная замена распределений студента",
+            Description = "Полностью заменяет набор распределений расходников для студента одним запросом (upsert replace).")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Распределения успешно обновлены.", Type = typeof(ExpendableDistributionDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Распределение не найдено.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<ExpendableDistributionDto>> UpdateDistribution(
-            int id,
-            [SwaggerRequestBody("Данные для обновления", Required = true)] ExpendableDistributionUpsertDto dto)
+        public async Task<ActionResult<ExpendableDistributionDto>> ReplaceStudentDistributions(
+            int studentId,
+            [FromBody] List<ExpendableDistributionBatchItemDto> items)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
 
-            var distribution = await _context.ExpendableDistributions
-                .Include(item => item.Expendable)
-                .ThenInclude(item => item.Type)
-                .Include(item => item.Student)
-                .FirstOrDefaultAsync(item => item.Id == id);
+            if (studentId <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
 
-            if (distribution == null)
-                return NotFound(new ApiErrorDto("Распределение не найдено", StatusCodes.Status404NotFound));
+            if (items == null)
+                return BadRequest(new ApiErrorDto("Список распределений не передан", StatusCodes.Status400BadRequest));
 
-            var studentExists = await _context.Students.AnyAsync(student => student.Id == dto.StudentId);
+            var studentExists = await _context.Students.AnyAsync(student => student.Id == studentId);
             if (!studentExists)
                 return BadRequest(new ApiErrorDto("Студент не найден", StatusCodes.Status400BadRequest));
 
-            var equipment = await _context.ExpendableEquipments
+            var duplicatedTypeIds = items
+                .GroupBy(item => item.Id)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+
+            if (duplicatedTypeIds.Count != 0)
+                return BadRequest(new ApiErrorDto("Категории расходников не должны повторяться в одном запросе", StatusCodes.Status400BadRequest));
+
+            var typeIds = items.Select(item => item.Id).ToList();
+
+            var equipmentByType = await _context.ExpendableEquipments
                 .Include(item => item.ExpendableDistributions)
                 .Include(item => item.Type)
-                .FirstOrDefaultAsync(item => item.TypeId == dto.TypeId);
+                .Where(item => typeIds.Contains(item.TypeId))
+                .ToDictionaryAsync(item => item.TypeId);
 
-            if (equipment == null)
-                return BadRequest(new ApiErrorDto("Категория расходников не найдена", StatusCodes.Status400BadRequest));
+            foreach (var item in items)
+            {
+                if (!equipmentByType.TryGetValue(item.Id, out var equipment))
+                    return BadRequest(new ApiErrorDto($"Категория расходников с ID={item.Id} не найдена", StatusCodes.Status400BadRequest));
 
-            var used = equipment.ExpendableDistributions
-                .Where(dist => dist.Id != distribution.Id)
-                .Sum(dist => dist.Count);
-            var available = equipment.Count - used;
+                var usedByOthers = equipment.ExpendableDistributions
+                    .Where(dist => dist.StudentId != studentId)
+                    .Sum(dist => dist.Count);
 
-            if (available < dto.Count)
-                return BadRequest(new ApiErrorDto("Недостаточно расходников на складе", StatusCodes.Status400BadRequest));
+                var availableForStudent = equipment.Count - usedByOthers;
+                if (availableForStudent < item.Count)
+                    return BadRequest(new ApiErrorDto($"Недостаточно расходников на складе для категории с ID={item.Id}", StatusCodes.Status400BadRequest));
+            }
 
-            distribution.StudentId = dto.StudentId;
-            distribution.ExpendableId = equipment.Id;
-            distribution.Count = dto.Count;
+            var existing = await _context.ExpendableDistributions
+                .Where(item => item.StudentId == studentId)
+                .ToListAsync();
 
+            _context.ExpendableDistributions.RemoveRange(existing);
+
+            var entities = items.Select(item => new ExpendableDistribution
+            {
+                StudentId = studentId,
+                ExpendableId = equipmentByType[item.Id].Id,
+                Count = item.Count,
+            });
+
+            _context.ExpendableDistributions.AddRange(entities);
             await _context.SaveChangesAsync();
 
-            var updatedGrouped = await GetStudentGroupedDistributionAsync(distribution.StudentId);
+            var updatedGrouped = await GetStudentGroupedDistributionAsync(studentId);
             return Ok(updatedGrouped);
-        }
-
-        [HttpDelete("{id:int}")]
-        [SwaggerOperation(
-            Summary = "Удаление распределения расходников",
-            Description = "Удаляет запись распределения расходников.")]
-        [SwaggerResponse(StatusCodes.Status204NoContent, "Распределение успешно удалено.")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Распределение не найдено.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> DeleteDistribution(int id)
-        {
-            var distribution = await _context.ExpendableDistributions.FirstOrDefaultAsync(item => item.Id == id);
-            if (distribution == null)
-                return NotFound(new ApiErrorDto("Распределение не найдено", StatusCodes.Status404NotFound));
-
-            _context.ExpendableDistributions.Remove(distribution);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
         private async Task<ExpendableDistributionDto> GetStudentGroupedDistributionAsync(int studentId)
@@ -165,10 +190,35 @@ namespace API.Controllers
                 .Where(item => item.StudentId == studentId)
                 .ToListAsync();
 
+            if (studentDistributions.Count == 0)
+            {
+                var student = await _context.Students
+                    .AsNoTracking()
+                    .FirstAsync(item => item.Id == studentId);
+
+                return new ExpendableDistributionDto
+                {
+                    Id = studentId,
+                    Student = new ExpendableDistributionStudentDto
+                    {
+                        Id = student.Id,
+                        FullName = BuildStudentFullName(student),
+                    },
+                    Types = [],
+                };
+            }
+
             return studentDistributions
                 .GroupBy(item => item.StudentId)
                 .Select(group => group.ToGroupedDto())
                 .First();
+        }
+
+        private static string BuildStudentFullName(Student student)
+        {
+            return string.Join(" ", new[] { student.Surname, student.Name, student.Patronymic }
+                .Where(part => !string.IsNullOrWhiteSpace(part))
+                .Select(part => part!.Trim()));
         }
     }
 }

@@ -7,9 +7,9 @@ import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import { apiClient } from '../../../../api/client';
 import type {
+    ExpendableDistributionBatchItemDto,
     ExpendableDistributionDto,
     ExpendableDistributionTypeDto,
-    ExpendableDistributionUpsertDto,
 } from '../../../../types/expendableDistribution';
 import type { ExpendableEquipmentDto } from '../../../../types/expendableEquipment';
 import type { StudentsDto } from '../../../../types/students';
@@ -37,6 +37,10 @@ type BeddingDistributionTabProps = {
     students: StudentsDto[];
     onExportReady?: (handler: (() => void) | null) => void;
     resetSignal?: number;
+};
+
+type LoadDataOptions = {
+    soft?: boolean;
 };
 
 const distributionItems: Array<{ key: DistributionItemKey; label: string }> = [
@@ -69,6 +73,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const [distributions, setDistributions] = useState<ExpendableDistributionDto[]>([]);
     const [stock, setStock] = useState<ExpendableEquipmentDto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingRow, setEditingRow] = useState<BeddingDistributionRow | null>(null);
@@ -90,9 +95,16 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         direction: 'asc',
     });
 
-    const loadData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+    const loadData = useCallback(async (options: LoadDataOptions = {}) => {
+        const isSoftUpdate = options.soft ?? false;
+
+        if (isSoftUpdate) {
+            setIsRefreshing(true);
+        } else {
+            setLoading(true);
+            setError(null);
+        }
+
         try {
             const [stockData, distributionData] = await Promise.all([
                 apiClient.getExpendableEquipment(),
@@ -103,12 +115,16 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         } catch (err: any) {
             setError(err?.message || 'Не удалось загрузить данные');
         } finally {
-            setLoading(false);
+            if (isSoftUpdate) {
+                setIsRefreshing(false);
+            } else {
+                setLoading(false);
+            }
         }
     }, []);
 
     useEffect(() => {
-        void loadData();
+        void loadData({ soft: false });
     }, [loadData]);
 
     useEffect(() => {
@@ -362,12 +378,6 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         return Object.keys(nextErrors).length === 0 && Boolean(selectedStudentId);
     }, [editingRow, fieldValues, getStockForLabel, selectedStudentId]);
 
-    const buildPayload = useCallback((studentId: number, typeId: number, count: number): ExpendableDistributionUpsertDto => ({
-        studentId,
-        typeId,
-        count,
-    }), []);
-
     const handleAddSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!validateForm()) {
@@ -383,40 +393,14 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         setFormError(null);
 
         try {
-            const operations: Array<Promise<unknown>> = [];
             let hasInvalidType = false;
-            const isStudentChanged = Boolean(editingRow) && studentId !== editingRow?.id;
-            const targetRecordMap = new Map<DistributionItemKey, ExpendableDistributionTypeDto>();
-
-            if (isStudentChanged) {
-                distributions.forEach(group => {
-                    if (group.student.id !== studentId) {
-                        return;
-                    }
-
-                    group.types.forEach(typeItem => {
-                        const key = keyByTypeName.get(normalize(typeItem.name));
-                        if (!key) {
-                            return;
-                        }
-
-                        targetRecordMap.set(key, typeItem);
-                    });
-                });
-
-                Object.values(editingRow?.recordMap ?? {}).forEach(record => {
-                    if (record) {
-                        operations.push(apiClient.deleteExpendableDistribution(record.id));
-                    }
-                });
-            }
+            const createItems: ExpendableDistributionBatchItemDto[] = [];
 
             distributionItems.forEach(item => {
                 const rawValue = fieldValues[item.key];
                 const nextCount = rawValue ? Number.parseInt(rawValue, 10) : 0;
                 const stockInfo = getStockForLabel(item.label);
                 const typeId = stockInfo?.typeId;
-                const existing = isStudentChanged ? targetRecordMap.get(item.key) : editingRow?.recordMap[item.key];
 
                 if (!typeId && nextCount > 0) {
                     setFormError(`Категория "${item.label}" не найдена на складе`);
@@ -424,14 +408,8 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                     return;
                 }
 
-                if (existing) {
-                    if (nextCount === 0) {
-                        operations.push(apiClient.deleteExpendableDistribution(existing.id));
-                    } else if (nextCount !== existing.count || isStudentChanged) {
-                        operations.push(apiClient.updateExpendableDistribution(existing.id, buildPayload(studentId, typeId!, nextCount)));
-                    }
-                } else if (nextCount > 0 && typeId) {
-                    operations.push(apiClient.createExpendableDistribution(buildPayload(studentId, typeId, nextCount)));
+                if (nextCount > 0 && typeId) {
+                    createItems.push({ id: typeId, count: nextCount });
                 }
             });
 
@@ -440,34 +418,29 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                 return;
             }
 
-            if (operations.length) {
-                await Promise.all(operations);
+            if (editingRow) {
+                await apiClient.replaceExpendableDistributionsForStudent(studentId, createItems);
+            } else if (createItems.length > 0) {
+                await apiClient.createExpendableDistributionsForStudent(studentId, createItems);
             }
 
             setIsAddModalOpen(false);
-            await loadData();
+            await loadData({ soft: true });
         } catch (err: any) {
             setFormError(err?.message || 'Не удалось сохранить распределение');
         } finally {
             setIsSaving(false);
         }
-    }, [buildPayload, editingRow, fieldValues, getStockForLabel, loadData, selectedStudentId, validateForm]);
+    }, [editingRow, fieldValues, getStockForLabel, loadData, selectedStudentId, validateForm]);
 
     const handleDeleteRow = useCallback(async (row: BeddingDistributionRow) => {
         if (!window.confirm('Удалить распределение для студента?')) {
             return;
         }
-        const operations = Object.values(row.recordMap)
-            .filter((record): record is ExpendableDistributionTypeDto => Boolean(record))
-            .map(record => apiClient.deleteExpendableDistribution(record.id));
-
-        if (!operations.length) {
-            return;
-        }
 
         try {
-            await Promise.all(operations);
-            await loadData();
+            await apiClient.replaceExpendableDistributionsForStudent(row.id, []);
+            await loadData({ soft: true });
         } catch (err: any) {
             setError(err?.message || 'Не удалось удалить распределение');
         }

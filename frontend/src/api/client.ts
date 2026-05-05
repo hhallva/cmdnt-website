@@ -21,7 +21,7 @@ import type { ResettlementHistoryDto } from '../types/resettlements'
 import type { StationaryTypeDto, PostStationaryTypeDto } from '../types/stationaryTypes'
 import type { ExpendableTypeDto, PostExpendableTypeDto } from '../types/expendableTypes'
 import type { ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto } from '../types/expendableEquipment'
-import type { ExpendableDistributionDto, ExpendableDistributionUpsertDto } from '../types/expendableDistribution'
+import type { ExpendableDistributionBatchItemDto, ExpendableDistributionDto } from '../types/expendableDistribution'
 import type { StatusDto } from '../types/statuses'
 import type { StationaryEquipmentDto, PostStationaryEquipmentDto, UpdateStationaryEquipmentDto } from '../types/stationaryEquipment'
 import type { StationaryEquipmentStatisticDto } from '../types/stationaryEquipmentStatistic'
@@ -147,31 +147,26 @@ export const apiClient = {
     return apiClient.requestWithAuth<ExpendableDistributionDto[]>('/api/v1/ExpendableDistribution');
   },
 
-  createExpendableDistribution: async (payload: ExpendableDistributionUpsertDto): Promise<ExpendableDistributionDto> => {
-    return apiClient.requestWithAuth<ExpendableDistributionDto>('/api/v1/ExpendableDistribution', {
+  createExpendableDistributionsForStudent: async (studentId: number, items: ExpendableDistributionBatchItemDto[]): Promise<ExpendableDistributionDto> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto>(`/api/v1/ExpendableDistribution/student/${studentId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(items),
     });
   },
 
-  updateExpendableDistribution: async (id: number, payload: ExpendableDistributionUpsertDto): Promise<ExpendableDistributionDto> => {
-    return apiClient.requestWithAuth<ExpendableDistributionDto>(`/api/v1/ExpendableDistribution/${id}`, {
+  replaceExpendableDistributionsForStudent: async (studentId: number, items: ExpendableDistributionBatchItemDto[]): Promise<ExpendableDistributionDto> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto>(`/api/v1/ExpendableDistribution/student/${studentId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(items),
     });
   },
 
-  deleteExpendableDistribution: async (id: number): Promise<void> => {
-    await apiClient.requestWithAuth(`/api/v1/ExpendableDistribution/${id}`, {
-      method: 'DELETE',
-    });
-  },
   //#endregion
 
   //#region Типы стационарного оборудования
