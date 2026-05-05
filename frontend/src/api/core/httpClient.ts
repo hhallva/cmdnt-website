@@ -12,14 +12,16 @@ const handleUnauthorized = () => {
 export class HttpClient {
     async request<T>(url: string, options: RequestInit = {}): Promise<T> {
         const fullUrl = `${API_BASE_URL}${url}`;
+        const headers = new Headers(options.headers);
+
+        if (options.body !== undefined && !headers.has('Content-Type')) {
+            headers.set('Content-Type', 'application/json');
+        }
 
         try {
             const response = await fetch(fullUrl, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...options.headers,
-                },
                 ...options,
+                headers,
             });
 
             if (response.status === 401) {

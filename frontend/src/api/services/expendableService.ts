@@ -5,27 +5,27 @@ import type { ExpendableDistributionBatchItemDto, ExpendableDistributionDto } fr
 
 export class ExpendableService extends BaseApiService {
     getExpendableEquipment(): Promise<ExpendableEquipmentDto[]> {
-        return this.get<ExpendableEquipmentDto[]>('/api/v1/ExpendableEquipment');
+        return this.get<ExpendableEquipmentDto[]>('/api/v1/Expendable/equipment');
     }
 
     addExpendableEquipment(payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
-        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>('/api/v1/ExpendableEquipment/add', payload);
+        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>('/api/v1/Expendable/equipment/add', payload);
     }
 
     subtractExpendableEquipment(payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
-        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>('/api/v1/ExpendableEquipment/subtract', payload);
+        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>('/api/v1/Expendable/equipment/subtract', payload);
     }
 
     getExpendableDistributions(): Promise<ExpendableDistributionDto[]> {
-        return this.get<ExpendableDistributionDto[]>('/api/v1/ExpendableDistribution');
+        return this.get<ExpendableDistributionDto[]>('/api/v1/Expendable/distribution');
     }
 
     createExpendableDistributionsForStudent(studentId: number, items: ExpendableDistributionBatchItemDto[]): Promise<ExpendableDistributionDto> {
-        return this.post<ExpendableDistributionDto, ExpendableDistributionBatchItemDto[]>(`/api/v1/ExpendableDistribution/student/${studentId}`, items);
+        return this.post<ExpendableDistributionDto, ExpendableDistributionBatchItemDto[]>(`/api/v1/Expendable/distribution/student/${studentId}`, items);
     }
 
     replaceExpendableDistributionsForStudent(studentId: number, items: ExpendableDistributionBatchItemDto[]): Promise<ExpendableDistributionDto> {
-        return this.put<ExpendableDistributionDto, ExpendableDistributionBatchItemDto[]>(`/api/v1/ExpendableDistribution/student/${studentId}`, items);
+        return this.put<ExpendableDistributionDto, ExpendableDistributionBatchItemDto[]>(`/api/v1/Expendable/distribution/student/${studentId}`, items);
     }
 
     getExpendableTypes(): Promise<ExpendableTypeDto[]> {
