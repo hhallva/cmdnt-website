@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Core.DTOs.ExpendableDistribution
+namespace Core.DTOs.ExpendableDistributions
 {
     public class ExpendableDistributionBatchItemDto
     {

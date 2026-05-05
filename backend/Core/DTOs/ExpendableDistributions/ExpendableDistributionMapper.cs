@@ -1,7 +1,4 @@
-using System.Linq;
-using Core.Models;
-
-namespace Core.DTOs.ExpendableDistribution
+namespace Core.DTOs.ExpendableDistributions
 {
     public static class ExpendableDistributionMapper
     {

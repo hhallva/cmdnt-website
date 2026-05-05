@@ -21,7 +21,7 @@ namespace API.Controllers
         {
             var notes = await _context.Notes
                 .Include(n => n.User)
-                .ThenInclude(u => u.Role)
+                .ThenInclude(u => u!.Role)
                 .OrderByDescending(n => n.CreateDate)
                 .ToListAsync();
 
@@ -41,7 +41,7 @@ namespace API.Controllers
 
             var notes = await _context.Notes
                 .Include(note => note.User)
-                .ThenInclude(user => user.Role)
+                    .ThenInclude(user => user!.Role)
                 .Where(note => note.StudentId == studentId)
                 .OrderByDescending(note => note.CreateDate)
                 .ToListAsync();
@@ -54,7 +54,7 @@ namespace API.Controllers
         {
             var note = await _context.Notes
                 .Include(n => n.User)
-                .ThenInclude(u => u.Role)
+                .ThenInclude(u => u!.Role)
                 .FirstOrDefaultAsync(n => n.Id == id);
 
             if (note == null)

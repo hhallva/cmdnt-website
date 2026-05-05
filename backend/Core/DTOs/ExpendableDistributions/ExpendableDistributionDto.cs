@@ -1,4 +1,4 @@
-namespace Core.DTOs.ExpendableDistribution
+namespace Core.DTOs.ExpendableDistributions
 {
     public class ExpendableDistributionStudentDto
     {

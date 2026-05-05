@@ -28,10 +28,10 @@ export class BuildingsService extends BaseApiService {
     }
 
     getStructureStatistics(buildingId: number): Promise<StructureStatisticDto> {
-        return this.get<StructureStatisticDto>(`/api/v1/Structure/statistic/${buildingId}`);
+        return this.get<StructureStatisticDto>(`/api/v1/Buildings/${buildingId}/statistic`);
     }
 
     getOverallStructureStatistics(): Promise<OverallStructureStatisticDto> {
-        return this.get<OverallStructureStatisticDto>('/api/v1/Structure/summary');
+        return this.get<OverallStructureStatisticDto>('/api/v1/Buildings/summary');
     }
 }

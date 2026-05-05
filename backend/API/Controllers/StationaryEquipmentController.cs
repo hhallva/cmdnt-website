@@ -34,7 +34,7 @@ namespace API.Controllers
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
-                .ThenInclude(room => room.Building)
+                .ThenInclude(room => room!.Building)
                 .FirstOrDefaultAsync(item => item.Id == equipmentId);
 
             if (equipment == null)
@@ -57,7 +57,7 @@ namespace API.Controllers
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
-                .ThenInclude(room => room.Building)
+                    .ThenInclude(room => room!.Building)
                 .FirstAsync(item => item.Id == equipment.Id);
 
             return Ok(updated.ToDto());
@@ -80,7 +80,7 @@ namespace API.Controllers
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
-                .ThenInclude(room => room.Building)
+                .ThenInclude(room => room!.Building)
                 .FirstOrDefaultAsync(item => item.Id == equipmentId);
 
             if (equipment == null)
@@ -106,7 +106,7 @@ namespace API.Controllers
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
-                .ThenInclude(room => room.Building)
+                .ThenInclude(room => room!.Building)
                 .ToListAsync();
 
             return Ok(equipment.Select(item => item.ToDto()));
@@ -126,7 +126,7 @@ namespace API.Controllers
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
-                .ThenInclude(room => room.Building)
+                .ThenInclude(room => room!.Building)
                 .FirstOrDefaultAsync(item => item.Id == id);
 
             if (equipment == null)
@@ -181,7 +181,7 @@ namespace API.Controllers
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
-                .ThenInclude(room => room.Building)
+                .ThenInclude(room => room!.Building)
                 .FirstAsync(item => item.Id == equipment.Id);
 
             return CreatedAtAction(nameof(GetStationaryEquipmentById), new { id = created.Id }, created.ToDto());
@@ -208,7 +208,7 @@ namespace API.Controllers
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
-                .ThenInclude(room => room.Building)
+                .ThenInclude(room => room!.Building)
                 .FirstOrDefaultAsync(item => item.Id == id);
 
             if (equipment == null)
@@ -260,6 +260,48 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpGet("statistic")]
+        [SwaggerOperation(
+            Summary = "Получение статистики по мебели",
+            Description = "Возвращает количество всех объектов, используемых, на складе и в ремонте.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Статистика успешно получена.", Type = typeof(StationaryEquipmentStatisticDto))]
+        public async Task<ActionResult<StationaryEquipmentStatisticDto>> GetStatistic()
+        {
+            var equipment = await _context.StationaryEquipments
+                .AsNoTracking()
+                .Select(item => new
+                {
+                    item.RoomId,
+                    StatusName = item.Status.Name
+                })
+                .ToListAsync();
+
+            static bool IsRepair(string? statusName)
+            {
+                if (string.IsNullOrWhiteSpace(statusName))
+                {
+                    return false;
+                }
+
+                return statusName.Contains("ремонт", StringComparison.OrdinalIgnoreCase)
+                    || statusName.Contains("сломано", StringComparison.OrdinalIgnoreCase);
+            }
+
+            var repairCount = equipment.Count(item => IsRepair(item.StatusName));
+            var inUseCount = equipment.Count(item => item.RoomId.HasValue && !IsRepair(item.StatusName));
+            var storageCount = equipment.Count(item => !item.RoomId.HasValue && !IsRepair(item.StatusName));
+
+            var statistic = new StationaryEquipmentStatisticDto
+            {
+                TotalCount = equipment.Count,
+                InUseCount = inUseCount,
+                StorageCount = storageCount,
+                RepairCount = repairCount,
+            };
+
+            return Ok(statistic);
         }
     }
 }

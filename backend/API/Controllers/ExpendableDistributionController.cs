@@ -1,6 +1,6 @@
 using Core.Data;
 using Core.DTOs;
-using Core.DTOs.ExpendableDistribution;
+using Core.DTOs.ExpendableDistributions;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
