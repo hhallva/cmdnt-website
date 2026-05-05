@@ -1,5 +1,5 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ActionMenu, { type ActionMenuItem } from '../ActionMenu/ActionMenu';
 import styles from './CommonTable.module.css';
 
 export interface ColumnDefinition<T> {
@@ -45,8 +45,6 @@ interface CommonTableProps<T> {
     rowActionOpenOnRowClick?: boolean;
 }
 
-const MENU_WIDTH = 220;
-
 const CommonTable = <T extends Record<string, any>>({
     title,
     data,
@@ -90,100 +88,22 @@ const CommonTable = <T extends Record<string, any>>({
     };
 
     // Обрабатываем отображение всплывающего меню действий
-    const tableWrapperRef = useRef<HTMLDivElement | null>(null);
-    const menuRef = useRef<HTMLDivElement | null>(null);
     const triggerButtonRef = useRef<HTMLElement | null>(null);
     const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
-    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number | null; right: number | null } | null>(null);
-    const [menuAnchorRect, setMenuAnchorRect] = useState<DOMRect | null>(null);
-
-    const closeRowActionMenu = () => {
+    const closeRowActionMenu = useCallback(() => {
         setActiveRowIndex(null);
-        setMenuPosition(null);
-        setMenuAnchorRect(null);
         triggerButtonRef.current = null;
-    };
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Node;
-            if (menuRef.current?.contains(target) || triggerButtonRef.current?.contains(target)) {
-                return;
-            }
-            closeRowActionMenu();
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
     }, []);
 
     useEffect(() => {
-        if (activeRowIndex === null) {
-            return;
-        }
-
-        const handleViewportChange = () => {
+        if (activeRowIndex !== null && activeRowIndex >= data.length) {
             closeRowActionMenu();
-        };
-
-        window.addEventListener('scroll', handleViewportChange, true);
-        window.addEventListener('resize', handleViewportChange);
-
-        return () => {
-            window.removeEventListener('scroll', handleViewportChange, true);
-            window.removeEventListener('resize', handleViewportChange);
-        };
-    }, [activeRowIndex]);
+        }
+    }, [activeRowIndex, closeRowActionMenu, data.length]);
 
     const hasRowAction = Boolean(rowAction);
     const getVisibleMenuActions = (item: T) =>
         rowAction?.popupActions?.filter(action => (action.isVisible ? action.isVisible(item) : true)) ?? [];
-
-    const openRowActionMenuAt = (anchorRect: DOMRect) => {
-        const viewportWidth = window.innerWidth;
-        const shouldAlignRight = anchorRect.left + MENU_WIDTH > viewportWidth - 16;
-
-        setMenuAnchorRect(anchorRect);
-
-        if (shouldAlignRight) {
-            setMenuPosition({
-                top: anchorRect.bottom + 4,
-                left: null,
-                right: Math.max(viewportWidth - anchorRect.right, 8),
-            });
-        } else {
-            setMenuPosition({
-                top: anchorRect.bottom + 4,
-                left: Math.max(anchorRect.left, 8),
-                right: null,
-            });
-        }
-    };
-
-    useEffect(() => {
-        if (!menuRef.current || !menuPosition || !menuAnchorRect) {
-            return;
-        }
-
-        const menuRect = menuRef.current.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const bottomOverflow = menuRect.bottom > viewportHeight - 8;
-
-        if (!bottomOverflow) {
-            return;
-        }
-
-        const desiredTop = Math.max(menuAnchorRect.top - menuRect.height - 4, 8);
-        if (menuPosition.top !== desiredTop) {
-            setMenuPosition({
-                top: desiredTop,
-                left: menuPosition.left,
-                right: menuPosition.right,
-            });
-        }
-    }, [menuAnchorRect, menuPosition]);
 
     const handleRowActionClick = (event: React.MouseEvent<HTMLButtonElement>, item: T, rowIndex: number) => {
         event.stopPropagation();
@@ -195,7 +115,6 @@ const CommonTable = <T extends Record<string, any>>({
                 closeRowActionMenu();
             } else {
                 triggerButtonRef.current = event.currentTarget;
-                openRowActionMenuAt(event.currentTarget.getBoundingClientRect());
                 setActiveRowIndex(rowIndex);
             }
         } else {
@@ -224,12 +143,25 @@ const CommonTable = <T extends Record<string, any>>({
 
         const rowElement = event.currentTarget;
         triggerButtonRef.current = rowElement;
-        openRowActionMenuAt(rowElement.getBoundingClientRect());
         setActiveRowIndex(rowIndex);
     };
 
+    const activeRowItem = activeRowIndex !== null ? data[activeRowIndex] : null;
+    const activeMenuItems = useMemo<ActionMenuItem[]>(() => {
+        if (!activeRowItem) {
+            return [];
+        }
+
+        return getVisibleMenuActions(activeRowItem).map(action => ({
+            label: action.label,
+            icon: action.icon,
+            variant: action.variant,
+            onClick: () => action.onClick(activeRowItem),
+        }));
+    }, [activeRowItem, getVisibleMenuActions]);
+
     return (
-        <div className={`${styles.tableWrapper} ${className}`} ref={tableWrapperRef}>
+        <div className={`${styles.tableWrapper} ${className}`}>
             {title && (
                 <div className={styles.tableHeader}>
                     {/* Заголовок таблицы */}
@@ -251,70 +183,36 @@ const CommonTable = <T extends Record<string, any>>({
                     <tbody>
                         {/*Данные таблицы*/}
                         {data.length ? (
-                            data.map((item, rowIndex) => {
-                                const visibleMenuActions = getVisibleMenuActions(item);
-                                return (
-                                    <tr
-                                        key={rowIndex}
-                                        className={(onRowClick || rowActionOpenOnRowClick) ? styles.clickableRow : undefined}
-                                        onClick={(event) => {
-                                            if (onRowClick || rowActionOpenOnRowClick) {
-                                                handleRowClick(event, item, rowIndex);
-                                            }
-                                        }}
-                                    >
-                                        <td className={styles.indexColumn}>{rowIndex + 1}</td>
-                                        {columns.map((column, colIndex) => (
-                                            <td key={colIndex} className={column.className}>
-                                                {column.render ? column.render(item) : getValueByPath(item, column.key) ?? 'Нет'}
-                                            </td>
-                                        ))}
-                                        {hasRowAction && (
-                                            <td className={styles.rowActionCell}>
-                                                <button
-                                                    type="button"
-                                                    className={styles.rowActionButton}
-                                                    title={rowAction?.title}
-                                                    onClick={(event) => handleRowActionClick(event, item, rowIndex)}
-                                                >
-                                                    {rowAction?.icon && <i className={`bi ${rowAction.icon}`}></i>}
-                                                </button>
-                                                {rowAction &&
-                                                    activeRowIndex === rowIndex &&
-                                                    visibleMenuActions.length > 0 &&
-                                                    menuPosition &&
-                                                    createPortal(
-                                                        <div
-                                                            ref={menuRef}
-                                                            className={styles.rowActionMenu}
-                                                            style={{
-                                                                top: menuPosition.top,
-                                                                left: menuPosition.left ?? undefined,
-                                                                right: menuPosition.right ?? undefined,
-                                                            }}
-                                                        >
-                                                            {visibleMenuActions.map((menuItem, menuIndex) => (
-                                                                <button
-                                                                    key={menuIndex}
-                                                                    type="button"
-                                                                    className={`${styles.rowActionMenuItem} ${menuItem.variant === 'danger' ? styles.rowActionMenuItemDanger : ''}`}
-                                                                    onClick={() => {
-                                                                        menuItem.onClick(item);
-                                                                        closeRowActionMenu();
-                                                                    }}
-                                                                >
-                                                                    {menuItem.icon && <i className={`bi ${menuItem.icon}`}></i>}
-                                                                    <span>{menuItem.label}</span>
-                                                                </button>
-                                                            ))}
-                                                        </div>,
-                                                        document.body
-                                                    )}
-                                            </td>
-                                        )}
-                                    </tr>
-                                );
-                            })
+                            data.map((item, rowIndex) => (
+                                <tr
+                                    key={rowIndex}
+                                    className={(onRowClick || rowActionOpenOnRowClick) ? styles.clickableRow : undefined}
+                                    onClick={(event) => {
+                                        if (onRowClick || rowActionOpenOnRowClick) {
+                                            handleRowClick(event, item, rowIndex);
+                                        }
+                                    }}
+                                >
+                                    <td className={styles.indexColumn}>{rowIndex + 1}</td>
+                                    {columns.map((column, colIndex) => (
+                                        <td key={colIndex} className={column.className}>
+                                            {column.render ? column.render(item) : getValueByPath(item, column.key) ?? 'Нет'}
+                                        </td>
+                                    ))}
+                                    {hasRowAction && (
+                                        <td className={styles.rowActionCell}>
+                                            <button
+                                                type="button"
+                                                className={styles.rowActionButton}
+                                                title={rowAction?.title}
+                                                onClick={(event) => handleRowActionClick(event, item, rowIndex)}
+                                            >
+                                                {rowAction?.icon && <i className={`bi ${rowAction.icon}`}></i>}
+                                            </button>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
                         ) : (
                             <tr>
                                 {/*Plaseholder при отсутсвии данных*/}
@@ -324,6 +222,12 @@ const CommonTable = <T extends Record<string, any>>({
                     </tbody>
                 </table>
             </div>
+            <ActionMenu
+                isOpen={Boolean(activeRowItem && activeMenuItems.length > 0)}
+                anchorRef={triggerButtonRef}
+                items={activeMenuItems}
+                onClose={closeRowActionMenu}
+            />
         </div>
     );
 };

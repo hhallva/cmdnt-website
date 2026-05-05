@@ -110,47 +110,6 @@
     outline-offset: 0.125rem;
 }
 
-.rowActionMenu {
-    position: fixed;
-    min-width: 200px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 1rem;
-    padding: 0.25rem;
-    z-index: 1100;
-}
-
-.rowActionMenuItem {
-    width: 100%;
-    border: none;
-    background: var(--color-transparent);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.5rem;
-    border-radius: 0.4rem;
-    cursor: pointer;
-    color: var(--color-text-dark);
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.rowActionMenuItem:hover {
-    background-color: var(--color-surface-subtle);
-}
-
-.rowActionMenuItem i {
-    font-size: 1rem;
-}
-
-.rowActionMenuItemDanger {
-    color: var(--color-danger);
-}
-
-.rowActionMenuItemDanger:hover {
-    background-color: var(--color-danger-soft);
-    color: var(--color-danger);
-}
 
 @media (max-width: 768px) {
     .tableHeader {

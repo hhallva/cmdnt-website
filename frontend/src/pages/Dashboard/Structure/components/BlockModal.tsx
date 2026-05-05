@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
+import ActionMenu, { type ActionMenuItem } from '../../../../components/ActionMenu/ActionMenu';
 import CommonModal from '../../../../components/CommonModal/CommonModal';
 import type { StudentsDto } from '../../../../types/students';
 import type { BlockWithRooms, RoomWithOccupants } from '../types';
@@ -37,25 +38,22 @@ const BlockModal: React.FC<BlockModalProps> = ({
     onStudentCardClick,
 }) => {
     const [openRoomMenuId, setOpenRoomMenuId] = useState<number | null>(null);
-
-    useEffect(() => {
-        if (openRoomMenuId === null) {
-            return undefined;
-        }
-        const handleOutsideClick = () => {
-            setOpenRoomMenuId(null);
-        };
-        document.addEventListener('mousedown', handleOutsideClick);
-        return () => document.removeEventListener('mousedown', handleOutsideClick);
-    }, [openRoomMenuId]);
-
-    const toggleRoomMenu = useCallback((roomId: number) => {
-        setOpenRoomMenuId(prev => (prev === roomId ? null : roomId));
-    }, []);
+    const roomMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
     const closeRoomMenu = useCallback(() => {
         setOpenRoomMenuId(null);
+        roomMenuTriggerRef.current = null;
     }, []);
+
+    const toggleRoomMenu = useCallback((event: React.MouseEvent<HTMLButtonElement>, roomId: number) => {
+        event.stopPropagation();
+        if (openRoomMenuId === roomId) {
+            closeRoomMenu();
+            return;
+        }
+        roomMenuTriggerRef.current = event.currentTarget;
+        setOpenRoomMenuId(roomId);
+    }, [closeRoomMenu, openRoomMenuId]);
 
     const handleDeleteClick = useCallback((roomId: number, roomLabel: string) => {
         closeRoomMenu();
@@ -67,6 +65,31 @@ const BlockModal: React.FC<BlockModalProps> = ({
         onClose();
         onRoomFurnitureClick(room);
     }, [closeRoomMenu, onClose, onRoomFurnitureClick]);
+
+    const activeRoom = openRoomMenuId && activeBlock
+        ? activeBlock.rooms.find(room => room.id === openRoomMenuId) ?? null
+        : null;
+
+    const roomMenuItems = useMemo<ActionMenuItem[]>(() => {
+        if (!activeRoom) {
+            return [];
+        }
+
+        return [
+            {
+                label: 'Мебель',
+                icon: 'bi-lamp',
+                onClick: () => handleFurnitureClick(activeRoom),
+            },
+            {
+                label: deletingRoomId === activeRoom.id ? 'Удаляем…' : 'Удалить',
+                icon: 'bi-trash',
+                variant: 'danger',
+                onClick: () => handleDeleteClick(activeRoom.id, activeRoom.number),
+                disabled: deletingRoomId === activeRoom.id,
+            },
+        ];
+    }, [activeRoom, closeRoomMenu, deletingRoomId, handleDeleteClick, handleFurnitureClick]);
 
     return (
         <CommonModal
@@ -113,7 +136,6 @@ const BlockModal: React.FC<BlockModalProps> = ({
                 <div className={styles.modalContentWrapper}>
                     {activeBlock.rooms.map((room, roomIndex) => {
                         const freeSlotsCount = Math.max(room.capacity - room.currentCapacity, 0);
-                        const isMenuOpen = openRoomMenuId === room.id;
                         return (
                             <div key={room.id} className={styles.blockRoomSection}>
                                 <div className={styles.blockRoomHeader}>
@@ -126,36 +148,11 @@ const BlockModal: React.FC<BlockModalProps> = ({
                                                 type="button"
                                                 className={styles.blockRoomMenuButton}
                                                 ariaLabel="Меню комнаты"
-                                                onClick={() => toggleRoomMenu(room.id)}
+                                                onClick={(event) => toggleRoomMenu(event, room.id)}
                                                 disabled={deletingRoomId === room.id}
                                             >
                                                 <i className="bi bi-three-dots-vertical"></i>
                                             </ActionButton>
-                                            {isMenuOpen && (
-                                                <div className={styles.blockRoomMenuList} role="menu">
-                                                    <button
-                                                        type="button"
-                                                        className={styles.blockRoomMenuItem}
-                                                        onClick={() => handleFurnitureClick(room)}
-                                                    >
-                                                        Мебель
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className={styles.blockRoomMenuItem}
-                                                        onClick={closeRoomMenu}
-                                                    >
-                                                        Редактировать
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className={`${styles.blockRoomMenuItem} ${styles.blockRoomMenuDanger}`}
-                                                        onClick={() => handleDeleteClick(room.id, room.number)}
-                                                    >
-                                                        {deletingRoomId === room.id ? 'Удаляем…' : 'Удалить'}
-                                                    </button>
-                                                </div>
-                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -228,6 +225,13 @@ const BlockModal: React.FC<BlockModalProps> = ({
                     })}
                 </div>
             )}
+            <ActionMenu
+                isOpen={Boolean(activeRoom && roomMenuItems.length > 0)}
+                anchorRef={roomMenuTriggerRef}
+                items={roomMenuItems}
+                onClose={closeRoomMenu}
+                align="left"
+            />
         </CommonModal>
     );
 };
