@@ -723,12 +723,22 @@ const StructureLayout: React.FC = () => {
         setBeddingResetSignal(prev => prev + 1);
     }, []);
 
-    const furnitureTabState = useFurnitureTabState();
+    const furnitureTabState = useFurnitureTabState(buildingIdNum ?? null);
 
     const handleRoomFurnitureClick = useCallback((room: RoomWithOccupants) => {
         furnitureTabState.actions.selectRoomById(room.id);
         setActiveTabId('furniture');
     }, [furnitureTabState.actions, setActiveTabId]);
+
+    useEffect(() => {
+        const furnitureEquipmentId = (location.state as { furnitureEquipmentId?: number } | null)?.furnitureEquipmentId;
+        if (typeof furnitureEquipmentId !== 'number') {
+            return;
+        }
+        furnitureTabState.actions.selectEquipmentById(furnitureEquipmentId);
+        setActiveTabId('furniture');
+        navigate(location.pathname, { replace: true, state: {} });
+    }, [furnitureTabState.actions, location.pathname, location.state, navigate, setActiveTabId]);
 
 
     if (isNotFound) {

@@ -65,6 +65,7 @@ type FurnitureTabState = {
     contentProps: FurnitureTabProps;
     actions: {
         selectRoomById: (roomId: number) => void;
+        selectEquipmentById: (equipmentId: number) => void;
     };
 };
 
@@ -111,21 +112,63 @@ const getActiveBuildingId = (): number | null => {
     }
 };
 
-export const useFurnitureTabState = (): FurnitureTabState => {
+const getStoredFurnitureSelection = (buildingId: number | null) => {
+    if (typeof window === 'undefined' || !buildingId) {
+        return null;
+    }
+    const raw = sessionStorage.getItem(`furniture-selection-${buildingId}`);
+    if (!raw) {
+        return null;
+    }
+    try {
+        const parsed = JSON.parse(raw) as { floor?: number | null; roomId?: number | null };
+        return {
+            floor: typeof parsed.floor === 'number' ? parsed.floor : 'all',
+            roomId: typeof parsed.roomId === 'number' ? parsed.roomId : 'all',
+        } as { floor: SelectValue; roomId: SelectValue };
+    } catch {
+        return null;
+    }
+};
+
+const setStoredFurnitureSelection = (
+    buildingId: number | null,
+    floor: SelectValue,
+    roomId: SelectValue
+) => {
+    if (typeof window === 'undefined' || !buildingId) {
+        return;
+    }
+    if (floor === 'all' && roomId === 'all') {
+        sessionStorage.removeItem(`furniture-selection-${buildingId}`);
+        return;
+    }
+    sessionStorage.setItem(
+        `furniture-selection-${buildingId}`,
+        JSON.stringify({
+            floor: floor === 'all' ? null : Number(floor),
+            roomId: roomId === 'all' ? null : Number(roomId),
+        })
+    );
+};
+
+export const useFurnitureTabState = (buildingIdOverride?: number | null): FurnitureTabState => {
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [equipment, setEquipment] = useState<StationaryEquipmentDto[]>([]);
     const [types, setTypes] = useState<StationaryTypeDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeBuildingId] = useState<number | null>(getActiveBuildingId);
-    const [selectedFloor, setSelectedFloor] = useState<SelectValue>('all');
-    const [selectedRoomId, setSelectedRoomId] = useState<SelectValue>('all');
+    const activeBuildingId = buildingIdOverride ?? getActiveBuildingId();
+    const storedSelection = getStoredFurnitureSelection(activeBuildingId);
+    const [selectedFloor, setSelectedFloor] = useState<SelectValue>(storedSelection?.floor ?? 'all');
+    const [selectedRoomId, setSelectedRoomId] = useState<SelectValue>(storedSelection?.roomId ?? 'all');
     const [selectedCategoryId, setSelectedCategoryId] = useState<SelectValue>('all');
     const [selectedEquipmentId, setSelectedEquipmentId] = useState<SelectValue>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [formErrors, setFormErrors] = useState<FormErrors>({});
     const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [pendingEquipmentId, setPendingEquipmentId] = useState<number | null>(null);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
         key: 'inventoryNumber',
         direction: 'asc',
@@ -169,12 +212,22 @@ export const useFurnitureTabState = (): FurnitureTabState => {
     }, [loadEquipment, loadTypes]);
 
     useEffect(() => {
-        setSelectedRoomId('all');
-        setRooms([]);
-        if (activeBuildingId) {
-            void loadRooms(activeBuildingId);
+        if (!activeBuildingId) {
+            setSelectedFloor('all');
+            setSelectedRoomId('all');
+            setRooms([]);
+            return;
         }
+        const nextSelection = getStoredFurnitureSelection(activeBuildingId);
+        setSelectedFloor(nextSelection?.floor ?? 'all');
+        setSelectedRoomId(nextSelection?.roomId ?? 'all');
+        setRooms([]);
+        void loadRooms(activeBuildingId);
     }, [activeBuildingId, loadRooms]);
+
+    useEffect(() => {
+        setStoredFurnitureSelection(activeBuildingId, selectedFloor, selectedRoomId);
+    }, [activeBuildingId, selectedFloor, selectedRoomId]);
 
     useEffect(() => {
         if (!alert) {
@@ -200,14 +253,14 @@ export const useFurnitureTabState = (): FurnitureTabState => {
     }, [rooms, selectedFloor]);
 
     useEffect(() => {
-        if (selectedRoomId === 'all') {
+        if (selectedRoomId === 'all' || rooms.length === 0) {
             return;
         }
         const exists = filteredRooms.some(room => room.id === Number(selectedRoomId));
         if (!exists) {
             setSelectedRoomId('all');
         }
-    }, [filteredRooms, selectedRoomId]);
+    }, [filteredRooms, rooms.length, selectedRoomId]);
 
     const roomOptions = useMemo(() => {
         const options = filteredRooms.map(room => ({
@@ -238,6 +291,12 @@ export const useFurnitureTabState = (): FurnitureTabState => {
         [equipment]
     );
 
+    const applyEquipmentSelection = useCallback((item: StationaryEquipmentDto) => {
+        setSelectedCategoryId(item.typeId);
+        setSelectedEquipmentId(item.id);
+        setFormErrors(prev => ({ ...prev, equipment: undefined }));
+    }, []);
+
     const filteredStorage = useMemo(() => {
         if (selectedCategoryId === 'all') {
             return storageEquipment;
@@ -252,6 +311,27 @@ export const useFurnitureTabState = (): FurnitureTabState => {
         }));
         return [{ value: 'all', label: 'Выберите мебель' }, ...options];
     }, [filteredStorage]);
+
+    const selectEquipmentById = useCallback((equipmentId: number) => {
+        const target = storageEquipment.find(item => item.id === equipmentId);
+        if (target) {
+            applyEquipmentSelection(target);
+            setPendingEquipmentId(null);
+            return;
+        }
+        setPendingEquipmentId(equipmentId);
+    }, [applyEquipmentSelection, storageEquipment]);
+
+    useEffect(() => {
+        if (!pendingEquipmentId) {
+            return;
+        }
+        const target = storageEquipment.find(item => item.id === pendingEquipmentId);
+        if (target) {
+            applyEquipmentSelection(target);
+            setPendingEquipmentId(null);
+        }
+    }, [applyEquipmentSelection, pendingEquipmentId, storageEquipment]);
 
     const assignedEquipment = useMemo(() => {
         if (selectedRoomId === 'all') {
@@ -379,7 +459,8 @@ export const useFurnitureTabState = (): FurnitureTabState => {
         setSelectedCategoryId('all');
         setSelectedEquipmentId('all');
         setFormErrors({});
-    }, []);
+        setStoredFurnitureSelection(activeBuildingId, 'all', 'all');
+    }, [activeBuildingId]);
 
     return {
         headerProps: {
@@ -423,6 +504,7 @@ export const useFurnitureTabState = (): FurnitureTabState => {
         },
         actions: {
             selectRoomById,
+            selectEquipmentById,
         },
     };
 };

@@ -144,7 +144,24 @@ const BuildingsLayout: React.FC = () => {
                 address: building.address,
             }));
         }
-        navigate(`/dashboard/accomodation/${building.id}`, { state: { building } });
+        let furnitureEquipmentId: number | undefined;
+        if (typeof window !== 'undefined') {
+            const pendingFurniture = sessionStorage.getItem('pending-furniture-equipment');
+            if (pendingFurniture) {
+                const parsed = Number(pendingFurniture);
+                if (!Number.isNaN(parsed)) {
+                    furnitureEquipmentId = parsed;
+                }
+                sessionStorage.removeItem('pending-furniture-equipment');
+            }
+        }
+
+        navigate(`/dashboard/accomodation/${building.id}`, {
+            state: {
+                building,
+                furnitureEquipmentId,
+            },
+        });
     }, [navigate]);
 
     const handleOpenBuildingModal = useCallback(async (building: BuildingDto) => {

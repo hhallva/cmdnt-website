@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import CommonTable, { type ColumnDefinition, type RowActionConfig } from '../../../../components/CommonTable/CommonTable';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
@@ -86,6 +87,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
     onExportReady,
     onFilterOptionsReady,
 }) => {
+    const navigate = useNavigate();
     const [equipment, setEquipment] = useState<StationaryEquipmentDto[]>([]);
     const [buildings, setBuildings] = useState<BuildingDto[]>([]);
     const [types, setTypes] = useState<StationaryTypeDto[]>([]);
@@ -424,10 +426,65 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         }
     }, [loadData]);
 
+    const handleReturnToStorage = useCallback(async (item: StationaryEquipmentDto) => {
+        if (!window.confirm(`Вернуть оборудование ${item.inventoryNumber} на склад?`)) {
+            return;
+        }
+        try {
+            await apiClient.evictStationaryEquipment(item.id);
+            await loadData();
+        } catch (err: any) {
+            alert(err?.message || 'Не удалось вернуть на склад');
+        }
+    }, [loadData]);
+
+    const handlePlaceNavigate = useCallback((item: StationaryEquipmentDto) => {
+        let targetBuildingId: number | null = null;
+        if (typeof window !== 'undefined') {
+            const storedActiveBuilding = sessionStorage.getItem('active-building');
+            if (storedActiveBuilding) {
+                try {
+                    const parsed = JSON.parse(storedActiveBuilding) as { id?: number };
+                    if (typeof parsed?.id === 'number') {
+                        targetBuildingId = parsed.id;
+                    }
+                } catch {
+                    targetBuildingId = null;
+                }
+            }
+        }
+
+        if (targetBuildingId) {
+            navigate(`/dashboard/accomodation/${targetBuildingId}`, {
+                state: {
+                    furnitureEquipmentId: item.id,
+                },
+            });
+            return;
+        }
+
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('pending-furniture-equipment', item.id.toString());
+        }
+        navigate('/dashboard/accomodation');
+    }, [buildings, navigate]);
+
     const rowAction = useMemo<RowActionConfig<StationaryEquipmentDto>>(() => ({
         icon: 'bi-three-dots-vertical',
         title: 'Действия',
         popupActions: [
+            {
+                label: 'Разместить',
+                icon: 'bi-box-arrow-in-right',
+                onClick: handlePlaceNavigate,
+                isVisible: (item) => !item.roomId,
+            },
+            {
+                label: 'Вернуть на склад',
+                icon: 'bi-box-arrow-left',
+                onClick: handleReturnToStorage,
+                isVisible: (item) => Boolean(item.roomId),
+            },
             {
                 label: 'Редактировать',
                 icon: 'bi-pencil',
@@ -440,7 +497,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
                 onClick: handleDeleteEquipment,
             },
         ],
-    }), [handleDeleteEquipment, handleEditEquipment]);
+    }), [handleDeleteEquipment, handleEditEquipment, handlePlaceNavigate, handleReturnToStorage]);
 
     const handleExport = useCallback(() => {
         const headerRow = ['Инвентарный номер', 'Тип', 'Статус', 'Здание', 'Блок', 'Описание'];
@@ -474,6 +531,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         })),
         { value: 'storage', label: 'На складе' },
     ], [buildings]);
+
 
     const typeOptions = useMemo(() => [
         { value: 'all', label: 'Все категории' },
