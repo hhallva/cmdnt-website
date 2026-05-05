@@ -22,7 +22,7 @@ const columns: ColumnDefinition<ExpendableEquipmentDto>[] = [
         key: 'typeName',
         title: 'Категория',
         sortable: true,
-        render: (item) => item.typeName || '—',
+        render: (item) => item.type?.name || '—',
     },
     {
         key: 'totalCount',
@@ -91,7 +91,7 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
         if (!normalized) {
             return items;
         }
-        return items.filter(item => (item.typeName ?? '').toLowerCase().includes(normalized));
+        return items.filter(item => (item.type?.name ?? '').toLowerCase().includes(normalized));
     }, [items, searchTerm]);
 
     const requestSort = useCallback((key: string) => {
@@ -120,8 +120,8 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
         result.sort((a, b) => {
             switch (key) {
                 case 'typeName': {
-                    const aValue = (a.typeName ?? '').toLowerCase();
-                    const bValue = (b.typeName ?? '').toLowerCase();
+                    const aValue = (a.type?.name ?? '').toLowerCase();
+                    const bValue = (b.type?.name ?? '').toLowerCase();
                     if (aValue < bValue) return -1 * multiplier;
                     if (aValue > bValue) return 1 * multiplier;
                     return 0;
@@ -143,7 +143,7 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
     const handleExport = useCallback(() => {
         const headerRow = ['Категория', 'Количество', 'Использовано', 'На складе'];
         const bodyRows = filteredItems.map(item => ([
-            item.typeName,
+            item.type?.name,
             item.totalCount,
             item.usedCount,
             item.inStockCount,
@@ -199,12 +199,12 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
         try {
             if (adjustMode === 'add') {
                 await apiClient.addExpendableEquipment({
-                    typeId: adjustTarget.typeId,
+                    typeId: adjustTarget.type.id,
                     count: parsed,
                 });
             } else {
                 await apiClient.subtractExpendableEquipment({
-                    typeId: adjustTarget.typeId,
+                    typeId: adjustTarget.type.id,
                     count: parsed,
                 });
             }
@@ -271,7 +271,7 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
                     <InputField
                         label="Категория"
                         type="text"
-                        value={adjustTarget?.typeName ?? ''}
+                        value={adjustTarget?.type?.name ?? ''}
                         disabled={true}
                     />
                     <InputField

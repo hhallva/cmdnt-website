@@ -138,7 +138,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const stockByName = useMemo(() => {
         const map = new Map<string, ExpendableEquipmentDto>();
         stock.forEach(item => {
-            map.set(normalize(item.typeName), item);
+            map.set(normalize(item.type.name), item);
         });
         return map;
     }, [normalize, stock]);
@@ -375,7 +375,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                 const rawValue = fieldValues[item.key];
                 const nextCount = rawValue ? Number.parseInt(rawValue, 10) : 0;
                 const stockInfo = getStockForLabel(item.label);
-                const typeId = stockInfo?.typeId;
+                const typeId = stockInfo?.type.id;
 
                 if (!typeId && nextCount > 0) {
                     setFormError(`Категория "${item.label}" не найдена на складе`);

@@ -1,6 +1,10 @@
+export interface TypeDto {
+    id: number;
+    name: string;
+}
+
 export interface ExpendableEquipmentDto {
-    typeId: number;
-    typeName: string;
+    type: TypeDto;
     totalCount: number;
     usedCount: number;
     inStockCount: number;

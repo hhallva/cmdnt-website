@@ -1,5 +1,6 @@
 using Core.Data;
 using Core.DTOs;
+using Core.DTOs.Types;
 using Core.DTOs.ExpendableDistributions;
 using Core.DTOs.ExpendableEquipment;
 using Core.Models;
@@ -40,8 +41,11 @@ namespace API.Controllers
 
             var result = items.Select(item => new ExpendableEquipmentDto
             {
-                TypeId = item.Id,
-                TypeName = item.Name,
+                Type = new TypeDto
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                },
                 TotalCount = item.TotalCount,
                 UsedCount = item.UsedCount,
                 InStockCount = item.TotalCount - item.UsedCount,
@@ -358,8 +362,11 @@ namespace API.Controllers
 
             return new ExpendableEquipmentDto
             {
-                TypeId = item.Id,
-                TypeName = item.Name,
+                Type = new TypeDto
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                },
                 TotalCount = item.TotalCount,
                 UsedCount = item.UsedCount,
                 InStockCount = item.TotalCount - item.UsedCount,
