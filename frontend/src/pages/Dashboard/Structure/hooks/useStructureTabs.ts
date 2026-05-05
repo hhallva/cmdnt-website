@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { STRUCTURE_TABS_STORAGE_KEY } from '../constants';
+import { StructureSessionStorage } from '../services/StructureSessionStorage';
 
 export const useStructureTabs = (availableTabIds: string[]) => {
     const navigate = useNavigate();
@@ -8,14 +8,7 @@ export const useStructureTabs = (availableTabIds: string[]) => {
     const fallbackTabId = useMemo(() => availableTabIds[0] ?? '', [availableTabIds]);
 
     const [activeTabId, setActiveTabId] = useState<string>(() => {
-        if (typeof window === 'undefined') {
-            return fallbackTabId;
-        }
-        const storedTabId = sessionStorage.getItem(STRUCTURE_TABS_STORAGE_KEY);
-        if (storedTabId && availableTabIds.includes(storedTabId)) {
-            return storedTabId;
-        }
-        return fallbackTabId;
+        return StructureSessionStorage.getStructureTab(availableTabIds, fallbackTabId);
     });
 
     const handleTabChange = (tabId: string) => {
@@ -33,13 +26,10 @@ export const useStructureTabs = (availableTabIds: string[]) => {
     }, [activeTabId, availableTabIds, fallbackTabId]);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
         if (!activeTabId) {
             return;
         }
-        sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, activeTabId);
+        StructureSessionStorage.setStructureTab(activeTabId);
     }, [activeTabId]);
 
     useEffect(() => {
@@ -49,9 +39,7 @@ export const useStructureTabs = (availableTabIds: string[]) => {
         }
 
         setActiveTabId(fallbackTabId);
-        if (typeof window !== 'undefined') {
-            sessionStorage.setItem(STRUCTURE_TABS_STORAGE_KEY, fallbackTabId);
-        }
+        StructureSessionStorage.setStructureTab(fallbackTabId);
 
         const { fromSidebar, ...restState } = state;
         const nextState = Object.keys(restState).length ? restState : undefined;

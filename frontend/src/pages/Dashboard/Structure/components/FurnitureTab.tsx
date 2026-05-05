@@ -8,6 +8,8 @@ import type { StationaryEquipmentDto } from '../../../../types/stationaryEquipme
 import type { StationaryTypeDto } from '../../../../types/stationaryTypes';
 import SettlementToast from './SettlementToast';
 import styles from '../../Furniche/Furniche.module.css';
+import { StructureSessionStorage } from '../services/StructureSessionStorage';
+import { useSortableConfig } from '../hooks/useSortableConfig';
 
 type FurnitureTabProps = {
     className?: string;
@@ -96,70 +98,14 @@ const columns: ColumnDefinition<StationaryEquipmentDto>[] = [
     },
 ];
 
-const getActiveBuildingId = (): number | null => {
-    if (typeof window === 'undefined') {
-        return null;
-    }
-    const stored = sessionStorage.getItem('active-building');
-    if (!stored) {
-        return null;
-    }
-    try {
-        const parsed = JSON.parse(stored) as { id?: number };
-        return typeof parsed?.id === 'number' ? parsed.id : null;
-    } catch {
-        return null;
-    }
-};
-
-const getStoredFurnitureSelection = (buildingId: number | null) => {
-    if (typeof window === 'undefined' || !buildingId) {
-        return null;
-    }
-    const raw = sessionStorage.getItem(`furniture-selection-${buildingId}`);
-    if (!raw) {
-        return null;
-    }
-    try {
-        const parsed = JSON.parse(raw) as { floor?: number | null; roomId?: number | null };
-        return {
-            floor: typeof parsed.floor === 'number' ? parsed.floor : 'all',
-            roomId: typeof parsed.roomId === 'number' ? parsed.roomId : 'all',
-        } as { floor: SelectValue; roomId: SelectValue };
-    } catch {
-        return null;
-    }
-};
-
-const setStoredFurnitureSelection = (
-    buildingId: number | null,
-    floor: SelectValue,
-    roomId: SelectValue
-) => {
-    if (typeof window === 'undefined' || !buildingId) {
-        return;
-    }
-    if (floor === 'all' && roomId === 'all') {
-        sessionStorage.removeItem(`furniture-selection-${buildingId}`);
-        return;
-    }
-    sessionStorage.setItem(
-        `furniture-selection-${buildingId}`,
-        JSON.stringify({
-            floor: floor === 'all' ? null : Number(floor),
-            roomId: roomId === 'all' ? null : Number(roomId),
-        })
-    );
-};
-
 export const useFurnitureTabState = (buildingIdOverride?: number | null): FurnitureTabState => {
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [equipment, setEquipment] = useState<StationaryEquipmentDto[]>([]);
     const [types, setTypes] = useState<StationaryTypeDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const activeBuildingId = buildingIdOverride ?? getActiveBuildingId();
-    const storedSelection = getStoredFurnitureSelection(activeBuildingId);
+    const activeBuildingId = buildingIdOverride ?? StructureSessionStorage.getActiveBuildingId();
+    const storedSelection = StructureSessionStorage.getFurnitureSelection(activeBuildingId);
     const [selectedFloor, setSelectedFloor] = useState<SelectValue>(storedSelection?.floor ?? 'all');
     const [selectedRoomId, setSelectedRoomId] = useState<SelectValue>(storedSelection?.roomId ?? 'all');
     const [selectedCategoryId, setSelectedCategoryId] = useState<SelectValue>('all');
@@ -169,10 +115,14 @@ export const useFurnitureTabState = (buildingIdOverride?: number | null): Furnit
     const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [pendingEquipmentId, setPendingEquipmentId] = useState<number | null>(null);
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
-        key: 'inventoryNumber',
-        direction: 'asc',
-    });
+    const furnitureSortKeys = useMemo(
+        () => ['inventoryNumber', 'typeName', 'statusName', 'description'] as const,
+        []
+    );
+    const { sortConfig, requestSort } = useSortableConfig<string>(
+        { key: 'inventoryNumber', direction: 'asc' },
+        furnitureSortKeys
+    );
 
     const loadEquipment = useCallback(async () => {
         try {
@@ -218,7 +168,7 @@ export const useFurnitureTabState = (buildingIdOverride?: number | null): Furnit
             setRooms([]);
             return;
         }
-        const nextSelection = getStoredFurnitureSelection(activeBuildingId);
+        const nextSelection = StructureSessionStorage.getFurnitureSelection(activeBuildingId);
         setSelectedFloor(nextSelection?.floor ?? 'all');
         setSelectedRoomId(nextSelection?.roomId ?? 'all');
         setRooms([]);
@@ -226,7 +176,7 @@ export const useFurnitureTabState = (buildingIdOverride?: number | null): Furnit
     }, [activeBuildingId, loadRooms]);
 
     useEffect(() => {
-        setStoredFurnitureSelection(activeBuildingId, selectedFloor, selectedRoomId);
+        StructureSessionStorage.setFurnitureSelection(activeBuildingId, selectedFloor, selectedRoomId);
     }, [activeBuildingId, selectedFloor, selectedRoomId]);
 
     useEffect(() => {
@@ -353,22 +303,6 @@ export const useFurnitureTabState = (buildingIdOverride?: number | null): Furnit
         ));
     }, [assignedEquipment, searchTerm]);
 
-    const requestSort = useCallback((key: string) => {
-        const allowedKeys = ['inventoryNumber', 'typeName', 'statusName', 'description'];
-        if (!allowedKeys.includes(key)) {
-            return;
-        }
-        setSortConfig(prevConfig => {
-            if (prevConfig && prevConfig.key === key) {
-                return {
-                    key,
-                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
-                };
-            }
-            return { key, direction: 'asc' };
-        });
-    }, []);
-
     const sortedAssigned = useMemo(() => {
         const result = [...filteredAssigned];
         if (!sortConfig) {
@@ -459,7 +393,7 @@ export const useFurnitureTabState = (buildingIdOverride?: number | null): Furnit
         setSelectedCategoryId('all');
         setSelectedEquipmentId('all');
         setFormErrors({});
-        setStoredFurnitureSelection(activeBuildingId, 'all', 'all');
+        StructureSessionStorage.setFurnitureSelection(activeBuildingId, 'all', 'all');
     }, [activeBuildingId]);
 
     return {

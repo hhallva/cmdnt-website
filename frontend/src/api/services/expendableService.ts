@@ -1,0 +1,50 @@
+import { BaseApiService } from '../core/baseApiService';
+import type { ExpendableTypeDto, PostExpendableTypeDto } from '../../types/expendableTypes';
+import type { ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto } from '../../types/expendableEquipment';
+import type { ExpendableDistributionBatchItemDto, ExpendableDistributionDto } from '../../types/expendableDistribution';
+
+export class ExpendableService extends BaseApiService {
+    getExpendableEquipment(): Promise<ExpendableEquipmentDto[]> {
+        return this.get<ExpendableEquipmentDto[]>('/api/v1/ExpendableEquipment');
+    }
+
+    addExpendableEquipment(payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
+        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>('/api/v1/ExpendableEquipment/add', payload);
+    }
+
+    subtractExpendableEquipment(payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
+        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>('/api/v1/ExpendableEquipment/subtract', payload);
+    }
+
+    getExpendableDistributions(): Promise<ExpendableDistributionDto[]> {
+        return this.get<ExpendableDistributionDto[]>('/api/v1/ExpendableDistribution');
+    }
+
+    createExpendableDistributionsForStudent(studentId: number, items: ExpendableDistributionBatchItemDto[]): Promise<ExpendableDistributionDto> {
+        return this.post<ExpendableDistributionDto, ExpendableDistributionBatchItemDto[]>(`/api/v1/ExpendableDistribution/student/${studentId}`, items);
+    }
+
+    replaceExpendableDistributionsForStudent(studentId: number, items: ExpendableDistributionBatchItemDto[]): Promise<ExpendableDistributionDto> {
+        return this.put<ExpendableDistributionDto, ExpendableDistributionBatchItemDto[]>(`/api/v1/ExpendableDistribution/student/${studentId}`, items);
+    }
+
+    getExpendableTypes(): Promise<ExpendableTypeDto[]> {
+        return this.get<ExpendableTypeDto[]>('/api/v1/Expendable');
+    }
+
+    getExpendableTypeById(id: number): Promise<ExpendableTypeDto> {
+        return this.get<ExpendableTypeDto>(`/api/v1/Expendable/${id}`);
+    }
+
+    createExpendableType(payload: PostExpendableTypeDto): Promise<ExpendableTypeDto> {
+        return this.post<ExpendableTypeDto, PostExpendableTypeDto>('/api/v1/Expendable', payload);
+    }
+
+    updateExpendableType(id: number, payload: ExpendableTypeDto): Promise<ExpendableTypeDto> {
+        return this.put<ExpendableTypeDto, ExpendableTypeDto>(`/api/v1/Expendable/${id}`, payload);
+    }
+
+    deleteExpendableType(id: number): Promise<void> {
+        return this.delete(`/api/v1/Expendable/${id}`);
+    }
+}

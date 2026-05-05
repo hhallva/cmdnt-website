@@ -1,73 +1,42 @@
-import { useCallback, useEffect, useState } from 'react';
 import { dormitoryApi } from '../api/dormitory';
 import { apiClient } from '../api/client';
 import type { RoomDto } from '../types/rooms';
 import type { StudentsDto } from '../types/students';
+import { useAsyncResource } from './shared/useAsyncResource';
 
 export const useDormStructureData = (buildingId?: number) => {
-    const [rooms, setRooms] = useState<RoomDto[]>([]);
-    const [students, setStudents] = useState<StudentsDto[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [reloadKey, setReloadKey] = useState(0);
-    const [silentReload, setSilentReload] = useState(false);
+    const initialData: { rooms: RoomDto[]; students: StudentsDto[] } = {
+        rooms: [],
+        students: [],
+    };
 
-    useEffect(() => {
-        let isMounted = true;
+    const { data, loading, error, refetch } = useAsyncResource({
+        enabled: true,
+        initialData,
+        loader: async () => {
+            if (buildingId) {
+                const [rooms, students] = await Promise.all([
+                    apiClient.getRoomsByBuildingId(buildingId),
+                    apiClient.getAllStudents(),
+                ]);
 
-        const loadData = async () => {
-            if (!silentReload) {
-                setLoading(true);
+                return { rooms, students };
             }
-            setError(null);
-            try {
-                if (buildingId) {
-                    const [rooms, students] = await Promise.all([
-                        apiClient.getRoomsByBuildingId(buildingId),
-                        apiClient.getAllStudents(),
-                    ]);
-                    if (!isMounted) {
-                        return;
-                    }
-                    setRooms(rooms);
-                    setStudents(students);
-                } else {
-                    const dataset = await dormitoryApi.fetchDataset();
-                    if (!isMounted) {
-                        return;
-                    }
-                    setRooms(dataset.rooms);
-                    setStudents(dataset.students);
-                }
-            } catch (err: any) {
-                if (!isMounted) {
-                    return;
-                }
-                const msg = err?.message || 'Не удалось загрузить структуру общежития';
-                setError(msg);
-                console.error('Ошибка при загрузке структуры общежития:', err);
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                    setSilentReload(false);
-                }
-            }
-        };
 
-        loadData();
+            const dataset = await dormitoryApi.fetchDataset();
+            return {
+                rooms: dataset.rooms,
+                students: dataset.students,
+            };
+        },
+        deps: [buildingId],
+    });
 
-        return () => {
-            isMounted = false;
-        };
-    }, [buildingId, reloadKey]);
-
-    const refetch = useCallback((options?: { silent?: boolean }) => {
-        if (options?.silent) {
-            setSilentReload(true);
-            setLoading(false);
-        }
-        setReloadKey(prev => prev + 1);
-    }, []);
-
-    return { rooms, students, loading, error, refetch };
+    return {
+        rooms: data.rooms,
+        students: data.students,
+        loading,
+        error,
+        refetch,
+    };
 };

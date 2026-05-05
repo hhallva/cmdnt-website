@@ -39,6 +39,7 @@ const BlockModal: React.FC<BlockModalProps> = ({
 }) => {
     const [openRoomMenuId, setOpenRoomMenuId] = useState<number | null>(null);
     const roomMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const activeBlockStatus = activeBlock ? getStatus(activeBlock.currentCapacity, activeBlock.capacity) : null;
 
     const closeRoomMenu = useCallback(() => {
         setOpenRoomMenuId(null);
@@ -112,9 +113,9 @@ const BlockModal: React.FC<BlockModalProps> = ({
                         <p className={styles.blockMeta}>
                             <span className={styles.blockMetaLabel}>Статус</span>
                             <span className={styles.blockMetaValue}>
-                                {getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'occupied'
+                                {activeBlockStatus === 'occupied'
                                     ? 'Занят'
-                                    : getStatus(activeBlock.currentCapacity, activeBlock.capacity) === 'free'
+                                    : activeBlockStatus === 'free'
                                         ? 'Свободен'
                                         : 'Частично занят'}
                             </span>

@@ -22,6 +22,7 @@ const STORAGE_DEFAULT_TAB: StudentTabKey = 'personal';
 const STRUCTURE_TABS_STORAGE_KEY = 'structure-active-tab';
 const STRUCTURE_SETTLEMENT_PREFILL_KEY = 'structure-settlement-prefill';
 const SETTLEMENT_TAB_ID = 'settlement';
+
 const getStoredTab = (key: string): StudentTabKey => {
     if (typeof window === 'undefined') return STORAGE_DEFAULT_TAB;
     const saved = sessionStorage.getItem(key);

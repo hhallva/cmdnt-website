@@ -35,6 +35,9 @@ import { useStructureTabs } from './hooks/useStructureTabs';
 import { useStructureFilters } from './hooks/useStructureFilters';
 import { useSettlementForm } from './hooks/useSettlementForm';
 import { getStudentImageSrc } from '../../../utils/students';
+import { useSortableConfig } from './hooks/useSortableConfig';
+import { StructureSessionStorage } from './services/StructureSessionStorage';
+import { DragImageService } from './services/DragImageService';
 
 type NewRoomFormState = {
     floorNumber: string;
@@ -63,9 +66,7 @@ const StructureLayout: React.FC = () => {
     }, []);
 
     const markNotFound = useCallback(() => {
-        if (typeof window !== 'undefined') {
-            sessionStorage.removeItem('active-building');
-        }
+        StructureSessionStorage.removeActiveBuilding();
         setIsNotFound(true);
         navigate('/not-found', { replace: true });
     }, [navigate]);
@@ -78,18 +79,18 @@ const StructureLayout: React.FC = () => {
 
         const stateBuilding = (location.state as { building?: { id: number; name: string; address: string } } | null)?.building;
         if (stateBuilding && stateBuilding.id === buildingIdNum) {
-            sessionStorage.setItem('active-building', JSON.stringify(stateBuilding));
+            StructureSessionStorage.saveActiveBuilding(stateBuilding);
             return;
         }
 
         const loadBuilding = async () => {
             try {
                 const building = await apiClient.getBuildingById(buildingIdNum);
-                sessionStorage.setItem('active-building', JSON.stringify({
+                StructureSessionStorage.saveActiveBuilding({
                     id: building.id,
                     name: building.name,
                     address: building.address,
-                }));
+                });
             } catch (err: any) {
                 if (isNotFoundMessage(err?.message)) {
                     markNotFound();
@@ -120,13 +121,7 @@ const StructureLayout: React.FC = () => {
     const [beddingExportHandler, setBeddingExportHandler] = useState<(() => void) | null>(null);
     const dragImageRef = useRef<HTMLElement | null>(null);
     const sideMenuDragImageRef = useRef<HTMLElement | null>(null);
-
-    const clearDragImage = useCallback((ref: React.MutableRefObject<HTMLElement | null>) => {
-        if (ref.current) {
-            ref.current.remove();
-            ref.current = null;
-        }
-    }, []);
+    const dragImageService = useMemo(() => new DragImageService(), []);
 
     const loadStructureStats = useCallback(async (options?: { silent?: boolean }) => {
         if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
@@ -218,22 +213,10 @@ const StructureLayout: React.FC = () => {
         activateSettlementTab,
     });
 
-    const [unassignedSortConfig, setUnassignedSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
-        key: 'fullName',
-        direction: 'asc',
-    });
-
-    const requestUnassignedSort = (key: string) => {
-        setUnassignedSortConfig(prevConfig => {
-            if (prevConfig && prevConfig.key === key) {
-                return {
-                    key,
-                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
-                };
-            }
-            return { key, direction: 'asc' };
-        });
-    };
+    const { sortConfig: unassignedSortConfig, requestSort: requestUnassignedSort } = useSortableConfig(
+        { key: 'fullName', direction: 'asc' },
+        ['fullName', 'group.name', 'group.course', 'gender', 'phone', 'birthday'] as const
+    );
 
     const unassignedStudentsSorted = useMemo(() => {
         const result = unassignedStudents.slice();
@@ -395,15 +378,7 @@ const StructureLayout: React.FC = () => {
 
     const handleAddRoomSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const storedBuilding = typeof window !== 'undefined' ? sessionStorage.getItem('active-building') : null;
-        const storedBuildingId = storedBuilding ? (() => {
-            try {
-                const parsed = JSON.parse(storedBuilding) as { id?: number };
-                return typeof parsed?.id === 'number' ? parsed.id : null;
-            } catch {
-                return null;
-            }
-        })() : null;
+        const storedBuildingId = StructureSessionStorage.getActiveBuildingId();
         const activeBuildingId = storedBuildingId ?? buildingIdNum;
 
         if (!activeBuildingId) {
@@ -469,120 +444,20 @@ const StructureLayout: React.FC = () => {
         closeBlockModal();
     }, [closeBlockModal, prefillRoomSelection]);
 
-    const setDraggingState = useCallback((element: HTMLElement, isDragging: boolean) => {
-        if (isDragging) {
-            element.setAttribute('data-dragging', 'true');
-            element.style.opacity = '1';
-            element.style.transform = 'none';
-        } else {
-            element.removeAttribute('data-dragging');
-            element.style.removeProperty('opacity');
-            element.style.removeProperty('transform');
-        }
-    }, []);
-
-    const createDragImage = useCallback((element: HTMLElement) => {
-        if (typeof document === 'undefined') {
-            return null;
-        }
-        const rect = element.getBoundingClientRect();
-        const width = Math.ceil(rect.width);
-        const height = Math.ceil(rect.height);
-        const computed = window.getComputedStyle(element);
-        const clone = element.cloneNode(true) as HTMLElement;
-        clone.style.width = `${width}px`;
-        clone.style.height = `${height}px`;
-        clone.style.position = 'absolute';
-        clone.style.top = '-1000px';
-        clone.style.left = '-1000px';
-        clone.style.opacity = '1';
-        clone.style.transform = 'none';
-        clone.style.filter = 'none';
-        clone.style.backdropFilter = 'none';
-        clone.style.boxShadow = 'none';
-        clone.style.outline = 'none';
-        clone.style.borderRadius = computed.borderRadius;
-        clone.style.backgroundColor = computed.backgroundColor;
-        clone.style.border = computed.border;
-        clone.style.overflow = 'hidden';
-        clone.style.maskImage = 'none';
-        clone.style.webkitMaskImage = 'none';
-        clone.style.pointerEvents = 'none';
-        clone.style.boxSizing = 'border-box';
-        document.body.appendChild(clone);
-        return clone;
-    }, []);
-
-    const createSideMenuDragImage = useCallback((student: StudentsDto) => {
-        if (typeof document === 'undefined') {
-            return null;
-        }
-        const imageSrc = getStudentImageSrc(student.image);
-        const card = document.createElement('div');
-        card.className = styles.sideMenuCard;
-        card.style.width = '220px';
-        card.style.position = 'absolute';
-        card.style.top = '-1000px';
-        card.style.left = '-1000px';
-        card.style.opacity = '1';
-        card.style.transform = 'none';
-        card.style.filter = 'none';
-        card.style.backdropFilter = 'none';
-        card.style.boxShadow = 'none';
-        card.style.outline = 'none';
-        card.style.overflow = 'hidden';
-        card.style.pointerEvents = 'none';
-        card.style.boxSizing = 'border-box';
-
-        const avatar = document.createElement('div');
-        avatar.className = styles.sideMenuAvatar;
-
-        if (imageSrc) {
-            const img = document.createElement('img');
-            img.src = imageSrc;
-            img.alt = student.surname || 'Фотография студента';
-            avatar.appendChild(img);
-        } else {
-            const initials = document.createElement('span');
-            initials.textContent = getInitials(student) || '—';
-            avatar.appendChild(initials);
-        }
-
-        const info = document.createElement('div');
-        info.className = styles.sideMenuCardInfo;
-
-        const name = document.createElement('p');
-        name.className = styles.sideMenuName;
-        name.textContent = formatShortName(student);
-
-        const meta = document.createElement('p');
-        meta.className = styles.sideMenuMeta;
-        meta.textContent = `Группа ${student.group?.name ?? '—'}, ${student.group?.course ?? '—'} курс`;
-
-        info.appendChild(name);
-        info.appendChild(meta);
-
-        card.appendChild(avatar);
-        card.appendChild(info);
-
-        document.body.appendChild(card);
-        return card;
-    }, []);
-
     useEffect(() => {
         return () => {
-            clearDragImage(dragImageRef);
-            clearDragImage(sideMenuDragImageRef);
+            dragImageService.cleanup(dragImageRef);
+            dragImageService.cleanup(sideMenuDragImageRef);
         };
-    }, [clearDragImage]);
+    }, [dragImageService]);
 
     const handleStudentDragStart = useCallback((event: React.DragEvent<HTMLButtonElement>, studentId: number) => {
         event.dataTransfer.setData('text/plain', studentId.toString());
         event.dataTransfer.setData('application/x-student-id', studentId.toString());
         event.dataTransfer.effectAllowed = 'move';
-        setDraggingState(event.currentTarget, true);
-        clearDragImage(dragImageRef);
-        const dragImage = createDragImage(event.currentTarget);
+        dragImageService.setDraggingState(event.currentTarget, true);
+        dragImageService.cleanup(dragImageRef);
+        const dragImage = dragImageService.createFromElement(event.currentTarget);
         if (dragImage) {
             event.dataTransfer.setDragImage(
                 dragImage,
@@ -591,20 +466,30 @@ const StructureLayout: React.FC = () => {
             );
             dragImageRef.current = dragImage;
         }
-    }, [clearDragImage, createDragImage, setDraggingState]);
+    }, [dragImageService]);
 
     const handleStudentDragEnd = useCallback((event: React.DragEvent<HTMLButtonElement>) => {
-        setDraggingState(event.currentTarget, false);
-        clearDragImage(dragImageRef);
-    }, [clearDragImage, setDraggingState]);
+        dragImageService.setDraggingState(event.currentTarget, false);
+        dragImageService.cleanup(dragImageRef);
+    }, [dragImageService]);
 
     const handleAssignedStudentDragStart = useCallback((event: React.DragEvent<HTMLDivElement>, student: StudentsDto) => {
         event.dataTransfer.setData('text/plain', student.id.toString());
         event.dataTransfer.setData('application/x-student-id', student.id.toString());
         event.dataTransfer.effectAllowed = 'move';
-        setDraggingState(event.currentTarget, true);
-        clearDragImage(sideMenuDragImageRef);
-        const dragImage = createSideMenuDragImage(student);
+        dragImageService.setDraggingState(event.currentTarget, true);
+        dragImageService.cleanup(sideMenuDragImageRef);
+        const dragImage = dragImageService.createStudentCard(
+            student,
+            {
+                sideMenuCard: styles.sideMenuCard,
+                sideMenuAvatar: styles.sideMenuAvatar,
+                sideMenuCardInfo: styles.sideMenuCardInfo,
+                sideMenuName: styles.sideMenuName,
+                sideMenuMeta: styles.sideMenuMeta,
+            },
+            { formatShortName, getInitials }
+        );
         if (dragImage) {
             event.dataTransfer.setDragImage(
                 dragImage,
@@ -613,12 +498,12 @@ const StructureLayout: React.FC = () => {
             );
             sideMenuDragImageRef.current = dragImage;
         }
-    }, [clearDragImage, createSideMenuDragImage, setDraggingState]);
+    }, [dragImageService]);
 
     const handleAssignedStudentDragEnd = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-        setDraggingState(event.currentTarget, false);
-        clearDragImage(sideMenuDragImageRef);
-    }, [clearDragImage, setDraggingState]);
+        dragImageService.setDraggingState(event.currentTarget, false);
+        dragImageService.cleanup(sideMenuDragImageRef);
+    }, [dragImageService]);
 
     const handleRoomDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();

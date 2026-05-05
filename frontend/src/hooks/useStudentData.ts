@@ -1,62 +1,64 @@
 // src/hooks/useStudentData.ts
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../api/client';
 import type { StudentsDto } from '../types/students';
+import { useAsyncResource } from './shared/useAsyncResource';
 
 export const useStudentData = (studentId: number) => {
-    const [student, setStudent] = useState<StudentsDto | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [notFound, setNotFound] = useState(false);
-    const [reloadKey, setReloadKey] = useState(0);
+    const isValidStudentId = Number.isFinite(studentId) && studentId > 0;
+    const initialData = useMemo(() => ({
+        student: null as StudentsDto | null,
+        notFound: false,
+    }), []);
 
-    useEffect(() => {
-        if (isNaN(studentId) || studentId <= 0) {
-            setLoading(false);
-            setError('Некорректный ID студента');
-            setNotFound(false);
-            return;
-        }
-
-        const fetchStudentData = async () => {
+    const { data, loading, error, refetch } = useAsyncResource({
+        enabled: isValidStudentId,
+        initialData,
+        loader: async () => {
             try {
-                setLoading(true);
-                setError(null);
-                setNotFound(false);
-
                 const [studentRes, contactsRes, extRes] = await Promise.all([
                     apiClient.getStudentById(studentId),
                     apiClient.getStudentContactsById(studentId),
                     apiClient.getExtStudentById(studentId),
                 ]);
 
-                // Объединяем все данные в один объект
-                setStudent({
-                    ...studentRes,
-                    contacts: contactsRes,
-                    origin: extRes.origin,
-                });
                 console.info(`Получение данных студента с ID: ${studentId}`);
-            } catch (err: any) {
-                if (err?.status === 404) {
-                    setNotFound(true);
-                    setError(null);
-                    return;
+
+                return {
+                    student: {
+                        ...studentRes,
+                        contacts: contactsRes,
+                        origin: extRes.origin,
+                    },
+                    notFound: false,
+                };
+            } catch (err: unknown) {
+                const status = (err as { status?: number })?.status;
+                if (status === 404) {
+                    return {
+                        student: null,
+                        notFound: true,
+                    };
                 }
-                const msg = err.message || 'Ошибка при загрузке данных студента';
-                setError(msg);
-                console.error('Ошибка при загрузке данных студента:', err);
-            } finally {
-                setLoading(false);
+
+                throw err;
             }
-        };
+        },
+        deps: [studentId],
+    });
 
-        fetchStudentData();
-    }, [studentId, reloadKey]);
+    const finalError = isValidStudentId ? error : 'Некорректный ID студента';
 
-    const refetch = useCallback(() => {
-        setReloadKey(prev => prev + 1);
-    }, []);
+    useEffect(() => {
+        setNotFound(data.notFound);
+    }, [data.notFound]);
 
-    return { student, loading, error, notFound, refetch };
+    return {
+        student: data.student,
+        loading: isValidStudentId ? loading : false,
+        error: finalError,
+        notFound,
+        refetch,
+    };
 };

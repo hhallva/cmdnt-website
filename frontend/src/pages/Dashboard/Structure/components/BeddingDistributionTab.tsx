@@ -14,6 +14,7 @@ import type {
 import type { ExpendableEquipmentDto } from '../../../../types/expendableEquipment';
 import type { StudentsDto } from '../../../../types/students';
 import styles from '../../Expendable/Expendable.module.css';
+import { useSortableConfig } from '../hooks/useSortableConfig';
 
 type BeddingDistributionRow = {
     id: number;
@@ -73,7 +74,6 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const [distributions, setDistributions] = useState<ExpendableDistributionDto[]>([]);
     const [stock, setStock] = useState<ExpendableEquipmentDto[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingRow, setEditingRow] = useState<BeddingDistributionRow | null>(null);
@@ -90,17 +90,19 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<DistributionItemKey, string>>>({});
     const [formError, setFormError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [sortConfig, setSortConfig] = useState<{ key: SortableKey; direction: 'asc' | 'desc' } | null>({
-        key: 'studentName',
-        direction: 'asc',
-    });
+    const beddingSortKeys = useMemo(
+        () => ['studentName', 'mattress', 'sheet', 'blanket', 'duvetCover', 'pillow', 'pillowcase', 'plaid'] as const,
+        []
+    );
+    const { sortConfig, setSortConfig, requestSort } = useSortableConfig<SortableKey>(
+        { key: 'studentName', direction: 'asc' },
+        beddingSortKeys
+    );
 
     const loadData = useCallback(async (options: LoadDataOptions = {}) => {
         const isSoftUpdate = options.soft ?? false;
 
-        if (isSoftUpdate) {
-            setIsRefreshing(true);
-        } else {
+        if (!isSoftUpdate) {
             setLoading(true);
             setError(null);
         }
@@ -115,9 +117,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         } catch (err: any) {
             setError(err?.message || 'Не удалось загрузить данные');
         } finally {
-            if (isSoftUpdate) {
-                setIsRefreshing(false);
-            } else {
+            if (!isSoftUpdate) {
                 setLoading(false);
             }
         }
@@ -220,38 +220,13 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         XLSX.writeFile(workbook, `Постельное_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }, [filteredRows]);
 
-    const requestSort = useCallback((key: string) => {
-        const allowedKeys: SortableKey[] = [
-            'studentName',
-            'mattress',
-            'sheet',
-            'blanket',
-            'duvetCover',
-            'pillow',
-            'pillowcase',
-            'plaid',
-        ];
-        if (!allowedKeys.includes(key as SortableKey)) {
-            return;
-        }
-        setSortConfig(prevConfig => {
-            if (prevConfig && prevConfig.key === key) {
-                return {
-                    key: key as SortableKey,
-                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
-                };
-            }
-            return { key: key as SortableKey, direction: 'asc' };
-        });
-    }, []);
-
     const sortedRows = useMemo(() => {
         const result = [...filteredRows];
         if (!sortConfig) {
             return result;
         }
         const { key, direction } = sortConfig;
-        const multiplier = direction === 'asc' ? -1 : 1;
+        const multiplier = direction === 'asc' ? 1 : -1;
 
         result.sort((a, b) => {
             if (key === 'studentName') {
