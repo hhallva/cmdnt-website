@@ -532,6 +532,10 @@ export const apiClient = {
   //#endregion
 
   //#region Коммнаты
+  getAllRooms: async (): Promise<RoomDto[]> => {
+    return apiClient.requestWithAuth<RoomDto[]>('/api/v1/Rooms');
+  },
+
   getRoomsByBuildingId: async (buildingId: number): Promise<RoomDto[]> => {
     return apiClient.requestWithAuth<RoomDto[]>(`/api/v1/Buildings/${buildingId}/Rooms`);
   },

@@ -6,7 +6,11 @@ import CommonModal from '../../../../components/CommonModal/CommonModal';
 import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import { apiClient } from '../../../../api/client';
-import type { ExpendableDistributionDto, ExpendableDistributionUpsertDto } from '../../../../types/expendableDistribution';
+import type {
+    ExpendableDistributionDto,
+    ExpendableDistributionTypeDto,
+    ExpendableDistributionUpsertDto,
+} from '../../../../types/expendableDistribution';
 import type { ExpendableEquipmentDto } from '../../../../types/expendableEquipment';
 import type { StudentsDto } from '../../../../types/students';
 import styles from '../../Expendable/Expendable.module.css';
@@ -21,7 +25,7 @@ type BeddingDistributionRow = {
     sheet: number;
     duvetCover: number;
     plaid: number;
-    recordMap: Partial<Record<DistributionItemKey, ExpendableDistributionDto>>;
+    recordMap: Partial<Record<DistributionItemKey, ExpendableDistributionTypeDto>>;
 };
 
 type DistributionItemKey = 'pillow' | 'mattress' | 'blanket' | 'pillowcase' | 'sheet' | 'duvetCover' | 'plaid';
@@ -136,22 +140,17 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const studentIdSet = useMemo(() => new Set(students.map(student => student.id)), [students]);
 
     const buildingDistributions = useMemo(
-        () => distributions.filter(item => studentIdSet.has(item.studentId)),
+        () => distributions.filter(item => studentIdSet.has(item.student.id)),
         [distributions, studentIdSet]
     );
 
     const rows = useMemo(() => {
         const map = new Map<number, BeddingDistributionRow>();
-        buildingDistributions.forEach(item => {
-            const key = keyByTypeName.get(normalize(item.typeName));
-            if (!key) {
-                return;
-            }
-
-            const existing = map.get(item.studentId);
+        buildingDistributions.forEach(distribution => {
+            const existing = map.get(distribution.student.id);
             const row = existing ?? {
-                id: item.studentId,
-                studentName: item.studentFullName || `Студент ${item.studentId}`,
+                id: distribution.student.id,
+                studentName: distribution.student.fullName || `Студент ${distribution.student.id}`,
                 pillow: 0,
                 mattress: 0,
                 blanket: 0,
@@ -162,9 +161,17 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                 recordMap: {},
             };
 
-            row[key] = item.count;
-            row.recordMap[key] = item;
-            map.set(item.studentId, row);
+            distribution.types.forEach(typeItem => {
+                const key = keyByTypeName.get(normalize(typeItem.name));
+                if (!key) {
+                    return;
+                }
+
+                row[key] = typeItem.count;
+                row.recordMap[key] = typeItem;
+            });
+
+            map.set(distribution.student.id, row);
         });
 
         return Array.from(map.values());
@@ -251,7 +258,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
 
     const studentsWithDistribution = useMemo(() => {
         const map = new Set<number>();
-        buildingDistributions.forEach(item => map.add(item.studentId));
+        buildingDistributions.forEach(item => map.add(item.student.id));
         return map;
     }, [buildingDistributions]);
 
@@ -379,18 +386,22 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
             const operations: Array<Promise<unknown>> = [];
             let hasInvalidType = false;
             const isStudentChanged = Boolean(editingRow) && studentId !== editingRow?.id;
-            const targetRecordMap = new Map<DistributionItemKey, ExpendableDistributionDto>();
+            const targetRecordMap = new Map<DistributionItemKey, ExpendableDistributionTypeDto>();
 
             if (isStudentChanged) {
-                distributions.forEach(item => {
-                    if (item.studentId !== studentId) {
+                distributions.forEach(group => {
+                    if (group.student.id !== studentId) {
                         return;
                     }
-                    const key = keyByTypeName.get(normalize(item.typeName));
-                    if (!key) {
-                        return;
-                    }
-                    targetRecordMap.set(key, item);
+
+                    group.types.forEach(typeItem => {
+                        const key = keyByTypeName.get(normalize(typeItem.name));
+                        if (!key) {
+                            return;
+                        }
+
+                        targetRecordMap.set(key, typeItem);
+                    });
                 });
 
                 Object.values(editingRow?.recordMap ?? {}).forEach(record => {
@@ -416,7 +427,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                 if (existing) {
                     if (nextCount === 0) {
                         operations.push(apiClient.deleteExpendableDistribution(existing.id));
-                    } else if (nextCount !== existing.count || existing.studentId !== studentId || existing.typeId !== typeId) {
+                    } else if (nextCount !== existing.count || isStudentChanged) {
                         operations.push(apiClient.updateExpendableDistribution(existing.id, buildPayload(studentId, typeId!, nextCount)));
                     }
                 } else if (nextCount > 0 && typeId) {
@@ -447,7 +458,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
             return;
         }
         const operations = Object.values(row.recordMap)
-            .filter((record): record is ExpendableDistributionDto => Boolean(record))
+            .filter((record): record is ExpendableDistributionTypeDto => Boolean(record))
             .map(record => apiClient.deleteExpendableDistribution(record.id));
 
         if (!operations.length) {

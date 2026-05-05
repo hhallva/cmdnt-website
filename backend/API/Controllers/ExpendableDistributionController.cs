@@ -31,7 +31,13 @@ namespace API.Controllers
                 .ThenInclude(item => item.Type)
                 .ToListAsync();
 
-            return Ok(distributions.Select(item => item.ToDto()));
+            var grouped = distributions
+                .GroupBy(item => item.StudentId)
+                .Select(group => group.ToGroupedDto())
+                .OrderBy(item => item.Student.FullName)
+                .ToList();
+
+            return Ok(grouped);
         }
 
         [HttpPost]
@@ -74,14 +80,8 @@ namespace API.Controllers
             _context.ExpendableDistributions.Add(distribution);
             await _context.SaveChangesAsync();
 
-            var created = await _context.ExpendableDistributions
-                .AsNoTracking()
-                .Include(item => item.Student)
-                .Include(item => item.Expendable)
-                .ThenInclude(item => item.Type)
-                .FirstAsync(item => item.Id == distribution.Id);
-
-            return Ok(created.ToDto());
+            var createdGrouped = await GetStudentGroupedDistributionAsync(distribution.StudentId);
+            return Ok(createdGrouped);
         }
 
         [HttpPut("{id:int}")]
@@ -133,14 +133,8 @@ namespace API.Controllers
 
             await _context.SaveChangesAsync();
 
-            var updated = await _context.ExpendableDistributions
-                .AsNoTracking()
-                .Include(item => item.Student)
-                .Include(item => item.Expendable)
-                .ThenInclude(item => item.Type)
-                .FirstAsync(item => item.Id == distribution.Id);
-
-            return Ok(updated.ToDto());
+            var updatedGrouped = await GetStudentGroupedDistributionAsync(distribution.StudentId);
+            return Ok(updatedGrouped);
         }
 
         [HttpDelete("{id:int}")]
@@ -159,6 +153,22 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private async Task<ExpendableDistributionDto> GetStudentGroupedDistributionAsync(int studentId)
+        {
+            var studentDistributions = await _context.ExpendableDistributions
+                .AsNoTracking()
+                .Include(item => item.Student)
+                .Include(item => item.Expendable)
+                .ThenInclude(item => item.Type)
+                .Where(item => item.StudentId == studentId)
+                .ToListAsync();
+
+            return studentDistributions
+                .GroupBy(item => item.StudentId)
+                .Select(group => group.ToGroupedDto())
+                .First();
         }
     }
 }
