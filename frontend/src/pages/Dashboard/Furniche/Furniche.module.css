@@ -95,6 +95,67 @@
     flex-wrap: wrap;
 }
 
+.furnitureHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.furnitureFields {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.furnitureButtons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.furnitureAssignButton {
+    width: 212px;
+}
+
+.distributionPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+}
+
+.distributionGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.distributionActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.distributionHint {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+.distributionTableHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
 .advancedFiltersPanel {
     border-top: 1px solid var(--color-border);
     margin-top: 1rem;
@@ -134,6 +195,14 @@
     .filtersGrid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .distributionGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .furnitureFields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
@@ -142,6 +211,14 @@
     }
 
     .modalRow {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .distributionGrid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .furnitureFields {
         grid-template-columns: minmax(0, 1fr);
     }
 }

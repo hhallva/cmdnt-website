@@ -280,6 +280,30 @@ export const apiClient = {
     });
   },
 
+  assignStationaryEquipmentToRoom: async (equipmentId: number, roomId: number): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(
+      `/api/v1/StationaryEquipment/${equipmentId}/assign-room/${roomId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  },
+
+  evictStationaryEquipment: async (equipmentId: number): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(
+      `/api/v1/StationaryEquipment/${equipmentId}/evict-room`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  },
+
   deleteStationaryEquipment: async (id: number): Promise<void> => {
     await apiClient.requestWithAuth(`/api/v1/StationaryEquipment/${id}`, {
       method: 'DELETE',

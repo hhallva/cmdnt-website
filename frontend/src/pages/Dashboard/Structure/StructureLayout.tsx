@@ -17,6 +17,7 @@ import SettlementToast from './components/SettlementToast';
 import SideMenuPortal from './components/SideMenuPortal';
 import { StructureTabContent, StructureTabHeader } from './components/StructureTab';
 import { SettlementTabContent, SettlementTabHeader } from './components/SettlementTab';
+import FurnitureTab, { FurnitureTabHeader, useFurnitureTabState } from './components/FurnitureTab';
 import styles from './Structure.module.css';
 import expendableStyles from '../Expendable/Expendable.module.css';
 import {
@@ -722,6 +723,13 @@ const StructureLayout: React.FC = () => {
         setBeddingResetSignal(prev => prev + 1);
     }, []);
 
+    const furnitureTabState = useFurnitureTabState();
+
+    const handleRoomFurnitureClick = useCallback((room: RoomWithOccupants) => {
+        furnitureTabState.actions.selectRoomById(room.id);
+        setActiveTabId('furniture');
+    }, [furnitureTabState.actions, setActiveTabId]);
+
 
     if (isNotFound) {
         return null;
@@ -856,9 +864,11 @@ const StructureLayout: React.FC = () => {
     );
 
     const furnitureTabContent = (
-        <div className="p-3">
-            <p className="mb-0">Раздел в разработке.</p>
-        </div>
+        <FurnitureTab {...furnitureTabState.contentProps} />
+    );
+
+    const furnitureHeaderContent = (
+        <FurnitureTabHeader {...furnitureTabState.headerProps} />
     );
 
     const beddingTabContent = (
@@ -874,12 +884,12 @@ const StructureLayout: React.FC = () => {
         ? [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
             { id: SETTLEMENT_TAB_ID, title: 'Расселение', headerContent: settlementHeaderContent, content: settlementTabContent },
-            { id: 'furniture', title: 'Мебель', headerContent: null, content: furnitureTabContent },
+            { id: 'furniture', title: 'Мебель', headerContent: furnitureHeaderContent, content: furnitureTabContent },
             { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
         ]
         : [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
-            { id: 'furniture', title: 'Мебель', headerContent: null, content: furnitureTabContent },
+            { id: 'furniture', title: 'Мебель', headerContent: furnitureHeaderContent, content: furnitureTabContent },
             { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
         ];
 
@@ -936,6 +946,7 @@ const StructureLayout: React.FC = () => {
                 deletingRoomId={deletingRoomId}
                 onClose={handleCloseBlockModal}
                 onDeleteRoom={handleDeleteRoom}
+                onRoomFurnitureClick={handleRoomFurnitureClick}
                 onFreeSlotClick={handleFreeSlotClick}
                 onRoomDragOver={handleRoomDragOver}
                 onRoomDrop={handleRoomDrop}

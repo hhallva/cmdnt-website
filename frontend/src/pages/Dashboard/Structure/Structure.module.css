@@ -791,6 +791,61 @@
     color: var(--btn-primary);
 }
 
+.blockRoomMenu {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.blockRoomMenuButton {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.blockRoomMenuButton i {
+    font-size: 1.1rem;
+}
+
+.blockRoomMenuList {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 10px 24px var(--color-shadow-15);
+    min-width: 180px;
+    padding: 0.35rem 0;
+    z-index: 10;
+}
+
+.blockRoomMenuItem {
+    width: 100%;
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 0.45rem 0.9rem;
+    color: var(--color-text-dark);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.blockRoomMenuItem:hover,
+.blockRoomMenuItem:focus-visible {
+    background: var(--color-bg);
+    outline: none;
+}
+
+.blockRoomMenuDanger {
+    color: var(--color-danger);
+}
+
 .sideMenu {
     position: fixed;
     top: 0;

@@ -4,7 +4,6 @@ import InputField from '../../../components/InputField/InputField';
 import SelectField from '../../../components/SelectField/SelectField';
 import Tabs from '../../../components/Tabs/Tabs';
 import FurnicheCategoriesTab from './components/FurnicheCategoriesTab';
-import FurnicheDistributionTab from './components/FurnicheDistributionTab';
 import FurnicheImportTab from './components/FurnicheImportTab';
 import FurnicheListTab from './components/FurnicheListTab';
 import styles from './Furniche.module.css';
@@ -205,13 +204,6 @@ const FurnicheLayout: React.FC = () => {
                     onExportReady={setListExportHandler}
                     onFilterOptionsReady={setListFilterOptions}
                 />
-            ),
-        },
-        {
-            id: 'distribution',
-            title: 'Распределение',
-            content: (
-                <FurnicheDistributionTab />
             ),
         },
         {
