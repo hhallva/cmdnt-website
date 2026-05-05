@@ -54,30 +54,34 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("equipment/add")]
+        [HttpPost("equipment/{id:int}")]
         [SwaggerOperation(
             Summary = "Добавление расходников",
-            Description = "Увеличивает количество расходников выбранной категории.")]
+            Description = "Увеличивает количество расходников выбранной категории по её идентификатору.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Количество успешно увеличено.", Type = typeof(ExpendableEquipmentDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<ExpendableEquipmentDto>> AddExpendableEquipment(
-            [SwaggerRequestBody("Данные для добавления", Required = true)] ExpendableEquipmentAdjustmentDto dto)
+            int id,
+            [FromBody, SwaggerRequestBody("Данные для добавления (количество)", Required = true)] ExpendableEquipmentAdjustmentDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
 
-            var typeExists = await _context.ExpendableTypes.AnyAsync(type => type.Id == dto.TypeId);
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор категории", StatusCodes.Status400BadRequest));
+
+            var typeExists = await _context.ExpendableTypes.AnyAsync(type => type.Id == id);
             if (!typeExists)
                 return BadRequest(new ApiErrorDto("Категория не найдена", StatusCodes.Status400BadRequest));
 
             var equipment = await _context.ExpendableEquipments
-                .FirstOrDefaultAsync(item => item.TypeId == dto.TypeId);
+                .FirstOrDefaultAsync(item => item.TypeId == id);
 
             if (equipment == null)
             {
                 equipment = new ExpendableEquipment
                 {
-                    TypeId = dto.TypeId,
+                    TypeId = id,
                     Count = dto.Count,
                 };
                 _context.ExpendableEquipments.Add(equipment);
@@ -89,27 +93,31 @@ namespace API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(await BuildSummaryAsync(dto.TypeId));
+            return Ok(await BuildSummaryAsync(id));
         }
 
-        [HttpPost("equipment/subtract")]
+        [HttpDelete("equipment/{id:int}")]
         [SwaggerOperation(
             Summary = "Списание расходников",
-            Description = "Уменьшает количество расходников выбранной категории.")]
+            Description = "Уменьшает количество расходников выбранной категории по её идентификатору.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Количество успешно уменьшено.", Type = typeof(ExpendableEquipmentDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<ExpendableEquipmentDto>> SubtractExpendableEquipment(
-            [SwaggerRequestBody("Данные для списания", Required = true)] ExpendableEquipmentAdjustmentDto dto)
+            int id,
+            [FromBody, SwaggerRequestBody("Данные для списания (количество)", Required = true)] ExpendableEquipmentAdjustmentDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
 
-            var typeExists = await _context.ExpendableTypes.AnyAsync(type => type.Id == dto.TypeId);
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор категории", StatusCodes.Status400BadRequest));
+
+            var typeExists = await _context.ExpendableTypes.AnyAsync(type => type.Id == id);
             if (!typeExists)
                 return BadRequest(new ApiErrorDto("Категория не найдена", StatusCodes.Status400BadRequest));
 
             var equipmentList = await _context.ExpendableEquipments
-                .Where(item => item.TypeId == dto.TypeId)
+                .Where(item => item.TypeId == id)
                 .Select(item => new
                 {
                     Entity = item,
@@ -144,7 +152,7 @@ namespace API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(await BuildSummaryAsync(dto.TypeId));
+            return Ok(await BuildSummaryAsync(id));
         }
 
         [HttpGet("distribution")]

@@ -198,13 +198,11 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
         setAdjustError(null);
         try {
             if (adjustMode === 'add') {
-                await apiClient.addExpendableEquipment({
-                    typeId: adjustTarget.type.id,
+                await apiClient.addExpendableEquipment(adjustTarget.type.id, {
                     count: parsed,
                 });
             } else {
-                await apiClient.subtractExpendableEquipment({
-                    typeId: adjustTarget.type.id,
+                await apiClient.subtractExpendableEquipment(adjustTarget.type.id, {
                     count: parsed,
                 });
             }

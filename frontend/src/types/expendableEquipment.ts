@@ -11,6 +11,5 @@ export interface ExpendableEquipmentDto {
 }
 
 export interface ExpendableEquipmentAdjustmentDto {
-    typeId: number;
     count: number;
 }

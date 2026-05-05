@@ -32,9 +32,10 @@ export abstract class BaseApiService {
         });
     }
 
-    protected delete(url: string): Promise<void> {
-        return this.http.requestWithAuth<void>(url, {
+    protected delete<TResponse = void, TPayload = unknown>(url: string, payload?: TPayload): Promise<TResponse> {
+        return this.http.requestWithAuth<TResponse>(url, {
             method: 'DELETE',
+            body: payload === undefined ? undefined : JSON.stringify(payload),
         });
     }
 }
