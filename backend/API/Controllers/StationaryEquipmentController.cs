@@ -52,7 +52,15 @@ namespace API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(equipment.ToDto());
+            var updated = await _context.StationaryEquipments
+                .AsNoTracking()
+                .Include(item => item.Type)
+                .Include(item => item.Status)
+                .Include(item => item.Room)
+                .ThenInclude(room => room.Building)
+                .FirstAsync(item => item.Id == equipment.Id);
+
+            return Ok(updated.ToDto());
         }
 
         [HttpPost("{equipmentId}/evict-room")]
