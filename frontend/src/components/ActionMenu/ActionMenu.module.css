@@ -1,0 +1,47 @@
+.menu {
+    position: fixed;
+    min-width: 200px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 0.25rem;
+    z-index: 1100;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.menuItem {
+    width: 100%;
+    border: none;
+    background: var(--color-transparent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    color: var(--color-text-dark);
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.menuItem:hover {
+    background-color: var(--color-surface-subtle);
+}
+
+.menuItem:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.menuItem i {
+    font-size: 1rem;
+}
+
+.menuItemDanger {
+    color: var(--color-danger);
+}
+
+.menuItemDanger:hover {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+}

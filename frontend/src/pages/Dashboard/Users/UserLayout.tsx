@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getUserSession } from '../../../components/ProtectedRoute';
@@ -13,6 +12,7 @@ import type { PostUserDto } from '../../../types/PostUserDto';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
 import CommonTable from '../../../components/CommonTable/CommonTable';
+import ActionMenu, { type ActionMenuItem } from '../../../components/ActionMenu/ActionMenu';
 import InputField from '../../../components/InputField/InputField';
 import PasswordField from '../../../components/PasswordField/PasswordField';
 import SelectField from '../../../components/SelectField/SelectField';
@@ -21,8 +21,6 @@ import ChangePasswordModal from './components/ChangePasswordModal/ChangePassword
 import EditUserModal from './components/EditUserModal/EditUserModal';
 
 import styles from './User.module.css'
-
-const MOBILE_MENU_WIDTH = 220;
 const USERS_TAB_STORAGE_KEY = 'users-active-tab';
 const USERS_DEFAULT_TAB_ID = 'list';
 
@@ -281,46 +279,12 @@ const UsersLayout: React.FC = () => {
         rowAction.popupActions?.filter(action => (action.isVisible ? action.isVisible(user) : true)) ?? [];
 
     const [activeMobileMenuUserId, setActiveMobileMenuUserId] = useState<number | null>(null);
-    const [mobileMenuPosition, setMobileMenuPosition] = useState<{ top: number; left: number | null; right: number | null } | null>(null);
-    const mobileMenuRef = useRef<HTMLDivElement | null>(null);
     const mobileMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
     const closeMobileMenu = useCallback(() => {
         setActiveMobileMenuUserId(null);
-        setMobileMenuPosition(null);
         mobileMenuTriggerRef.current = null;
     }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Node;
-            if (mobileMenuRef.current?.contains(target) || mobileMenuTriggerRef.current?.contains(target)) {
-                return;
-            }
-            closeMobileMenu();
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [closeMobileMenu]);
-
-    useEffect(() => {
-        if (!activeMobileMenuUserId) return;
-
-        const handleViewportChange = () => {
-            closeMobileMenu();
-        };
-
-        window.addEventListener('scroll', handleViewportChange, true);
-        window.addEventListener('resize', handleViewportChange);
-
-        return () => {
-            window.removeEventListener('scroll', handleViewportChange, true);
-            window.removeEventListener('resize', handleViewportChange);
-        };
-    }, [activeMobileMenuUserId, closeMobileMenu]);
 
     const handleMobileMenuToggle = (
         event: React.MouseEvent<HTMLButtonElement>,
@@ -334,15 +298,6 @@ const UsersLayout: React.FC = () => {
             return;
         }
 
-        const buttonRect = event.currentTarget.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const shouldAlignRight = buttonRect.left + MOBILE_MENU_WIDTH > viewportWidth - 12;
-
-        setMobileMenuPosition({
-            top: buttonRect.bottom + 4,
-            left: shouldAlignRight ? null : Math.max(buttonRect.left, 8),
-            right: shouldAlignRight ? Math.max(viewportWidth - buttonRect.right, 8) : null,
-        });
         mobileMenuTriggerRef.current = event.currentTarget;
         setActiveMobileMenuUserId(userId);
     };
@@ -384,6 +339,29 @@ const UsersLayout: React.FC = () => {
 
         return result;
     }, [filteredUsers, sortConfig]);
+
+    const activeMobileUser = activeMobileMenuUserId
+        ? sortedUsers.find(user => user.id === activeMobileMenuUserId) ?? null
+        : null;
+
+    const mobileMenuItems = useMemo<ActionMenuItem[]>(() => {
+        if (!activeMobileUser) {
+            return [];
+        }
+
+        return getVisibleRowActions(activeMobileUser).map(action => ({
+            label: action.label,
+            icon: action.icon,
+            variant: action.variant,
+            onClick: () => action.onClick(activeMobileUser),
+        }));
+    }, [activeMobileUser, getVisibleRowActions]);
+
+    useEffect(() => {
+        if (activeMobileMenuUserId !== null && !activeMobileUser) {
+            closeMobileMenu();
+        }
+    }, [activeMobileMenuUserId, activeMobileUser, closeMobileMenu]);
 
     const listTabHeader = (
         <div className={styles.filterBar}>
@@ -462,36 +440,6 @@ const UsersLayout: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {hasMobileActions &&
-                                    activeMobileMenuUserId === user.id &&
-                                    mobileMenuPosition &&
-                                    createPortal(
-                                        <div
-                                            ref={mobileMenuRef}
-                                            className={styles.mobileCardActionMenu}
-                                            style={{
-                                                top: mobileMenuPosition.top,
-                                                left: mobileMenuPosition.left ?? undefined,
-                                                right: mobileMenuPosition.right ?? undefined,
-                                            }}
-                                        >
-                                            {visibleMobileActions.map((action, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    type="button"
-                                                    className={`${styles.mobileCardActionMenuItem} ${action.variant === 'danger' ? styles.mobileCardActionMenuItemDanger : ''}`}
-                                                    onClick={() => {
-                                                        action.onClick(user);
-                                                        closeMobileMenu();
-                                                    }}
-                                                >
-                                                    {action.icon && <i className={`bi ${action.icon}`}></i>}
-                                                    <span>{action.label}</span>
-                                                </button>
-                                            ))}
-                                        </div>,
-                                        document.body
-                                    )}
                             </div>
                         );
                     })
@@ -499,6 +447,12 @@ const UsersLayout: React.FC = () => {
                     <div className={styles.mobileCardsEmpty}>Пользователи не найдены</div>
                 )}
             </div>
+            <ActionMenu
+                isOpen={Boolean(activeMobileUser && mobileMenuItems.length > 0)}
+                anchorRef={mobileMenuTriggerRef}
+                items={mobileMenuItems}
+                onClose={closeMobileMenu}
+            />
         </>
     );
 
