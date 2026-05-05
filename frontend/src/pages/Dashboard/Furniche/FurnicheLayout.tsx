@@ -2,7 +2,10 @@ import React, { useCallback, useMemo, useState } from 'react';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import InputField from '../../../components/InputField/InputField';
 import SelectField from '../../../components/SelectField/SelectField';
+import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
+import { apiClient } from '../../../api/client';
+import type { StationaryEquipmentStatisticDto } from '../../../types/stationaryEquipmentStatistic';
 import FurnicheCategoriesTab from './components/FurnicheCategoriesTab';
 import FurnicheImportTab from './components/FurnicheImportTab';
 import FurnicheListTab from './components/FurnicheListTab';
@@ -47,6 +50,26 @@ const FurnicheLayout: React.FC = () => {
         typeOptions: [{ value: 'all', label: 'Все категории' }],
         statusOptions: [{ value: 'all', label: 'Все статусы' }],
     });
+    const [statistics, setStatistics] = useState<StationaryEquipmentStatisticDto | null>(null);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [statsError, setStatsError] = useState<string | null>(null);
+
+    const loadStatistics = useCallback(async () => {
+        setStatsLoading(true);
+        setStatsError(null);
+        try {
+            const data = await apiClient.getStationaryEquipmentStatistics();
+            setStatistics(data);
+        } catch (err: any) {
+            setStatsError(err?.message || 'Не удалось загрузить статистику мебели');
+        } finally {
+            setStatsLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        void loadStatistics();
+    }, [loadStatistics]);
 
     const handleCategoryReset = useCallback(() => {
         setCategoriesSearchTerm('');
@@ -230,9 +253,22 @@ const FurnicheLayout: React.FC = () => {
     }, [activeTabId]);
 
     return (
-        <section className={styles.container}>
+        <div>
+            {!statsLoading && statsError && (
+                <div className="alert alert-danger m-3">{statsError}</div>
+            )}
+            {!statsLoading && !statsError && statistics && (
+                <StatisticsCard
+                    stats={[
+                        { value: statistics.totalCount, label: 'всего объектов' },
+                        { value: statistics.inUseCount, label: 'использовано' },
+                        { value: statistics.storageCount, label: 'склад' },
+                        { value: statistics.repairCount, label: 'ремонт' },
+                    ]}
+                />
+            )}
             <Tabs tabs={tabs} activeTabId={activeTabId} onTabChange={setActiveTabId} />
-        </section>
+        </div>
     );
 };
 

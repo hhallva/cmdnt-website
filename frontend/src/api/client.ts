@@ -24,6 +24,7 @@ import type { ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto } from '.
 import type { ExpendableDistributionDto, ExpendableDistributionUpsertDto } from '../types/expendableDistribution'
 import type { StatusDto } from '../types/statuses'
 import type { StationaryEquipmentDto, PostStationaryEquipmentDto, UpdateStationaryEquipmentDto } from '../types/stationaryEquipment'
+import type { StationaryEquipmentStatisticDto } from '../types/stationaryEquipmentStatistic'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -254,6 +255,10 @@ export const apiClient = {
   //#region Стационарное оборудование
   getStationaryEquipment: async (): Promise<StationaryEquipmentDto[]> => {
     return apiClient.requestWithAuth<StationaryEquipmentDto[]>('/api/v1/StationaryEquipment');
+  },
+
+  getStationaryEquipmentStatistics: async (): Promise<StationaryEquipmentStatisticDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentStatisticDto>('/api/v1/StationaryEquipment/statistic');
   },
 
   getStationaryEquipmentById: async (id: number): Promise<StationaryEquipmentDto> => {
