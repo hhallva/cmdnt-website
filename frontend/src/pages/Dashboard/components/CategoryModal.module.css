@@ -1,0 +1,10 @@
+.modalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+}

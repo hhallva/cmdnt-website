@@ -70,7 +70,7 @@ namespace API.Controllers
 
             var totalCapacity = building.Rooms.Sum(room => room.Capacity);
             var totalFloors = building.Rooms
-                .Select(room => room.FloorNumber)
+                .Select(room => room.Floor)
                 .Distinct()
                 .Count();
             var occupiedCount = building.Rooms

@@ -33,7 +33,7 @@ namespace Core.DTOs.Students
                 RoomCapacity = activeResettlement?.Room.Capacity,
                 BlockNumber = activeResettlement == null
                     ? null
-                    : $"{activeResettlement.Room.FloorNumber}{activeResettlement.Room.RoomNumber:D2}",
+                    : $"{activeResettlement.Room.Floor}{activeResettlement.Room.Number:D2}",
                 Origin = student.Origin,
                 Image = student.Image
             };

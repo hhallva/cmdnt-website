@@ -180,7 +180,7 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
             <div className={`${styles.housingCard} ${blockStatus === 'occupied' ? styles.housingCardOccupied : ''}`}>
                 <div className={styles.blockHeader}>
                     <p className={styles.blockNumber}>
-                        <span className={styles.blockNumberBadge}>{room.roomNumber}</span>
+                        <span className={styles.blockNumberBadge}>{room.number}</span>
                     </p>
                     <div className={styles.groupMeta}>
                         <div className={styles.blockMeta}>

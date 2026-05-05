@@ -6,9 +6,9 @@ public partial class Room
 
     public int BuildingId { get; set; }
 
-    public int FloorNumber { get; set; }
+    public int Floor { get; set; }
 
-    public int RoomNumber { get; set; }
+    public int Number { get; set; }
 
     public int Capacity { get; set; }
 
@@ -16,5 +16,5 @@ public partial class Room
 
     public virtual ICollection<Resettlement> Resettlements { get; set; } = new List<Resettlement>();
 
-    public virtual ICollection<RoomEquipment> RoomEquipments { get; set; } = new List<RoomEquipment>();
+    public virtual ICollection<StationaryEquipment> StationaryEquipments { get; set; } = new List<StationaryEquipment>();
 }

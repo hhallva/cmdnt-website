@@ -18,6 +18,13 @@ import type { NoteDto, CreateNoteDto } from '../types/notes'
 import type { StructureStatisticDto, OverallStructureStatisticDto } from '../types/structures'
 import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../types/buildings'
 import type { ResettlementHistoryDto } from '../types/resettlements'
+import type { StationaryTypeDto, PostStationaryTypeDto } from '../types/stationaryTypes'
+import type { ExpendableTypeDto, PostExpendableTypeDto } from '../types/expendableTypes'
+import type { ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto } from '../types/expendableEquipment'
+import type { ExpendableDistributionDto, ExpendableDistributionUpsertDto } from '../types/expendableDistribution'
+import type { StatusDto } from '../types/statuses'
+import type { StationaryEquipmentDto, PostStationaryEquipmentDto, UpdateStationaryEquipmentDto } from '../types/stationaryEquipment'
+import type { StationaryEquipmentStatisticDto } from '../types/stationaryEquipmentStatistic'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -108,6 +115,204 @@ export const apiClient = {
   //#region Роли
   getAllRoles: async (): Promise<RoleDto[]> => {
     return apiClient.requestWithAuth<RoleDto[]>('/api/v1/Roles');
+  },
+  //#endregion
+
+  //#region Расходные материалы
+  getExpendableEquipment: async (): Promise<ExpendableEquipmentDto[]> => {
+    return apiClient.requestWithAuth<ExpendableEquipmentDto[]>('/api/v1/ExpendableEquipment');
+  },
+
+  addExpendableEquipment: async (payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> => {
+    return apiClient.requestWithAuth<ExpendableEquipmentDto>('/api/v1/ExpendableEquipment/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  subtractExpendableEquipment: async (payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> => {
+    return apiClient.requestWithAuth<ExpendableEquipmentDto>('/api/v1/ExpendableEquipment/subtract', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getExpendableDistributions: async (): Promise<ExpendableDistributionDto[]> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto[]>('/api/v1/ExpendableDistribution');
+  },
+
+  createExpendableDistribution: async (payload: ExpendableDistributionUpsertDto): Promise<ExpendableDistributionDto> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto>('/api/v1/ExpendableDistribution', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateExpendableDistribution: async (id: number, payload: ExpendableDistributionUpsertDto): Promise<ExpendableDistributionDto> => {
+    return apiClient.requestWithAuth<ExpendableDistributionDto>(`/api/v1/ExpendableDistribution/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteExpendableDistribution: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/ExpendableDistribution/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  //#endregion
+
+  //#region Типы стационарного оборудования
+  getStationaryTypes: async (): Promise<StationaryTypeDto[]> => {
+    return apiClient.requestWithAuth<StationaryTypeDto[]>('/api/v1/Stationary');
+  },
+
+  getStationaryTypeById: async (id: number): Promise<StationaryTypeDto> => {
+    return apiClient.requestWithAuth<StationaryTypeDto>(`/api/v1/Stationary/${id}`);
+  },
+
+  createStationaryType: async (payload: PostStationaryTypeDto): Promise<StationaryTypeDto> => {
+    return apiClient.requestWithAuth<StationaryTypeDto>('/api/v1/Stationary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateStationaryType: async (id: number, payload: StationaryTypeDto): Promise<StationaryTypeDto> => {
+    return apiClient.requestWithAuth<StationaryTypeDto>(`/api/v1/Stationary/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteStationaryType: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Stationary/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  //#endregion
+
+  //#region Типы расходных материалов
+  getExpendableTypes: async (): Promise<ExpendableTypeDto[]> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto[]>('/api/v1/Expendable');
+  },
+
+  getExpendableTypeById: async (id: number): Promise<ExpendableTypeDto> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto>(`/api/v1/Expendable/${id}`);
+  },
+
+  createExpendableType: async (payload: PostExpendableTypeDto): Promise<ExpendableTypeDto> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto>('/api/v1/Expendable', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateExpendableType: async (id: number, payload: ExpendableTypeDto): Promise<ExpendableTypeDto> => {
+    return apiClient.requestWithAuth<ExpendableTypeDto>(`/api/v1/Expendable/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteExpendableType: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/Expendable/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  //#endregion
+
+  //#region Статусы оборудования
+  getStatuses: async (): Promise<StatusDto[]> => {
+    return apiClient.requestWithAuth<StatusDto[]>('/api/v1/Statuses');
+  },
+  //#endregion
+
+  //#region Стационарное оборудование
+  getStationaryEquipment: async (): Promise<StationaryEquipmentDto[]> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto[]>('/api/v1/StationaryEquipment');
+  },
+
+  getStationaryEquipmentStatistics: async (): Promise<StationaryEquipmentStatisticDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentStatisticDto>('/api/v1/StationaryEquipment/statistic');
+  },
+
+  getStationaryEquipmentById: async (id: number): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${id}`);
+  },
+
+  createStationaryEquipment: async (payload: PostStationaryEquipmentDto): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>('/api/v1/StationaryEquipment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateStationaryEquipment: async (id: number, payload: UpdateStationaryEquipmentDto): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  assignStationaryEquipmentToRoom: async (equipmentId: number, roomId: number): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(
+      `/api/v1/StationaryEquipment/${equipmentId}/assign-room/${roomId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  },
+
+  evictStationaryEquipment: async (equipmentId: number): Promise<StationaryEquipmentDto> => {
+    return apiClient.requestWithAuth<StationaryEquipmentDto>(
+      `/api/v1/StationaryEquipment/${equipmentId}/evict-room`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  },
+
+  deleteStationaryEquipment: async (id: number): Promise<void> => {
+    await apiClient.requestWithAuth(`/api/v1/StationaryEquipment/${id}`, {
+      method: 'DELETE',
+    });
   },
   //#endregion
 

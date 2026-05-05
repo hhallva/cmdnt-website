@@ -89,8 +89,8 @@ namespace API.Controllers
             var room = new Room
             {
                 BuildingId = dto.BuildingId,
-                FloorNumber = dto.FloorNumber,
-                RoomNumber = dto.RoomNumber,
+                Floor = dto.Floor,
+                Number = dto.Number,
                 Capacity = dto.Capacity,
             };
 

@@ -130,7 +130,7 @@ export const useSettlementForm = ({
 
     const settlementFloorOptions = useMemo(() => {
         const floorsSet = new Set<number>();
-        filteredAvailableRooms.forEach(room => floorsSet.add(room.floorNumber));
+        filteredAvailableRooms.forEach(room => floorsSet.add(room.floor));
         const floorOptions = Array.from(floorsSet)
             .sort((a, b) => a - b)
             .map(floor => ({ value: floor.toString(), label: `${floor} этаж` }));
@@ -139,15 +139,15 @@ export const useSettlementForm = ({
 
     const settlementRoomOptions = useMemo(() => {
         const targetRooms = settlementForm.floorNumber
-            ? filteredAvailableRooms.filter(room => room.floorNumber === Number(settlementForm.floorNumber))
+            ? filteredAvailableRooms.filter(room => room.floor === Number(settlementForm.floorNumber))
             : filteredAvailableRooms;
 
         const sortedRooms = targetRooms
             .slice()
-            .sort((a, b) => Number(a.roomNumber) - Number(b.roomNumber))
+            .sort((a, b) => Number(a.number) - Number(b.number))
             .map(room => ({
                 value: room.id.toString(),
-                label: `${room.roomNumber} (${room.currentCapacity}/${room.capacity})`,
+                label: `${room.number} (${room.currentCapacity}/${room.capacity})`,
             }));
 
         return [
@@ -190,7 +190,7 @@ export const useSettlementForm = ({
             const nextState = { ...prev, floorNumber: value };
             if (value && prev.roomId) {
                 const currentRoom = roomsById.get(Number(prev.roomId));
-                if (currentRoom && currentRoom.floorNumber.toString() !== value) {
+                if (currentRoom && currentRoom.floor.toString() !== value) {
                     nextState.roomId = '';
                 }
             }
@@ -208,7 +208,7 @@ export const useSettlementForm = ({
             const nextState = {
                 ...prev,
                 roomId: value,
-                floorNumber: room ? room.floorNumber.toString() : prev.floorNumber,
+                floorNumber: room ? room.floor.toString() : prev.floorNumber,
             };
 
             if (room && prev.studentId) {
@@ -271,7 +271,7 @@ export const useSettlementForm = ({
         setSettlementForm(prev => {
             const nextState = {
                 ...prev,
-                floorNumber: room.floorNumber.toString(),
+                floorNumber: room.floor.toString(),
                 roomId: room.id.toString(),
             };
 

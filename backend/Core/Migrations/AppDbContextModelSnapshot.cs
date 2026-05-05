@@ -73,7 +73,7 @@ namespace Core.Migrations
                     b.ToTable("Contact", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Models.Equipment", b =>
+            modelBuilder.Entity("Core.Models.ExpendableDistribution", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -82,14 +82,54 @@ namespace Core.Migrations
                     b.Property<int>("Count")
                         .HasColumnType("int");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
+                    b.Property<int>("ExpendableId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Equipment");
+                    b.HasIndex("ExpendableId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("ExpendableDistribution", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Models.ExpendableEquipment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("ExpendableEquipment", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Models.ExpendableType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExpendableType", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Group", b =>
@@ -522,12 +562,11 @@ namespace Core.Migrations
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
-                    b.Property<int>("FloorNumber")
+                    b.Property<int>("Floor")
                         .HasColumnType("int");
 
-                    b.Property<int>("RoomNumber")
-                        .HasColumnType("int")
-                        .HasColumnName("Room");
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -536,22 +575,72 @@ namespace Core.Migrations
                     b.ToTable("Room", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Models.RoomEquipment", b =>
+            modelBuilder.Entity("Core.Models.StationaryEquipment", b =>
                 {
-                    b.Property<int>("RoomId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("EquipmentId")
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("InventoryNumber")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("varchar(6)");
+
+                    b.Property<int?>("RoomId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Count")
+                    b.Property<int>("StatusId")
                         .HasColumnType("int");
 
-                    b.HasKey("RoomId", "EquipmentId");
+                    b.Property<int>("TypeId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("EquipmentId");
+                    b.HasKey("Id");
 
-                    b.ToTable("RoomEquipment", (string)null);
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("StationaryEquipment", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Models.StationaryType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id")
+                        .HasName("PK_Type");
+
+                    b.ToTable("StationaryType", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Models.Status", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Status", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Student", b =>
@@ -572,6 +661,9 @@ namespace Core.Migrations
                     b.Property<string>("Image")
                         .IsUnicode(false)
                         .HasColumnType("longtext");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsHeadman")
                         .HasColumnType("tinyint(1)");
@@ -659,6 +751,38 @@ namespace Core.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("Core.Models.ExpendableDistribution", b =>
+                {
+                    b.HasOne("Core.Models.ExpendableEquipment", "Expendable")
+                        .WithMany("ExpendableDistributions")
+                        .HasForeignKey("ExpendableId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ExpendableDistribution_ExpendableEquipment");
+
+                    b.HasOne("Core.Models.Student", "Student")
+                        .WithMany("ExpendableDistributions")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ExpendableDistribution_Student");
+
+                    b.Navigation("Expendable");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Core.Models.ExpendableEquipment", b =>
+                {
+                    b.HasOne("Core.Models.ExpendableType", "Type")
+                        .WithMany("ExpendableEquipments")
+                        .HasForeignKey("TypeId")
+                        .IsRequired()
+                        .HasConstraintName("FK_ExpendableEquipment_ExpendableType");
+
+                    b.Navigation("Type");
+                });
+
             modelBuilder.Entity("Core.Models.Note", b =>
                 {
                     b.HasOne("Core.Models.Student", "Student")
@@ -712,25 +836,30 @@ namespace Core.Migrations
                     b.Navigation("Building");
                 });
 
-            modelBuilder.Entity("Core.Models.RoomEquipment", b =>
+            modelBuilder.Entity("Core.Models.StationaryEquipment", b =>
                 {
-                    b.HasOne("Core.Models.Equipment", "Equipment")
-                        .WithMany("RoomEquipments")
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_RoomEquipment_Equipment");
-
                     b.HasOne("Core.Models.Room", "Room")
-                        .WithMany("RoomEquipments")
+                        .WithMany("StationaryEquipments")
                         .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_RoomEquipment_Room");
+                        .HasConstraintName("FK_Equipment_Room");
 
-                    b.Navigation("Equipment");
+                    b.HasOne("Core.Models.Status", "Status")
+                        .WithMany("StationaryEquipments")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Equipment_Status");
+
+                    b.HasOne("Core.Models.StationaryType", "Type")
+                        .WithMany("StationaryEquipments")
+                        .HasForeignKey("TypeId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Equipment_Type");
 
                     b.Navigation("Room");
+
+                    b.Navigation("Status");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("Core.Models.Student", b =>
@@ -760,9 +889,14 @@ namespace Core.Migrations
                     b.Navigation("Rooms");
                 });
 
-            modelBuilder.Entity("Core.Models.Equipment", b =>
+            modelBuilder.Entity("Core.Models.ExpendableEquipment", b =>
                 {
-                    b.Navigation("RoomEquipments");
+                    b.Navigation("ExpendableDistributions");
+                });
+
+            modelBuilder.Entity("Core.Models.ExpendableType", b =>
+                {
+                    b.Navigation("ExpendableEquipments");
                 });
 
             modelBuilder.Entity("Core.Models.Group", b =>
@@ -779,12 +913,24 @@ namespace Core.Migrations
                 {
                     b.Navigation("Resettlements");
 
-                    b.Navigation("RoomEquipments");
+                    b.Navigation("StationaryEquipments");
+                });
+
+            modelBuilder.Entity("Core.Models.StationaryType", b =>
+                {
+                    b.Navigation("StationaryEquipments");
+                });
+
+            modelBuilder.Entity("Core.Models.Status", b =>
+                {
+                    b.Navigation("StationaryEquipments");
                 });
 
             modelBuilder.Entity("Core.Models.Student", b =>
                 {
                     b.Navigation("Contacts");
+
+                    b.Navigation("ExpendableDistributions");
 
                     b.Navigation("Notes");
 
