@@ -789,8 +789,6 @@ const StructureLayout: React.FC = () => {
         ]
         : [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
-            { id: 'furniture', title: 'Мебель', headerContent: furnitureHeaderContent, content: furnitureTabContent },
-            { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
         ];
 
     return (
