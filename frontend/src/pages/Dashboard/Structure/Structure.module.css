@@ -1122,13 +1122,13 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: var(--btn-primary);
+        color: var(--color-text-light);
     }
 
     .studentCardButtonIcon {
         display: inline-flex;
-        font-size: 1.05rem;
-        line-height: 1;
+        font-size: 17px;
+        line-height: 17px;
     }
 
     .studentCardButtonText {

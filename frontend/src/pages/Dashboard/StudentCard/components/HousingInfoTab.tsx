@@ -229,12 +229,13 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                                         <></>
                                     ) : (
                                         <ActionButton
-                                            variant='secondary'
+                                            variant='transparent'
                                             size='md'
-                                            className={styles.studentCardButton}
+                                            className={`${styles.studentCardButton} ${styles.expandIconButton}`}
+                                            ariaLabel='Открыть карточку студента'
                                             onClick={() => navigate(`/dashboard/students/${occupant.id}`)}
                                         >
-                                            Карточка
+                                            <i className={`bi bi-arrows-angle-expand ${styles.expandIcon}`} aria-hidden="true"></i>
                                         </ActionButton>
                                     )}
                                 </div>

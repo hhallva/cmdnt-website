@@ -257,6 +257,14 @@ const StudentCardLayout: React.FC = () => {
                                     <ActionButton
                                         className={styles.actionButtonFullWidth}
                                         size='md'
+                                        onClick={() => setEditModalOpen(true)}>
+                                        Редактировать
+                                    </ActionButton>
+                                )}
+                                {activeTab === 'personal' && (
+                                    <ActionButton
+                                        className={styles.actionButtonFullWidth}
+                                        size='md'
                                         variant="danger" onClick={handleDeleteClick}>
                                         Удалить
                                     </ActionButton>
@@ -281,15 +289,6 @@ const StudentCardLayout: React.FC = () => {
                                     </ActionButton>
                                 )
                             )}
-                            {activeTab === 'personal' && (
-                                <ActionButton
-                                    className={styles.actionButtonFullWidth}
-                                    size='md'
-                                    onClick={() => setEditModalOpen(true)}>
-                                    Редактировать
-                                </ActionButton>
-                            )}
-
                         </div>
                     </div >
                 )

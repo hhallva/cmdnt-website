@@ -403,6 +403,38 @@
     white-space: nowrap;
 }
 
+.expandIconButton {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.expandIcon {
+    font-size: 17px;
+    line-height: 17px;
+    color: var(--color-text-light);
+}
+
+.housingStudentCardButton {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.housingStudentCardIcon {
+    font-size: 17px;
+    line-height: 17px;
+    color: var(--color-text-light);
+}
+
 .housingOccupantFIO {
     color: var(--color-text-dark);
     font-size: 14px;
@@ -671,6 +703,16 @@
 .historyRoommatesEmpty {
     color: var(--color-text-light);
     font-size: 0.9rem;
+}
+
+.historyStudentCardButton {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @media (max-width: 768px) {
