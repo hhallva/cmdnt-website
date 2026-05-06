@@ -398,6 +398,10 @@
     gap: 4rem;
 }
 
+.mobileCardStandaloneMeta {
+    margin-top: 0.5rem;
+}
+
 .mobileCardsEmpty {
     text-align: center;
     color: var(--color-text-light);

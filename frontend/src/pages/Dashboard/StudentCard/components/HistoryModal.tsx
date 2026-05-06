@@ -20,17 +20,17 @@ type HistoryModalProps = {
 const getInitialsFromFullName = (fullName: string): string => {
     const parts = fullName.split(' ').filter(Boolean);
     if (parts.length === 0) {
-        return '—';
+        return 'нет';
     }
     const first = parts[0]?.charAt(0) ?? '';
     const second = parts[1]?.charAt(0) ?? '';
-    return `${first}${second}`.toUpperCase() || '—';
+    return `${first}${second}`.toUpperCase() || 'нет';
 };
 
 const formatShortFullName = (fullName: string): string => {
     const parts = fullName.split(' ').map(part => part.trim()).filter(Boolean);
     if (parts.length === 0) {
-        return '—';
+        return 'нет';
     }
 
     const surname = parts[0];
@@ -167,7 +167,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
                                                                     <div className={styles.historyRoommateText}>
                                                                         <div className={styles.historyRoommateName}>{formatShortFullName(mate.fullName)}</div>
                                                                         <div className={styles.historyRoommateMeta}>
-                                                                            {mate.groupName ?? '—'} · {mate.groupCourse ?? '—'} курс
+                                                                            {mate.groupName ?? 'нет'} · {mate.groupCourse ?? 'нет'} курс
                                                                         </div>
                                                                     </div>
                                                                 </div>

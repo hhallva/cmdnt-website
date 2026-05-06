@@ -87,13 +87,13 @@ const SideMenuPortal: React.FC<SideMenuPortalProps> = ({
                                                 alt={student.surname || 'Фотография студента'}
                                             />
                                         ) : (
-                                            <span>{getInitials(student) || '—'}</span>
+                                            <span>{getInitials(student) || 'нет'}</span>
                                         )}
                                     </div>
                                     <div className={styles.sideMenuCardInfo}>
                                         <p className={styles.sideMenuName}>{formatShortName(student)}</p>
                                         <p className={styles.sideMenuMeta}>
-                                            Группа {student.group?.name ?? '—'}, {student.group?.course ?? '—'} курс
+                                            Группа {student.group?.name ?? 'нет'}, {student.group?.course ?? 'нет'} курс
                                         </p>
                                     </div>
                                 </button>

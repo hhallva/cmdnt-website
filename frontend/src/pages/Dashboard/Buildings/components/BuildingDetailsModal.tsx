@@ -53,13 +53,13 @@ const BuildingDetailsModal: React.FC<BuildingDetailsModalProps> = ({
                                 <div className={`${structureStyles.blockMeta} ${layoutStyles.modalMetaItem}`}>
                                     <span className={structureStyles.blockMetaLabel}>Этажи</span>
                                     <span className={structureStyles.blockMetaValue}>
-                                        {buildingSummary ? buildingSummary.totalFloors : '—'}
+                                        {buildingSummary ? buildingSummary.totalFloors : 'нет'}
                                     </span>
                                 </div>
                                 <div className={`${structureStyles.blockMeta} ${layoutStyles.modalMetaItem}`}>
                                     <span className={structureStyles.blockMetaLabel}>Заселено</span>
                                     <span className={structureStyles.blockMetaValue}>
-                                        {buildingSummary ? `${buildingSummary.occupiedCount}/${buildingSummary.totalCapacity}` : '—'}
+                                        {buildingSummary ? `${buildingSummary.occupiedCount}/${buildingSummary.totalCapacity}` : 'нет'}
                                     </span>
                                 </div>
                                 <div className={`${structureStyles.blockMeta} ${layoutStyles.modalMetaItem} ${layoutStyles.modalMetaAddress}`}>
@@ -71,10 +71,10 @@ const BuildingDetailsModal: React.FC<BuildingDetailsModalProps> = ({
                                             target="_blank"
                                             rel="noreferrer"
                                         >
-                                            {selectedBuilding.address || '—'}
+                                            {selectedBuilding.address || 'нет'}
                                         </a>
                                     ) : (
-                                        <span className={structureStyles.blockMetaValue}>{selectedBuilding.address || '—'}</span>
+                                        <span className={structureStyles.blockMetaValue}>{selectedBuilding.address || 'нет'}</span>
                                     )}
                                 </div>
                             </div>

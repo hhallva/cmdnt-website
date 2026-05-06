@@ -55,7 +55,7 @@ const distributionItems: Array<{ key: DistributionItemKey; label: string }> = [
 ];
 
 const columns: ColumnDefinition<BeddingDistributionRow>[] = [
-    { key: 'studentName', title: 'Студент', sortable: true, render: (item) => item.studentName || '—' },
+    { key: 'studentName', title: 'Студент', sortable: true, render: (item) => item.studentName || 'нет' },
     { key: 'mattress', title: 'Матрас', sortable: true, render: (item) => item.mattress },
     { key: 'sheet', title: 'Простынь', sortable: true, render: (item) => item.sheet },
     { key: 'blanket', title: 'Одеяло', sortable: true, render: (item) => item.blanket },

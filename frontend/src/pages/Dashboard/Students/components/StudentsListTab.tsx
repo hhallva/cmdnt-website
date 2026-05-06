@@ -227,16 +227,16 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
 
     const getStudentBuildingName = (student: StudentsDto) => {
         if (!student.buildingId) {
-            return '—';
+            return 'нет';
         }
-        return buildingNameMap.get(student.buildingId) ?? '—';
+        return buildingNameMap.get(student.buildingId) ?? 'нет';
     };
 
     const formatResidenceInfo = (student: StudentsDto) => {
         if (!student.blockNumber) {
-            return '—';
+            return 'нет';
         }
-        const capacity = student.roomCapacity ?? '—';
+        const capacity = student.roomCapacity ?? 'нет';
         return `${student.blockNumber} (${capacity})`;
     };
 
@@ -372,7 +372,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
             title: 'ФИО',
             sortable: true,
             render: (student: StudentsDto) => {
-                const fullName = `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || '—';
+                const fullName = `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'нет';
                 const imageSrc = getStudentImageSrc(student.image);
                 return (
                     <div className={styles.fioCell}>
@@ -380,7 +380,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
                             {imageSrc ? (
                                 <img src={imageSrc} alt={student.surname || 'Фото студента'} />
                             ) : (
-                                <span>{getInitials(student) || '—'}</span>
+                                <span>{getInitials(student) || 'нет'}</span>
                             )}
                         </div>
                         <span className={styles.fioText}>{fullName}</span>
@@ -391,13 +391,13 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         {
             key: 'group.name',
             title: 'Группа',
-            render: (student: StudentsDto) => student.group?.name ?? '—',
+            render: (student: StudentsDto) => student.group?.name ?? 'нет',
         },
         {
             key: 'group.course',
             title: 'Курс',
             sortable: true,
-            render: (student: StudentsDto) => student.group?.course ?? '—',
+            render: (student: StudentsDto) => student.group?.course ?? 'нет',
         },
         {
             key: 'gender',
@@ -408,7 +408,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         {
             key: 'phone',
             title: 'Телефон',
-            render: (student: StudentsDto) => student.phone ?? '—',
+            render: (student: StudentsDto) => student.phone ?? 'нет',
         },
         {
             key: 'birthday',
@@ -490,14 +490,14 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
                                         <span className={styles.blockMetaValue}>{getGenderLabel(student.gender)}</span>
                                     </div>
                                     <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Здание</span>
-                                        <span className={styles.blockMetaValue}>{getStudentBuildingName(student)}</span>
-                                    </div>
-                                    <div className={styles.blockMeta}>
-                                        <span className={styles.blockMetaLabel}>Проживание</span>
+                                        <span className={styles.blockMetaLabel}>Блок</span>
                                         <span className={styles.blockMetaValue}>{formatResidenceInfo(student)}</span>
                                     </div>
                                 </div>
+                            </div>
+                            <div className={`${styles.blockMeta} ${styles.mobileCardStandaloneMeta}`}>
+                                <span className={styles.blockMetaLabel}>Здание</span>
+                                <span className={styles.blockMetaValue}>{getStudentBuildingName(student)}</span>
                             </div>
                         </button>
                     ))

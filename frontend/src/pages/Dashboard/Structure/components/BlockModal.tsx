@@ -186,7 +186,7 @@ const BlockModal: React.FC<BlockModalProps> = ({
                                                 <div>
                                                     <p className={styles.studentName}>{formatShortName(student)}</p>
                                                     <p className={styles.studentMeta}>
-                                                        {student.group?.name ?? '—'} · {student.group?.course ?? '—'} курс
+                                                        {student.group?.name ?? 'нет'} · {student.group?.course ?? 'нет'} курс
                                                     </p>
                                                 </div>
                                             </div>

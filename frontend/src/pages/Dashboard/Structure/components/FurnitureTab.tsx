@@ -76,25 +76,25 @@ const columns: ColumnDefinition<StationaryEquipmentDto>[] = [
         key: 'inventoryNumber',
         title: 'Инвентарный номер',
         sortable: true,
-        render: (item) => item.inventoryNumber || '—',
+        render: (item) => item.inventoryNumber || 'нет',
     },
     {
         key: 'typeName',
         title: 'Категория',
         sortable: true,
-        render: (item) => item.typeName || '—',
+        render: (item) => item.typeName || 'нет',
     },
     {
         key: 'statusName',
         title: 'Статус',
         sortable: true,
-        render: (item) => item.statusName || '—',
+        render: (item) => item.statusName || 'нет',
     },
     {
         key: 'description',
         title: 'Описание',
         sortable: true,
-        render: (item) => item.description || '—',
+        render: (item) => item.description || 'нет',
     },
 ];
 

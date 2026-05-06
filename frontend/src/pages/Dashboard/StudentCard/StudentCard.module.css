@@ -776,6 +776,15 @@
     min-width: 100px;
 }
 
+.deleteButton {
+    order: 1;
+}
+
+.editButton {
+    order: 2;
+    margin-left: auto;
+}
+
 .formSection {
     display: flex;
     flex-direction: column;
@@ -867,6 +876,15 @@
     .actionButtonsGroup {
         flex-direction: column;
         width: 100%;
+    }
+
+    .editButton {
+        order: 1;
+        margin-left: 0;
+    }
+
+    .deleteButton {
+        order: 2;
     }
 
     .actionButtonFullWidth {

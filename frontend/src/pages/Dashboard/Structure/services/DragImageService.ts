@@ -105,7 +105,7 @@ export class DragImageService {
             avatar.appendChild(img);
         } else {
             const initials = document.createElement('span');
-            initials.textContent = formatter.getInitials(student) || '—';
+            initials.textContent = formatter.getInitials(student) || 'нет';
             avatar.appendChild(initials);
         }
 
@@ -118,7 +118,7 @@ export class DragImageService {
 
         const meta = document.createElement('p');
         meta.className = classNames.sideMenuMeta;
-        meta.textContent = `Группа ${student.group?.name ?? '—'}, ${student.group?.course ?? '—'} курс`;
+        meta.textContent = `Группа ${student.group?.name ?? 'нет'}, ${student.group?.course ?? 'нет'} курс`;
 
         info.appendChild(name);
         info.appendChild(meta);

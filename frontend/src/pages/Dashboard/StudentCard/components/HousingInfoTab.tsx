@@ -29,7 +29,7 @@ const getGenderLabel = (gender: RoomDto['genderType']) => {
 
 const getInitials = (student: StudentsDto): string => {
     const initials = `${student.surname?.charAt(0) ?? ''}${student.name?.charAt(0) ?? ''}`;
-    return initials || '—';
+    return initials || 'нет';
 };
 
 const formatShortName = (student: StudentsDto): string => {
@@ -116,7 +116,7 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
     const formatDate = (value: string) => {
         const parsed = new Date(value);
         if (Number.isNaN(parsed.getTime())) {
-            return '—';
+            return 'нет';
         }
         return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
     };
@@ -220,7 +220,7 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                         <div className={styles.housingOccupantFIO}>{formatShortName(occupant)}</div>
                                         <div className={styles.housingOccupantMeta}>
-                                            {occupant.group?.name ?? '—'} · {occupant.group?.course ?? '—'} курс
+                                            {occupant.group?.name ?? 'нет'} · {occupant.group?.course ?? 'нет'} курс
                                         </div>
                                     </div>
                                 </div>

@@ -106,7 +106,7 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
         return () => window.clearTimeout(timerId);
     }, [importToast]);
 
-    const getCellValue = useCallback((value?: string | null) => (value?.trim() ? value : '—'), []);
+    const getCellValue = useCallback((value?: string | null) => (value?.trim() ? value : 'нет'), []);
 
     const renderPreviewCell = useCallback((field: ImportRowField, value: string, rowIndex: number) => {
         const hasError = Boolean(rowErrors[rowIndex]?.[field]);

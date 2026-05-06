@@ -149,7 +149,7 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
                         }}
                     >
                         <div className={styles.mobileCardHeader}>
-                            <p className={styles.mobileCardTitle}>{formatFullName(student) || '—'}</p>
+                            <p className={styles.mobileCardTitle}>{formatFullName(student) || 'нет'}</p>
                             {rowAction.onClick && (
                                 <button
                                     type="button"
@@ -169,11 +169,11 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
                             <div className={styles.blockMetaColumn}>
                                 <div className={styles.blockMeta}>
                                     <span className={styles.blockMetaLabel}>Группа</span>
-                                    <span className={styles.blockMetaValue}>{student.group?.name ?? '—'}</span>
+                                    <span className={styles.blockMetaValue}>{student.group?.name ?? 'нет'}</span>
                                 </div>
                                 <div className={styles.blockMeta}>
                                     <span className={styles.blockMetaLabel}>Телефон</span>
-                                    <span className={styles.blockMetaValue}>{student.phone ?? '—'}</span>
+                                    <span className={styles.blockMetaValue}>{student.phone ?? 'нет'}</span>
                                 </div>
                                 <div className={styles.blockMeta}>
                                     <span className={styles.blockMetaLabel}>Рожден</span>
@@ -183,7 +183,7 @@ export const SettlementTabContent: React.FC<SettlementTabContentProps> = ({
                             <div className={styles.blockMetaColumn}>
                                 <div className={styles.blockMeta}>
                                     <span className={styles.blockMetaLabel}>Курс</span>
-                                    <span className={styles.blockMetaValue}>{student.group?.course ?? '—'}</span>
+                                    <span className={styles.blockMetaValue}>{student.group?.course ?? 'нет'}</span>
                                 </div>
                                 <div className={styles.blockMeta}>
                                     <span className={styles.blockMetaLabel}>Пол</span>

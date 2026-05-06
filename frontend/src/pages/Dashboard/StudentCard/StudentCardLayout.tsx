@@ -217,7 +217,7 @@ const StudentCardLayout: React.FC = () => {
                             )}
                         </div>
                         <div className={styles.studentNameInfo}>
-                            <h2>{student.surname} <br />{studentFullName || '—'}</h2>
+                            <h2>{student.surname} <br />{studentFullName || 'нет'}</h2>
                         </div>
                     </div>
                 </div>
@@ -255,18 +255,18 @@ const StudentCardLayout: React.FC = () => {
                             <div className={styles.actionButtonsGroup}>
                                 {activeTab === 'personal' && (
                                     <ActionButton
-                                        className={styles.actionButtonFullWidth}
+                                        className={`${styles.actionButtonFullWidth} ${styles.deleteButton}`}
                                         size='md'
-                                        onClick={() => setEditModalOpen(true)}>
-                                        Редактировать
+                                        variant="danger" onClick={handleDeleteClick}>
+                                        Удалить
                                     </ActionButton>
                                 )}
                                 {activeTab === 'personal' && (
                                     <ActionButton
-                                        className={styles.actionButtonFullWidth}
+                                        className={`${styles.actionButtonFullWidth} ${styles.editButton}`}
                                         size='md'
-                                        variant="danger" onClick={handleDeleteClick}>
-                                        Удалить
+                                        onClick={() => setEditModalOpen(true)}>
+                                        Редактировать
                                     </ActionButton>
                                 )}
                             </div>

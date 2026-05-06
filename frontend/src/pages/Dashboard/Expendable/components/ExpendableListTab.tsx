@@ -22,7 +22,7 @@ const columns: ColumnDefinition<ExpendableEquipmentDto>[] = [
         key: 'typeName',
         title: 'Категория',
         sortable: true,
-        render: (item) => item.type?.name || '—',
+        render: (item) => item.type?.name || 'нет',
     },
     {
         key: 'totalCount',

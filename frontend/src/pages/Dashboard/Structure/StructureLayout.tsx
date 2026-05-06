@@ -298,7 +298,7 @@ const StructureLayout: React.FC = () => {
             title: 'ФИО',
             sortable: true,
             render: (student: StudentsDto) => {
-                const fullName = formatFullName(student) || '—';
+                const fullName = formatFullName(student) || 'нет';
                 const imageSrc = getStudentImageSrc(student.image);
                 return (
                     <div className={styles.fioCell}>
@@ -306,7 +306,7 @@ const StructureLayout: React.FC = () => {
                             {imageSrc ? (
                                 <img src={imageSrc} alt={student.surname || 'Фото студента'} />
                             ) : (
-                                <span>{getInitials(student) || '—'}</span>
+                                <span>{getInitials(student) || 'нет'}</span>
                             )}
                         </div>
                         <span className={styles.fioText}>{fullName}</span>
@@ -318,13 +318,13 @@ const StructureLayout: React.FC = () => {
             key: 'group.name',
             title: 'Группа',
             sortable: true,
-            render: (student: StudentsDto) => student.group?.name ?? '—',
+            render: (student: StudentsDto) => student.group?.name ?? 'нет',
         },
         {
             key: 'group.course',
             title: 'Курс',
             sortable: true,
-            render: (student: StudentsDto) => student.group?.course ?? '—',
+            render: (student: StudentsDto) => student.group?.course ?? 'нет',
             className: styles.tableNumericCell,
         },
         {
@@ -337,7 +337,7 @@ const StructureLayout: React.FC = () => {
             key: 'phone',
             title: 'Телефон',
             sortable: true,
-            render: (student: StudentsDto) => student.phone ?? '—',
+            render: (student: StudentsDto) => student.phone ?? 'нет',
         },
         {
             key: 'birthday',
