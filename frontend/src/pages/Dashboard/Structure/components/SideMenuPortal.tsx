@@ -9,6 +9,7 @@ type SideMenuPortalProps = {
     isActive: boolean;
     isOpen: boolean;
     students: StudentsDto[];
+    enableDragAndDrop: boolean;
     onToggle: () => void;
     onClose: () => void;
     onStudentSelect: (student: StudentsDto) => void;
@@ -22,6 +23,7 @@ const SideMenuPortal: React.FC<SideMenuPortalProps> = ({
     isActive,
     isOpen,
     students,
+    enableDragAndDrop,
     onToggle,
     onClose,
     onStudentSelect,
@@ -64,8 +66,8 @@ const SideMenuPortal: React.FC<SideMenuPortalProps> = ({
                 <div className={styles.sideMenuBody}>
                     <div
                         className={styles.sideMenuList}
-                        onDragOver={onDragOver}
-                        onDrop={onDrop}
+                        onDragOver={enableDragAndDrop ? onDragOver : undefined}
+                        onDrop={enableDragAndDrop ? onDrop : undefined}
                     >
                         {students.length > 0 ? (
                             students.map(student => (
@@ -74,9 +76,9 @@ const SideMenuPortal: React.FC<SideMenuPortalProps> = ({
                                     type="button"
                                     className={styles.sideMenuCard}
                                     onClick={() => onStudentSelect(student)}
-                                    draggable
-                                    onDragStart={(event) => onDragStart(event, student.id)}
-                                    onDragEnd={onDragEnd}
+                                    draggable={enableDragAndDrop}
+                                    onDragStart={enableDragAndDrop ? (event) => onDragStart(event, student.id) : undefined}
+                                    onDragEnd={enableDragAndDrop ? onDragEnd : undefined}
                                 >
                                     <div className={styles.sideMenuAvatar}>
                                         {getStudentImageSrc(student.image) ? (

@@ -78,7 +78,6 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({
                     size="md"
                     variant="secondary"
                     type="button"
-                    className={styles.fullWidthMobileButton}
                     onClick={onClose}
                     disabled={isCreating}
                 >
@@ -88,7 +87,6 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({
                     size="md"
                     variant="primary"
                     type="submit"
-                    className={styles.fullWidthMobileButton}
                     disabled={isCreating}
                 >
                     {isCreating ? 'Добавляем…' : 'Добавить'}

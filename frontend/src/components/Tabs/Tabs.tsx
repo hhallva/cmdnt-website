@@ -14,9 +14,16 @@ interface TabsProps {
     defaultActiveTabId?: string; // ID активной вкладки по умолчанию
     activeTabId?: string;
     onTabChange?: (tabId: string) => void;
+    lockToViewportOnMobile?: boolean;
 }
 
-const Tabs: React.FC<TabsProps> = ({ tabs, defaultActiveTabId, activeTabId: controlledActiveTabId, onTabChange }) => {
+const Tabs: React.FC<TabsProps> = ({
+    tabs,
+    defaultActiveTabId,
+    activeTabId: controlledActiveTabId,
+    onTabChange,
+    lockToViewportOnMobile = false,
+}) => {
     const [uncontrolledActiveTabId, setUncontrolledActiveTabId] = useState<string>(() => defaultActiveTabId || tabs[0]?.id || '');
     const isControlled = typeof controlledActiveTabId === 'string' && controlledActiveTabId.length > 0;
     const activeTabId = isControlled ? controlledActiveTabId : uncontrolledActiveTabId;
@@ -32,9 +39,11 @@ const Tabs: React.FC<TabsProps> = ({ tabs, defaultActiveTabId, activeTabId: cont
     const activeTabContent = activeTab?.content || null;
     const headerClassName = `${styles.tabsHeader} ${!activeTab?.headerContent ? styles.tabsHeaderCompact : ''}`.trim();
 
+    const surfaceClassName = `${styles.tabsSurface} ${lockToViewportOnMobile ? styles.lockToViewportOnMobile : ''}`.trim();
+
     return (
         <div className={styles.tabsRoot}>
-            <div className={styles.tabsSurface}>
+            <div className={surfaceClassName}>
                 <div className={styles.tabsHeaderWrapper}>
                     <div className={headerClassName} role="tablist">
                         {tabs.map((tab) => (

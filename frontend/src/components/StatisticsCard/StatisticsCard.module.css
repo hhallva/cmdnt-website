@@ -45,7 +45,7 @@
 
 @media (max-width: 768px) {
     .statisticsCardContainer {
-        margin-bottom: 1.5rem;
+        display: none;
     }
 
     .statsGrid {

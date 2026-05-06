@@ -58,6 +58,7 @@ const StructureLayout: React.FC = () => {
     const roleName = userSession?.role?.name?.toLowerCase() ?? '';
     const isEducator = roleName.includes('воспитатель');
     const canManageRooms = !isEducator;
+    const [isMobileView, setIsMobileView] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
     const [isNotFound, setIsNotFound] = useState(false);
 
     const isNotFoundMessage = useCallback((message?: string) => {
@@ -102,6 +103,20 @@ const StructureLayout: React.FC = () => {
 
         loadBuilding();
     }, [buildingIdNum, location.state, isNotFoundMessage, markNotFound]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth <= 768);
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -151,9 +166,18 @@ const StructureLayout: React.FC = () => {
         void loadStructureStats();
     }, [loadStructureStats]);
 
+    const canUseExtendedTabs = canManageRooms && !isMobileView;
     const availableTabIds = useMemo(
-        () => (canManageRooms ? [...STRUCTURE_TAB_IDS] : ['structure']),
-        [canManageRooms]
+        () => {
+            if (!canManageRooms) {
+                return ['structure'];
+            }
+
+            return canUseExtendedTabs
+                ? [...STRUCTURE_TAB_IDS]
+                : ['structure', SETTLEMENT_TAB_ID];
+        },
+        [canManageRooms, canUseExtendedTabs]
     );
     const { activeTabId, setActiveTabId, handleTabChange } = useStructureTabs(availableTabIds);
 
@@ -599,6 +623,12 @@ const StructureLayout: React.FC = () => {
         setIsSideMenuOpen(false);
     }, []);
 
+    useEffect(() => {
+        if (isMobileView && isSideMenuOpen) {
+            setIsSideMenuOpen(false);
+        }
+    }, [isMobileView, isSideMenuOpen]);
+
     const buildingStudents = useMemo(() => {
         const roomIds = new Set(rooms.map(room => room.id));
         return students.filter(student => student.roomId !== null && student.roomId !== undefined && roomIds.has(student.roomId));
@@ -625,10 +655,17 @@ const StructureLayout: React.FC = () => {
         if (typeof furnitureEquipmentId !== 'number') {
             return;
         }
+
+        if (!canUseExtendedTabs) {
+            setActiveTabId('structure');
+            navigate(location.pathname, { replace: true, state: {} });
+            return;
+        }
+
         furnitureTabState.actions.selectEquipmentById(furnitureEquipmentId);
         setActiveTabId('furniture');
         navigate(location.pathname, { replace: true, state: {} });
-    }, [furnitureTabState.actions, location.pathname, location.state, navigate, setActiveTabId]);
+    }, [canUseExtendedTabs, furnitureTabState.actions, location.pathname, location.state, navigate, setActiveTabId]);
 
 
     if (isNotFound) {
@@ -784,12 +821,18 @@ const StructureLayout: React.FC = () => {
         ? [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
             { id: SETTLEMENT_TAB_ID, title: 'Расселение', headerContent: settlementHeaderContent, content: settlementTabContent },
-            { id: 'furniture', title: 'Мебель', headerContent: furnitureHeaderContent, content: furnitureTabContent },
-            { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
+            ...(canUseExtendedTabs
+                ? [
+                    { id: 'furniture', title: 'Мебель', headerContent: furnitureHeaderContent, content: furnitureTabContent },
+                    { id: 'bedding', title: 'Постельное', headerContent: beddingHeaderContent, content: beddingTabContent },
+                ]
+                : []),
         ]
         : [
             { id: 'structure', title: 'Структура', headerContent: structureHeaderContent, content: structureTabContent },
         ];
+
+    const canUseDragAndDrop = canManageRooms && !isMobileView;
 
     return (
         <>
@@ -799,6 +842,7 @@ const StructureLayout: React.FC = () => {
                     isActive={Boolean(activeBlock)}
                     isOpen={isSideMenuOpen}
                     students={unassignedStudentsSorted}
+                    enableDragAndDrop={canUseDragAndDrop}
                     onToggle={toggleSideMenu}
                     onClose={closeSideMenu}
                     onStudentSelect={handleSettlementStudentSelect}
@@ -820,7 +864,6 @@ const StructureLayout: React.FC = () => {
                     onSubmit={handleAddRoomSubmit}
                 />
             )}
-
             {!statsLoading && !statsError && structureStats && (<StatisticsCard
                 stats={[
                     { value: structureStats.totalCopacity, label: 'мест' },
@@ -834,13 +877,15 @@ const StructureLayout: React.FC = () => {
             <Tabs
                 tabs={tabs}
                 activeTabId={activeTabId}
-
+                lockToViewportOnMobile
                 onTabChange={handleTabChange}
             />
 
             <BlockModal
                 activeBlock={activeBlock}
                 canManageRooms={canManageRooms}
+                canOpenFurniture={canUseExtendedTabs}
+                enableDragAndDrop={canUseDragAndDrop}
                 deletingRoomId={deletingRoomId}
                 onClose={handleCloseBlockModal}
                 onDeleteRoom={handleDeleteRoom}

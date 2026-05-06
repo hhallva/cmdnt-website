@@ -11,6 +11,8 @@ import { getStudentImageSrc } from '../../../../utils/students';
 type BlockModalProps = {
     activeBlock: BlockWithRooms | null;
     canManageRooms: boolean;
+    canOpenFurniture: boolean;
+    enableDragAndDrop: boolean;
     deletingRoomId: number | null;
     onClose: () => void;
     onDeleteRoom: (roomId: number, roomLabel: string) => void;
@@ -26,6 +28,8 @@ type BlockModalProps = {
 const BlockModal: React.FC<BlockModalProps> = ({
     activeBlock,
     canManageRooms,
+    canOpenFurniture,
+    enableDragAndDrop,
     deletingRoomId,
     onClose,
     onDeleteRoom,
@@ -77,11 +81,13 @@ const BlockModal: React.FC<BlockModalProps> = ({
         }
 
         return [
-            {
-                label: 'Мебель',
-                icon: 'bi-lamp',
-                onClick: () => handleFurnitureClick(activeRoom),
-            },
+            ...(canOpenFurniture
+                ? [{
+                    label: 'Мебель',
+                    icon: 'bi-lamp',
+                    onClick: () => handleFurnitureClick(activeRoom),
+                }]
+                : []),
             {
                 label: deletingRoomId === activeRoom.id ? 'Удаляем…' : 'Удалить',
                 icon: 'bi-trash',
@@ -90,7 +96,7 @@ const BlockModal: React.FC<BlockModalProps> = ({
                 disabled: deletingRoomId === activeRoom.id,
             },
         ];
-    }, [activeRoom, closeRoomMenu, deletingRoomId, handleDeleteClick, handleFurnitureClick]);
+    }, [activeRoom, canOpenFurniture, closeRoomMenu, deletingRoomId, handleDeleteClick, handleFurnitureClick]);
 
     return (
         <CommonModal
@@ -162,9 +168,9 @@ const BlockModal: React.FC<BlockModalProps> = ({
                                         <div
                                             key={student.id}
                                             className={styles.studentRow}
-                                            draggable={canManageRooms}
-                                            onDragStart={canManageRooms ? (event) => onStudentDragStart(event, student) : undefined}
-                                            onDragEnd={canManageRooms ? onStudentDragEnd : undefined}
+                                            draggable={canManageRooms && enableDragAndDrop}
+                                            onDragStart={canManageRooms && enableDragAndDrop ? (event) => onStudentDragStart(event, student) : undefined}
+                                            onDragEnd={canManageRooms && enableDragAndDrop ? onStudentDragEnd : undefined}
                                         >
                                             <div className={styles.studentInfo}>
                                                 <div className={styles.studentAvatar}>
@@ -188,9 +194,11 @@ const BlockModal: React.FC<BlockModalProps> = ({
                                                 variant="secondary"
                                                 size="md"
                                                 className={styles.studentCardButton}
+                                                ariaLabel="Открыть карточку студента"
                                                 onClick={() => onStudentCardClick(student.id)}
                                             >
-                                                Карточка
+                                                <i className={`bi bi-arrows-angle-expand ${styles.studentCardButtonIcon}`} aria-hidden="true"></i>
+                                                <span className={styles.studentCardButtonText}>Карточка</span>
                                             </ActionButton>
                                         </div>
                                     ))}
@@ -201,8 +209,8 @@ const BlockModal: React.FC<BlockModalProps> = ({
                                             role="button"
                                             tabIndex={0}
                                             onClick={() => onFreeSlotClick(room)}
-                                            onDragOver={canManageRooms ? onRoomDragOver : undefined}
-                                            onDrop={canManageRooms ? (event) => onRoomDrop(event, room) : undefined}
+                                            onDragOver={canManageRooms && enableDragAndDrop ? onRoomDragOver : undefined}
+                                            onDrop={canManageRooms && enableDragAndDrop ? (event) => onRoomDrop(event, room) : undefined}
                                             onKeyDown={(event) => {
                                                 if (event.key === 'Enter' || event.key === ' ') {
                                                     event.preventDefault();
