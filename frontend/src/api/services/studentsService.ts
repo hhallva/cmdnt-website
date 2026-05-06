@@ -19,7 +19,7 @@ export class StudentsService extends BaseApiService {
     }
 
     getStudentResettlementHistory(id: number): Promise<ResettlementHistoryDto[]> {
-        return this.get<ResettlementHistoryDto[]>(`/api/v1/Students/${id}/resettlements/history`);
+        return this.get<ResettlementHistoryDto[]>(`/api/v1/Students/${id}/resettlements`);
     }
 
     deleteStudentResettlement(studentId: number, resettlementId: number): Promise<void> {

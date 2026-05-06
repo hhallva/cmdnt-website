@@ -57,7 +57,7 @@ namespace API.Controllers
             return Ok(student.ToDto());
         }
 
-        [HttpGet("{id}/resettlements/history")]
+        [HttpGet("{id}/resettlements")]
         [SwaggerOperation(
             Summary = "Получение истории проживания студента",
             Description = "Возвращает завершенные периоды проживания студента с соседями по комнате."
