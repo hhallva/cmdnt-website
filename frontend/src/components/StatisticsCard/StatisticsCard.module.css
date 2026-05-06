@@ -45,6 +45,23 @@
 
 @media (max-width: 768px) {
     .statisticsCardContainer {
-        display: none;
+        margin-bottom: 1.5rem;
+    }
+
+    .statsGrid {
+        gap: 0.75rem;
+    }
+
+    .statCard {
+        border-radius: 0.65rem;
+        padding: 1rem 0.85rem;
+    }
+
+    .statNumber {
+        font-size: 1.25rem;
+    }
+
+    .statLabel {
+        font-size: 0.8rem;
     }
 }

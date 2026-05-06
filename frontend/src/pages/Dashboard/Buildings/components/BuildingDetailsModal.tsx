@@ -2,6 +2,7 @@ import React from 'react';
 import CommonModal from '../../../../components/CommonModal/CommonModal';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
 import type { BuildingDto, BuildingSummaryDto } from '../../../../types/buildings';
+import layoutStyles from '../BuildingsLayout.module.css';
 import structureStyles from '../../Structure/Structure.module.css';
 
 type BuildingDetailsModalProps = {
@@ -47,23 +48,21 @@ const BuildingDetailsModal: React.FC<BuildingDetailsModalProps> = ({
             <div className={structureStyles.modalLoadingWrapper}>
                 <div className={`${structureStyles.modalContentWrapper} ${buildingSummaryLoading ? structureStyles.modalContentHidden : ''}`}>
                     {selectedBuilding && (
-                        <div style={{ display: 'flex', gap: '1.75rem', flexWrap: 'wrap' }}>
-                            <div className={structureStyles.blockMetaColumn}>
-                                <div className={structureStyles.blockMeta}>
+                        <div className={layoutStyles.modalDetailsGrid}>
+                            <div className={layoutStyles.modalMetaList}>
+                                <div className={`${structureStyles.blockMeta} ${layoutStyles.modalMetaItem}`}>
                                     <span className={structureStyles.blockMetaLabel}>Этажи</span>
                                     <span className={structureStyles.blockMetaValue}>
                                         {buildingSummary ? buildingSummary.totalFloors : '—'}
                                     </span>
                                 </div>
-                                <div className={structureStyles.blockMeta}>
+                                <div className={`${structureStyles.blockMeta} ${layoutStyles.modalMetaItem}`}>
                                     <span className={structureStyles.blockMetaLabel}>Заселено</span>
                                     <span className={structureStyles.blockMetaValue}>
                                         {buildingSummary ? `${buildingSummary.occupiedCount}/${buildingSummary.totalCapacity}` : '—'}
                                     </span>
                                 </div>
-                            </div>
-                            <div className={structureStyles.blockMetaColumn}>
-                                <div className={structureStyles.blockMeta}>
+                                <div className={`${structureStyles.blockMeta} ${layoutStyles.modalMetaItem} ${layoutStyles.modalMetaAddress}`}>
                                     <span className={structureStyles.blockMetaLabel}>Адрес</span>
                                     {hasCoordinates ? (
                                         <a
@@ -86,8 +85,8 @@ const BuildingDetailsModal: React.FC<BuildingDetailsModalProps> = ({
                         <div className="alert alert-danger">{buildingSummaryError}</div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-start' }}>
+                    <div className={layoutStyles.modalFooter}>
+                        <div className={layoutStyles.modalAdminActions}>
                             {isAdmin && (
                                 <>
                                     <ActionButton

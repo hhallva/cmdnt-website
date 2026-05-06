@@ -11,6 +11,7 @@ import type { OverallStructureStatisticDto } from '../../../types/structures';
 import AddBuildingModal from './components/AddBuildingModal';
 import BuildingDetailsModal from './components/BuildingDetailsModal';
 import EditBuildingModal from './components/EditBuildingModal';
+import styles from './BuildingsLayout.module.css';
 import structureStyles from '../Structure/Structure.module.css';
 import tabsStyles from '../../../components/Tabs/Tabs.module.css';
 
@@ -253,9 +254,9 @@ const BuildingsLayout: React.FC = () => {
     };
 
     const searchBar = (
-        <div className={tabsStyles.tabsSurface} style={{ marginBottom: '2.75rem' }}>
+        <div className={`${tabsStyles.tabsSurface} ${styles.searchBarSurface}`}>
             <div className={structureStyles.searchSection}>
-                <div className={structureStyles.searchControls} style={{ gap: '1.75rem' }}>
+                <div className={`${structureStyles.searchControls} ${styles.searchControls}`}>
                     <div className={structureStyles.searchInputWrapper}>
                         <InputField
                             type="text"
@@ -269,7 +270,7 @@ const BuildingsLayout: React.FC = () => {
                             size="md"
                             variant="secondary"
                             onClick={() => setSearchTerm('')}
-                            style={{ width: '13.25rem' }}
+                            className={styles.resetButton}
                         >
                             Сбросить
                         </ActionButton>
@@ -528,14 +529,16 @@ const BuildingsLayout: React.FC = () => {
                 <div className="alert alert-danger m-3">{summaryError}</div>
             )}
             {!summaryLoading && !summaryError && summaryStats && (
-                <StatisticsCard
-                    stats={[
-                        { value: summaryStats.totalBuildings, label: 'зданий' },
-                        { value: summaryStats.totalCapacity, label: 'мест' },
-                        { value: summaryStats.occupiedStudents, label: 'заселено' },
-                        { value: summaryStats.totalStudents, label: 'студентов' },
-                    ]}
-                />
+                <div className={styles.summarySection}>
+                    <StatisticsCard
+                        stats={[
+                            { value: summaryStats.totalBuildings, label: 'зданий' },
+                            { value: summaryStats.totalCapacity, label: 'мест' },
+                            { value: summaryStats.occupiedStudents, label: 'заселено' },
+                            { value: summaryStats.totalStudents, label: 'студентов' },
+                        ]}
+                    />
+                </div>
             )}
             {searchBar}
             {listContent}
@@ -555,10 +558,10 @@ const BuildingsLayout: React.FC = () => {
             />
             {isAdmin && (
                 <>
-                    <div className={tabsStyles.tabsSurface} style={{ padding: '1.5rem', marginTop: '2.75rem', borderRadius: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <div className={`${tabsStyles.tabsSurface} ${styles.addPanel}`}>
+                        <div className={styles.addPanelActions}>
                             <ActionButton size="md" variant="primary" onClick={handleOpenAddModal}>
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <div className={styles.addButtonInner}>
                                     <i className="bi bi-plus"></i>
                                     <span>Добавить</span>
                                 </div>
