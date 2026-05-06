@@ -430,8 +430,12 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         if (!window.confirm(`Вернуть оборудование ${item.inventoryNumber} на склад?`)) {
             return;
         }
+        if (!item.roomId) {
+            alert('Оборудование уже находится на складе');
+            return;
+        }
         try {
-            await apiClient.evictStationaryEquipment(item.id);
+            await apiClient.evictStationaryEquipment(item.id, item.roomId);
             await loadData();
         } catch (err: any) {
             alert(err?.message || 'Не удалось вернуть на склад');

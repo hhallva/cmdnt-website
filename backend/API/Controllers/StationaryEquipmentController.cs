@@ -16,7 +16,7 @@ namespace API.Controllers
     {
         private readonly AppDbContext _context = context;
 
-        [HttpPost("{equipmentId}/assign-room/{roomId}")]
+        [HttpPost("{id}/room/{roomId}")]
         [SwaggerOperation(
             Summary = "Назначение комнаты",
             Description = "Закрепляет оборудование за выбранной комнатой.")]
@@ -24,10 +24,10 @@ namespace API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные параметры.", Type = typeof(ApiErrorDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Оборудование или комната не найдены.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<StationaryEquipmentDto>> AssignRoom(
-            [SwaggerParameter("ID оборудования", Required = true)] int equipmentId,
+            [SwaggerParameter("ID оборудования", Required = true)] int id,
             [SwaggerParameter("ID комнаты", Required = true)] int roomId)
         {
-            if (equipmentId <= 0 || roomId <= 0)
+            if (id <= 0 || roomId <= 0)
                 return BadRequest(new ApiErrorDto("Некорректные параметры", StatusCodes.Status400BadRequest));
 
             var equipment = await _context.StationaryEquipments
@@ -35,7 +35,7 @@ namespace API.Controllers
                 .Include(item => item.Status)
                 .Include(item => item.Room)
                 .ThenInclude(room => room!.Building)
-                .FirstOrDefaultAsync(item => item.Id == equipmentId);
+                .FirstOrDefaultAsync(item => item.Id == id);
 
             if (equipment == null)
                 return NotFound(new ApiErrorDto("Оборудование не найдено", StatusCodes.Status404NotFound));
@@ -63,17 +63,18 @@ namespace API.Controllers
             return Ok(updated.ToDto());
         }
 
-        [HttpPost("{equipmentId}/evict-room")]
+        [HttpDelete("{id}/room/{roomId}")]
         [SwaggerOperation(
             Summary = "Снятие с комнаты",
-            Description = "Удаляет привязку оборудования к комнате (возвращает на склад).")]
+            Description = "Удаляет привязку оборудования к указанной комнате (возвращает на склад).")]
         [SwaggerResponse(StatusCodes.Status200OK, "Оборудование успешно снято.", Type = typeof(StationaryEquipmentDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные параметры.", Type = typeof(ApiErrorDto))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Оборудование не найдено.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Оборудование не найдено или не привязано к указанной комнате.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<StationaryEquipmentDto>> EvictRoom(
-            [SwaggerParameter("ID оборудования", Required = true)] int equipmentId)
+            [SwaggerParameter("ID оборудования", Required = true)] int id,
+            [SwaggerParameter("ID комнаты", Required = true)] int roomId)
         {
-            if (equipmentId <= 0)
+            if (id <= 0 || roomId <= 0)
                 return BadRequest(new ApiErrorDto("Некорректные параметры", StatusCodes.Status400BadRequest));
 
             var equipment = await _context.StationaryEquipments
@@ -81,10 +82,13 @@ namespace API.Controllers
                 .Include(item => item.Status)
                 .Include(item => item.Room)
                 .ThenInclude(room => room!.Building)
-                .FirstOrDefaultAsync(item => item.Id == equipmentId);
+                .FirstOrDefaultAsync(item => item.Id == id);
 
             if (equipment == null)
                 return NotFound(new ApiErrorDto("Оборудование не найдено", StatusCodes.Status404NotFound));
+
+            if (equipment.RoomId != roomId)
+                return NotFound(new ApiErrorDto("Оборудование не привязано к указанной комнате", StatusCodes.Status404NotFound));
 
             equipment.RoomId = null;
             equipment.Room = null;

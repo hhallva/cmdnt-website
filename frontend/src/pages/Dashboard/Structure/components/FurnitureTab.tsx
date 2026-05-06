@@ -361,10 +361,14 @@ export const useFurnitureTabState = (buildingIdOverride?: number | null): Furnit
         if (!confirmed) {
             return;
         }
+        if (!item.roomId) {
+            setAlert({ type: 'error', message: 'Мебель уже находится на складе' });
+            return;
+        }
         setIsSaving(true);
         setAlert(null);
         try {
-            await apiClient.evictStationaryEquipment(item.id);
+            await apiClient.evictStationaryEquipment(item.id, item.roomId);
             await loadEquipment();
             setAlert({ type: 'success', message: 'Мебель возвращена на склад' });
         } catch (err: any) {

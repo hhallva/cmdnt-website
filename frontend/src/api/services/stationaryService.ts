@@ -54,11 +54,11 @@ export class StationaryService extends BaseApiService {
     }
 
     assignStationaryEquipmentToRoom(equipmentId: number, roomId: number): Promise<StationaryEquipmentDto> {
-        return this.post<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${equipmentId}/assign-room/${roomId}`);
+        return this.post<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${equipmentId}/room/${roomId}`);
     }
 
-    evictStationaryEquipment(equipmentId: number): Promise<StationaryEquipmentDto> {
-        return this.post<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${equipmentId}/evict-room`);
+    evictStationaryEquipment(equipmentId: number, roomId: number): Promise<StationaryEquipmentDto> {
+        return this.delete<StationaryEquipmentDto>(`/api/v1/StationaryEquipment/${equipmentId}/room/${roomId}`);
     }
 
     deleteStationaryEquipment(id: number): Promise<void> {
