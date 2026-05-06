@@ -38,11 +38,11 @@ export class StudentsService extends BaseApiService {
     }
 
     evictStudent(studentId: number): Promise<void> {
-        return this.post<void>(`/api/v1/Students/${studentId}/evict-room`);
+        return this.delete<void>(`/api/v1/Students/${studentId}/room`);
     }
 
     assignStudentToRoom(studentId: number, roomId: number): Promise<void> {
-        return this.post<void>(`/api/v1/Students/${studentId}/assign-room/${roomId}`);
+        return this.post<void>(`/api/v1/Students/${studentId}/room/${roomId}`);
     }
 
     getStudentContactsById(id: number): Promise<ContactDto[]> {

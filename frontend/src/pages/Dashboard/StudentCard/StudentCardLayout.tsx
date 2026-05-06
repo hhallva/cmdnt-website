@@ -139,6 +139,10 @@ const StudentCardLayout: React.FC = () => {
 
     const handleEvictClick = async () => {
         if (!student?.id) return;
+        if (!student.roomId) {
+            alert('Студент не привязан к комнате.');
+            return;
+        }
         const confirmed = confirm(
             'Вы уверены, что хотите выселить студента?\n'
         );

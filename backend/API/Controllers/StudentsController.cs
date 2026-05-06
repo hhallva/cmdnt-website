@@ -359,7 +359,7 @@ namespace API.Controllers
         #endregion
 
         #region Работа с комнатами студентов
-        [HttpPost("{id}/assign-room/{roomId}")]
+        [HttpPost("{id}/room/{roomId}")]
         [SwaggerOperation(Summary = "Привязка студента к комнате", Description = "Привязывает студента к указанной комнате, проверяя соответствие пола студента, других жильцов и вместимость комнаты.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно привязан к комнате.")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные, студент уже привязан к комнате или комната переполнена.", Type = typeof(ApiErrorDto))]
@@ -414,11 +414,12 @@ namespace API.Controllers
             return Ok(new { Message = "Студент успешно привязан к комнате" });
         }
 
-        [HttpPost("{id}/evict-room")]
-        [SwaggerOperation(Summary = "Выселение студента из комнаты", Description = "Выселяет студента из всех комнат, в которых он проживает. В бизнес-логике студент может жить только в одной комнате.")]
+        [HttpDelete("{id}/room")]
+        [SwaggerOperation(Summary = "Выселение студента из комнаты", Description = "Выселяет студента из текущей комнаты.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно выселен из комнаты.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> EvictRoom([SwaggerParameter("ID студента", Required = true)] int id)
+        public async Task<IActionResult> EvictRoom(
+            [SwaggerParameter("ID студента", Required = true)] int id)
         {
             if (id <= 0)
                 return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
@@ -432,9 +433,10 @@ namespace API.Controllers
 
             var activeResettlement = student.Resettlements
                 .FirstOrDefault(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue);
+
             if (activeResettlement != null)
             {
-                activeResettlement.CheckOutDate = DateTime.UtcNow;
+                activeResettlement.CheckOutDate = DateTime.Now;
                 await _context.SaveChangesAsync();
             }
 

@@ -571,6 +571,11 @@ const StructureLayout: React.FC = () => {
             return;
         }
 
+        const student = students.find(item => item.id === studentId);
+        if (!student?.roomId) {
+            return;
+        }
+
         setSettlementAlert(null);
         try {
             await apiClient.evictStudent(studentId);
@@ -580,7 +585,7 @@ const StructureLayout: React.FC = () => {
         } catch (err: any) {
             setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось выселить студента' });
         }
-    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, unassignedStudents]);
+    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, students, unassignedStudents]);
 
     const handleCloseBlockModal = useCallback(() => {
         closeBlockModal();
