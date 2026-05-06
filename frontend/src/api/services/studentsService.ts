@@ -55,7 +55,7 @@ export class StudentsService extends BaseApiService {
     }
 
     getStudentNotesById(id: number): Promise<NoteDto[]> {
-        return this.get<NoteDto[]>(`/api/v1/Notes/student/${id}`);
+        return this.get<NoteDto[]>(`/api/v1/Students/${id}/notes`);
     }
 
     createStudentNote(payload: CreateNoteDto): Promise<NoteDto> {

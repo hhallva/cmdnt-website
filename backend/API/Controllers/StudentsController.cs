@@ -170,6 +170,27 @@ namespace API.Controllers
             return Ok(new ExtStudentData(student.Origin));
         }
 
+        [HttpGet("{id}/notes")]
+        [SwaggerOperation(Summary = "Получение заметок студента", Description = "Возвращает отсортированный список заметок, связанных с конкретным студентом.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Заметки успешно получены.", Type = typeof(IEnumerable<NoteDto>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<IEnumerable<NoteDto>>> GetStudentNotes(int id)
+        {
+            var studentExists = await _context.Students.AnyAsync(s => s.Id == id);
+
+            if (!studentExists)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            var notes = await _context.Notes
+                .Include(note => note.User)
+                    .ThenInclude(user => user!.Role)
+                .Where(note => note.StudentId == id)
+                .OrderByDescending(note => note.CreateDate)
+                .ToListAsync();
+
+            return Ok(notes.Select(note => note.ToDto()).ToList());
+        }
+
         #endregion
 
         #region Создание, обновление и удаление студентов
