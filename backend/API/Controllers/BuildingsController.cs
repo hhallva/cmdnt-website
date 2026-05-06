@@ -164,29 +164,29 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpGet("{buildingId}/statistic")]
+        [HttpGet("{id}/statistic")]
         [SwaggerOperation(
            Summary = "Получение статистики по структуре общежития",
            Description = "Возвращает сводную статистику по зданию: общее количество мест, количество занятых и свободных мест, а также число заселенных студентов")]
         [SwaggerResponse(StatusCodes.Status200OK, "Статистика успешно получена.", Type = typeof(StructureStatisticDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Здание не найдено.", Type = typeof(ApiErrorDto))]
         public async Task<ActionResult<StructureStatisticDto>> GetStructureStatistic(
-            [SwaggerParameter(Description = "Идентификатор здания", Required = true)] int buildingId)
+            [SwaggerParameter(Description = "Идентификатор здания", Required = true)] int id)
         {
-            var buildingExists = await _context.Buildings.AnyAsync(b => b.Id == buildingId);
+            var buildingExists = await _context.Buildings.AnyAsync(b => b.Id == id);
             if (!buildingExists)
             {
                 return NotFound(new ApiErrorDto("Здание не найдено", StatusCodes.Status404NotFound));
             }
 
             var totalCapacity = await _context.Rooms
-                .Where(r => r.BuildingId == buildingId)
+                .Where(r => r.BuildingId == id)
                 .Select(r => (int?)r.Capacity)
                 .SumAsync() ?? 0;
 
             var activeResettlements = _context.Resettlements
                 .Where(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue)
-                .Where(r => r.Room != null && r.Room.BuildingId == buildingId);
+                .Where(r => r.Room != null && r.Room.BuildingId == id);
 
             var occupiedCount = await activeResettlements.CountAsync();
 
@@ -205,7 +205,7 @@ namespace API.Controllers
             return Ok(statistic);
         }
 
-        [HttpGet("summary")]
+        [HttpGet("statistic")]
         [SwaggerOperation(
            Summary = "Получение общей статистики по общежитиям",
            Description = "Возвращает сводную статистику: количество зданий, студентов, мест и заселенных студентов.")]

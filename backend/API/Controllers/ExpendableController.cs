@@ -19,7 +19,7 @@ namespace API.Controllers
     {
         private readonly AppDbContext _context = context;
 
-        [HttpGet("equipment")]
+        [HttpGet]
         [SwaggerOperation(
             Summary = "Получение списка расходников",
             Description = "Возвращает список расходных материалов с количеством, использованием и остатком на складе.")]
@@ -54,7 +54,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("equipment/{id:int}")]
+        [HttpPost("{id}")]
         [SwaggerOperation(
             Summary = "Добавление расходников",
             Description = "Увеличивает количество расходников выбранной категории по её идентификатору.")]
@@ -96,7 +96,7 @@ namespace API.Controllers
             return Ok(await BuildSummaryAsync(id));
         }
 
-        [HttpDelete("equipment/{id:int}")]
+        [HttpDelete("{id}")]
         [SwaggerOperation(
             Summary = "Списание расходников",
             Description = "Уменьшает количество расходников выбранной категории по её идентификатору.")]
@@ -125,7 +125,7 @@ namespace API.Controllers
                 })
                 .ToListAsync();
 
-            if (!equipmentList.Any())
+            if (equipmentList.Count == 0)
                 return BadRequest(new ApiErrorDto("Расходники не найдены", StatusCodes.Status400BadRequest));
 
             var availableTotal = equipmentList.Sum(item => item.Entity.Count - item.Used);

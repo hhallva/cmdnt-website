@@ -17,7 +17,7 @@ namespace API.Controllers
         private readonly AppDbContext _context = context;
         private readonly TokenService _service = service;
 
-        [HttpPost("SignIn")]
+        [HttpPost("SingIn")]
         [SwaggerOperation(
             Summary = "Авторизация пользователя",
             Description = "Метод для генерации JWT-токена, принимает учетные данные пользователя, при успешной авторизации возвращает объекта с JWT-токеном.")]

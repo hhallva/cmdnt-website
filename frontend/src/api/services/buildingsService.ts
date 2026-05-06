@@ -27,11 +27,11 @@ export class BuildingsService extends BaseApiService {
         return this.delete(`/api/v1/Buildings/${id}`);
     }
 
-    getStructureStatistics(buildingId: number): Promise<StructureStatisticDto> {
-        return this.get<StructureStatisticDto>(`/api/v1/Buildings/${buildingId}/statistic`);
+    getStructureStatistics(id: number): Promise<StructureStatisticDto> {
+        return this.get<StructureStatisticDto>(`/api/v1/Buildings/${id}/statistic`);
     }
 
     getOverallStructureStatistics(): Promise<OverallStructureStatisticDto> {
-        return this.get<OverallStructureStatisticDto>('/api/v1/Buildings/summary');
+        return this.get<OverallStructureStatisticDto>('/api/v1/Buildings/statistic');
     }
 }

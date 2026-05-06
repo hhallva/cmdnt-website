@@ -9,7 +9,7 @@ export class AuthService extends BaseApiService {
     }
 
     singIn(credentials: LoginDto): Promise<LoginResponseDto> {
-        return this.http.request<LoginResponseDto>('/api/v1/SignIn', {
+        return this.http.request<LoginResponseDto>('/api/v1/SingIn', {
             method: 'POST',
             body: JSON.stringify(credentials),
         });

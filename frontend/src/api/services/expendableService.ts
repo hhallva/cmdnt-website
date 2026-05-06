@@ -5,15 +5,15 @@ import type { ExpendableDistributionBatchItemDto, ExpendableDistributionDto } fr
 
 export class ExpendableService extends BaseApiService {
     getExpendableEquipment(): Promise<ExpendableEquipmentDto[]> {
-        return this.get<ExpendableEquipmentDto[]>('/api/v1/Expendable/equipment');
+        return this.get<ExpendableEquipmentDto[]>('/api/v1/Expendable');
     }
 
     addExpendableEquipment(id: number, payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
-        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/api/v1/Expendable/equipment/${id}`, payload);
+        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/api/v1/Expendable/${id}`, payload);
     }
 
     subtractExpendableEquipment(id: number, payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
-        return this.delete<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/api/v1/Expendable/equipment/${id}`, payload);
+        return this.delete<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/api/v1/Expendable/${id}`, payload);
     }
 
     getExpendableDistributions(): Promise<ExpendableDistributionDto[]> {
