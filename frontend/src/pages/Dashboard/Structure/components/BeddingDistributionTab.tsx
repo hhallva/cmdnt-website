@@ -394,9 +394,9 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
             }
 
             if (editingRow) {
-                await apiClient.replaceExpendableDistributionsForStudent(studentId, createItems);
+                await apiClient.editExpendableDisstributions(studentId, createItems);
             } else if (createItems.length > 0) {
-                await apiClient.createExpendableDistributionsForStudent(studentId, createItems);
+                await apiClient.editExpendableDisstributions(studentId, createItems);
             }
 
             setIsAddModalOpen(false);
@@ -414,7 +414,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         }
 
         try {
-            await apiClient.replaceExpendableDistributionsForStudent(row.id, []);
+            await apiClient.editExpendableDisstributions(row.id, []);
             await loadData({ soft: true });
         } catch (err: any) {
             setError(err?.message || 'Не удалось удалить распределение');

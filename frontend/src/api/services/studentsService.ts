@@ -3,6 +3,7 @@ import type { PostStudentDto, StudentsDto, ContactDto, UpdateStudentPayload } fr
 import type { ResettlementHistoryDto } from '../../types/resettlements';
 import type { NoteDto, CreateNoteDto } from '../../types/notes';
 import type { GroupDto } from '../../types/groups';
+import type { ExpendableDistributionBatchItemDto, ExpendableDistributionDto } from '../../types/expendableDistribution';
 
 export class StudentsService extends BaseApiService {
     getAllStudents(): Promise<StudentsDto[]> {
@@ -67,5 +68,9 @@ export class StudentsService extends BaseApiService {
 
     getAllGroups(): Promise<GroupDto[]> {
         return this.get<GroupDto[]>('/api/v1/Groups');
+    }
+
+    editExpendableDisstributions(id: number, items: ExpendableDistributionBatchItemDto[]): Promise<ExpendableDistributionDto> {
+        return this.put<ExpendableDistributionDto, ExpendableDistributionBatchItemDto[]>(`/api/v1/Students/${id}/expendable`, items);
     }
 }
