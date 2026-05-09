@@ -6,7 +6,7 @@
 
 .emptyState {
     padding: 24px;
-    border-radius: 16px;
+    border-radius: var(--radius-16);
     border: 1px dashed #d1d5db;
     background: #f9fafb;
     text-align: center;

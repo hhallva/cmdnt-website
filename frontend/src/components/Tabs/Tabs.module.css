@@ -6,7 +6,7 @@
 
 .tabsSurface {
     background: var(--color-surface);
-    border-radius: 1rem;
+    border-radius: var(--radius-16);
     padding: 1rem;
 }
 
@@ -44,7 +44,6 @@
 
 .tabsHeader::-webkit-scrollbar-thumb {
     background-color: var(--color-border);
-    border-radius: 3px;
 }
 
 .tabsHeader::-webkit-scrollbar-track {
@@ -57,7 +56,6 @@
 
 .tabsHeader::-webkit-scrollbar-thumb {
     background-color: var(--color-shadow-20);
-    border-radius: 2px;
 }
 
 .tabsHeader::-webkit-scrollbar-track {
@@ -76,7 +74,7 @@
     color: var(--color-text-dark);
     white-space: nowrap;
     flex-shrink: 0;
-    border-radius: 0.875rem;
+    border-radius: var(--radius-14);
     scroll-snap-align: start;
 }
 
@@ -107,7 +105,7 @@
 @media (max-width: 768px) {
     .tabsSurface {
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-12);
     }
 
     .lockToViewportOnMobile {
@@ -128,9 +126,6 @@
         font-size: 0.9rem;
     }
 
-    .tabButton.active {
-        border-radius: 5px 5px 0 0;
-    }
 }
 
 /* Если очень много вкладок или очень мало места */

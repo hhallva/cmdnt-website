@@ -39,13 +39,12 @@
   --color-white-30: rgba(255, 255, 255, 0.3);
   --color-white-80: rgba(255, 255, 255, 0.8);
   --color-white-90: rgba(255, 255, 255, 0.9);
-  --color-white-95: rgba(255, 255, 255, 0.95);
   --color-shadow-10: rgba(0, 0, 0, 0.1);
   --color-shadow-15: rgba(0, 0, 0, 0.15);
   --color-shadow-20: rgba(0, 0, 0, 0.2);
-  --color-shadow-30: rgba(0, 0, 0, 0.3);
   --color-shadow-50: rgba(0, 0, 0, 0.5);
   --color-shadow-60: rgba(0, 0, 0, 0.6);
+
   --color-primary: var(--color-accent);
   --color-primary-hover: var(--color-accent-hover);
   --color-text: var(--color-text-dark);
@@ -55,8 +54,18 @@
   --color-surface-subtle: var(--color-bg);
   --color-surface-line: var(--color-border);
   --color-focus-outline: var(--color-accent-35);
-  --radius-lg: 20px;
-  --radius-md: 10px;
+
+
+  --radius-circle: 100%;
+  --radius-20: 1.25rem;
+  --radius-16: 1rem;
+  --radius-14: 0.875rem;
+  --radius-12: 0.75rem;
+  --radius-10: 0.625rem;
+  --radius-8: 0.5rem;
+  --radius-4: 0.25rem;
+  --radius-0: 0rem;
+
   --shadow-light: 0 10px 40px var(--color-shadow-10);
   --box-shadow: 0 0 0 3px var(--color-accent-10);
   --transition: all 0.3s ease;
@@ -69,5 +78,3 @@ body {
   color: var(--color-text);
   position: relative;
 }
-
-/* --- Переопределение Bootstrap стилей --- */

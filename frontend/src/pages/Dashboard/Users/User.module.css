@@ -1,24 +1,3 @@
-.actionBtn {
-    padding: 0.5rem 0.75rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.8rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.actionBtnEdit {
-    background: var(--color-danger);
-    color: var(--color-white);
-}
-
-.actionBtnDelete:hover {
-    background: var(--color-danger-hover);
-}
-
 .mobileCardRow {
     display: flex;
     align-items: baseline;
@@ -69,7 +48,7 @@
 
 .mobileCard {
     width: 100%;
-    border-radius: 10px;
+    border-radius: var(--radius-10);
     padding: 1rem;
     background: var(--color-surface);
     display: flex;
@@ -117,58 +96,20 @@
     font-weight: 500;
 }
 
-.mobileCardActions {
-    display: flex;
-    justify-content: flex-end;
-}
-
 .mobileCardActionTrigger {
     border: none;
     background: var(--color-transparent);
     color: var(--color-text-light);
     font-size: 1.4rem;
     padding: 0.15rem 0.35rem;
-    border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
-.mobileCardActionTrigger:disabled {
-    opacity: 0.45;
-    pointer-events: none;
-}
-
-.mobileCardActionMenu {
-    position: fixed;
-    min-width: 200px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 25px var(--color-shadow-10);
-    padding: 0.25rem;
-    z-index: 1200;
-}
-
-.mobileCardActionMenuItem {
-    width: 100%;
-    border: none;
-    background: var(--color-transparent);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.5rem;
-    border-radius: 0.4rem;
-    cursor: pointer;
-    color: var(--color-text-dark);
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
 .formSection {
     padding: 1.5rem;
     background: var(--color-surface);
-    border-radius: 10px;
     margin-bottom: 1.5rem;
 }
 

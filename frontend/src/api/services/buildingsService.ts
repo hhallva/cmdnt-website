@@ -1,6 +1,6 @@
 import { BaseApiService } from '../core/baseApiService';
 import type { BuildingDto, BuildingSummaryDto, PostBuildingDto } from '../../types/buildings';
-import type { StructureStatisticDto, OverallStructureStatisticDto } from '../../types/structures';
+import type { StructureStatisticDto, OverallStructureStatisticDto as StructuresStatisticDto } from '../../types/structures';
 
 export class BuildingsService extends BaseApiService {
     getAllBuildings(): Promise<BuildingDto[]> {
@@ -31,7 +31,7 @@ export class BuildingsService extends BaseApiService {
         return this.get<StructureStatisticDto>(`/api/v1/Buildings/${id}/statistic`);
     }
 
-    getOverallStructureStatistics(): Promise<OverallStructureStatisticDto> {
-        return this.get<OverallStructureStatisticDto>('/api/v1/Buildings/statistic');
+    getStructuresStatistics(): Promise<StructuresStatisticDto> {
+        return this.get<StructuresStatisticDto>('/api/v1/Buildings/statistic');
     }
 }

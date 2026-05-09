@@ -173,7 +173,7 @@ const BuildingsLayout: React.FC = () => {
         const loadSummary = async () => {
             try {
                 setSummaryLoading(true);
-                const response = await apiClient.getOverallStructureStatistics();
+                const response = await apiClient.getStructuresStatistics();
                 setSummaryStats(response);
                 setSummaryError(null);
             } catch (err: any) {

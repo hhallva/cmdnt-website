@@ -1,19 +1,19 @@
 .tableWrapper {
     background: var(--color-surface);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-12);
 }
 
 .tableResponsive {
     overflow-x: auto;
     overflow-y: visible;
-    border-radius: 1rem;
+    border-radius: var(--radius-16);
 }
 
 /* Сама таблица */
 .table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 0.625rem;
+    border-radius: var(--radius-10);
     background-color: var(--color-surface);
 }
 
@@ -93,7 +93,6 @@
     border: none;
     background: var(--color-transparent);
     padding: 0.25rem;
-    border-radius: 50%;
     color: var(--color-text-light);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
