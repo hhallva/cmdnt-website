@@ -3,7 +3,7 @@
     position: absolute;
     width: 150px;
     height: 150px;
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     z-index: 0;
     display: none;
 }
@@ -28,7 +28,7 @@
     background: var(--color-white);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-20);
     padding: 3rem 3rem;
     border: 1px solid var(--color-white-30);
     animation: fadeInUp 0.6s ease-out;
@@ -39,7 +39,7 @@
     width: 72px;
     height: 72px;
     background: var(--color-primary);
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -71,7 +71,6 @@ h1 {
     width: 100%;
     height: 2px;
     background: linear-gradient(90deg, var(--color-danger), var(--color-accent));
-    border-radius: 1px;
 }
 
 .subtitle {
@@ -128,7 +127,7 @@ h1 {
     width: 100%;
     padding: 0.75rem 3rem 0.75rem 2.75rem;
     border: 2px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-10);
     font-size: 1rem;
     background: var(--color-white);
     transition: var(--transition);
@@ -154,7 +153,6 @@ h1 {
     width: 28px;
     height: 28px;
     z-index: 3;
-    border-radius: 4px;
     padding: 0;
 }
 
@@ -163,7 +161,7 @@ h1 {
     width: 100%;
     padding: 0.75rem;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-10);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -240,7 +238,6 @@ h1 {
 
     .content {
         padding: 2rem 1.25rem;
-        border-radius: 0;
     }
 
     .form-control {
@@ -277,7 +274,6 @@ h1 {
 
     .content {
         padding: 1.75rem 1rem;
-        border-radius: 14px;
     }
 
     .form-control {

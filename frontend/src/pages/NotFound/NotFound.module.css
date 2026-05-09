@@ -11,7 +11,7 @@
     text-align: center;
     padding: 2rem;
     background: var(--color-surface);
-    border-radius: 10px;
+    border-radius: var(--radius-10);
     max-width: 500px;
     width: 100%;
 }
@@ -36,7 +36,7 @@
 
 .homeLink {
     width: 100%;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-10);
     font-size: 1.1rem;
     font-weight: 600;
     display: inline-block;

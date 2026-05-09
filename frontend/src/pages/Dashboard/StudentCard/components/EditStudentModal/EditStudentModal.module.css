@@ -30,7 +30,7 @@
 
 .formSection {
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     padding: 20px;
     background: var(--color-white);
 }
@@ -68,7 +68,7 @@
     outline: 2px dashed var(--color-accent);
     outline-offset: 0;
     background: var(--color-accent-10);
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     width: 155px;
     height: 155px;
     padding: 0;
@@ -106,7 +106,7 @@
 .photoPreviewImage {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     object-fit: cover;
 }
 
@@ -121,7 +121,7 @@
     inset: 0;
     border: none;
     background: rgba(0, 0, 0, 0.45);
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     color: var(--color-white);
     font-size: 2.25rem;
     display: flex;
@@ -172,7 +172,7 @@
 
 
 .pendingContactRow {
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     background: var(--color-white);
     cursor: pointer;
 }

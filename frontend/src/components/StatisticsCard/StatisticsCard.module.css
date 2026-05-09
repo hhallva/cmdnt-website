@@ -19,7 +19,7 @@
 .statCard {
     display: flex;
     background: var(--color-surface);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-12);
     gap: 0.25rem;
     padding: 1.25rem 1rem;
     text-align: center;
@@ -48,20 +48,4 @@
         display: none;
     }
 
-    .statsGrid {
-        gap: 0.75rem;
-    }
-
-    .statCard {
-        border-radius: 0.65rem;
-        padding: 1rem 0.85rem;
-    }
-
-    .statNumber {
-        font-size: 1.25rem;
-    }
-
-    .statLabel {
-        font-size: 0.8rem;
-    }
 }

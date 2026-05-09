@@ -6,7 +6,7 @@
 
 .emptyState {
     padding: 24px;
-    border-radius: 16px;
+    border-radius: var(--radius-16);
     border: 1px dashed #d1d5db;
     background: #f9fafb;
     text-align: center;
@@ -33,7 +33,7 @@
 
 .searchPanel {
     background: var(--color-white);
-    border-radius: 12px;
+    border-radius: var(--radius-12);
 }
 
 .searchLeft {
@@ -123,7 +123,7 @@
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     background: var(--color-white);
     border: 1px solid var(--color-border);
 }
