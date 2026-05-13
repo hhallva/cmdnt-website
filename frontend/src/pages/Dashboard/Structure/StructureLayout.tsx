@@ -136,6 +136,7 @@ const StructureLayout: React.FC = () => {
     const [beddingExportHandler, setBeddingExportHandler] = useState<(() => void) | null>(null);
     const dragImageRef = useRef<HTMLElement | null>(null);
     const sideMenuDragImageRef = useRef<HTMLElement | null>(null);
+    const lastSoftRefreshAtRef = useRef(0);
     const dragImageService = useMemo(() => new DragImageService(), []);
 
     const loadStructureStats = useCallback(async (options?: { silent?: boolean }) => {
@@ -165,6 +166,49 @@ const StructureLayout: React.FC = () => {
     useEffect(() => {
         void loadStructureStats();
     }, [loadStructureStats]);
+
+    const refreshStructureView = useCallback(async (options?: { silent?: boolean }) => {
+        await Promise.all([
+            refetch({ silent: options?.silent }),
+            loadStructureStats({ silent: options?.silent }),
+        ]);
+    }, [loadStructureStats, refetch]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const triggerSoftRefresh = () => {
+            const now = Date.now();
+            if (now - lastSoftRefreshAtRef.current < 1000) {
+                return;
+            }
+
+            lastSoftRefreshAtRef.current = now;
+            void refreshStructureView({ silent: true });
+        };
+
+        const handleWindowFocus = () => {
+            if (document.visibilityState === 'visible') {
+                triggerSoftRefresh();
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                triggerSoftRefresh();
+            }
+        };
+
+        window.addEventListener('focus', handleWindowFocus);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener('focus', handleWindowFocus);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [refreshStructureView]);
 
     const canUseExtendedTabs = canManageRooms && !isMobileView;
     const availableTabIds = useMemo(
@@ -388,6 +432,9 @@ const StructureLayout: React.FC = () => {
                 errors[field] = 'Введите положительное число';
                 return;
             }
+            if (field === 'floorNumber' && parsed > 10) {
+                errors[field] = 'Максимум 10';
+            }
             if (field === 'roomNumber' && parsed > 99) {
                 errors[field] = 'Максимум 99';
             }
@@ -427,8 +474,7 @@ const StructureLayout: React.FC = () => {
             setIsAddRoomModalOpen(false);
             setNewRoomForm({ floorNumber: '', roomNumber: '', capacity: '' });
             setNewRoomErrors({});
-            refetch();
-            await loadStructureStats({ silent: true });
+            await refreshStructureView({ silent: true });
         } catch (err: any) {
             console.error('Ошибка при добавлении комнаты:', err);
             alert(err?.message || 'Не удалось добавить комнату');
@@ -453,8 +499,7 @@ const StructureLayout: React.FC = () => {
         setDeletingRoomId(roomId);
         try {
             await apiClient.deleteRoom(roomId);
-            refetch();
-            await loadStructureStats({ silent: true });
+            await refreshStructureView({ silent: true });
         } catch (err: any) {
             console.error('Ошибка при удалении комнаты:', err);
             alert(err?.message || 'Не удалось удалить комнату');
@@ -572,12 +617,11 @@ const StructureLayout: React.FC = () => {
             }
             await apiClient.assignStudentToRoom(studentId, room.id);
             setSettlementAlert({ type: 'success', message: 'Студент успешно заселён' });
-            await refetch({ silent: true });
-            await loadStructureStats({ silent: true });
+            await refreshStructureView({ silent: true });
         } catch (err: any) {
             setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось заселить студента' });
         }
-    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, students]);
+    }, [canManageRooms, refreshStructureView, setSettlementAlert, students]);
 
     const handleSideMenuDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -604,12 +648,11 @@ const StructureLayout: React.FC = () => {
         try {
             await apiClient.evictStudent(studentId);
             setSettlementAlert({ type: 'success', message: 'Студент успешно выселен' });
-            await refetch({ silent: true });
-            await loadStructureStats({ silent: true });
+            await refreshStructureView({ silent: true });
         } catch (err: any) {
             setSettlementAlert({ type: 'error', message: err?.message || 'Не удалось выселить студента' });
         }
-    }, [canManageRooms, loadStructureStats, refetch, setSettlementAlert, students, unassignedStudents]);
+    }, [canManageRooms, refreshStructureView, setSettlementAlert, students, unassignedStudents]);
 
     const handleCloseBlockModal = useCallback(() => {
         closeBlockModal();
