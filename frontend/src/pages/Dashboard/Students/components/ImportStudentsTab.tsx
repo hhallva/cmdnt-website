@@ -310,7 +310,7 @@ const ImportStudentsTab: React.FC<ImportStudentsTabProps> = ({ groups, onImportC
             const worksheet = workbook.Sheets[sheetName];
             const rawRows = XLSX.utils.sheet_to_json<(string | number)[]>(worksheet, {
                 header: 1,
-                raw: false,
+                raw: true,
                 blankrows: false,
             }).filter(row => Array.isArray(row) && row.some(cell => (cell ?? '').toString().trim() !== ''));
             if (!rawRows.length) {
