@@ -418,10 +418,6 @@ namespace API.Controllers
             if (activeRoomResettlements.Count >= room.Capacity)
                 return BadRequest(new ApiErrorDto("Комната переполнена", StatusCodes.Status400BadRequest));
 
-            var hasGenderConflict = activeRoomResettlements.Any(r => r.Student.Gender != student.Gender);
-            if (hasGenderConflict)
-                return BadRequest(new ApiErrorDto("Студент не может быть заселен в комнату с жильцами другого пола", StatusCodes.Status400BadRequest));
-
             var resettlement = new Resettlement
             {
                 StudentId = student.Id,

@@ -12,6 +12,20 @@ namespace Core.DTOs.Rooms
                 .Where(resettlement => resettlement.CheckInDate.HasValue && !resettlement.CheckOutDate.HasValue)
                 .ToList();
 
+            bool? genderType = null;
+            if (activeResettlements.Count > 0)
+            {
+                var distinctGenders = activeResettlements
+                    .Select(resettlement => resettlement.Student.Gender)
+                    .Distinct()
+                    .ToList();
+
+                if (distinctGenders.Count == 1)
+                {
+                    genderType = distinctGenders[0];
+                }
+            }
+
             return new RoomDto
             {
                 Id = room.Id,
@@ -19,7 +33,7 @@ namespace Core.DTOs.Rooms
                 Number = (room.Floor * 100 + room.Number).ToString(),
                 Capacity = room.Capacity,
                 CurrentCapacity = activeResettlements.Count,
-                GenderType = activeResettlements.Count == 0 ? null : activeResettlements[0].Student.Gender
+                GenderType = genderType
             };
         }
     }

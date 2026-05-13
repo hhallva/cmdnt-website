@@ -98,32 +98,20 @@ export const hasGenderValue = (value: boolean | null | undefined): value is bool
 
 export const doesRoomMatchStudentGender = (
     room: RoomDto,
-    studentGender: StudentsDto['gender'] | null | undefined
+    _studentGender: StudentsDto['gender'] | null | undefined
 ): boolean => {
     if (room.currentCapacity >= room.capacity) {
         return false;
     }
 
-    if (!hasGenderValue(studentGender)) {
-        return room.currentCapacity === 0;
-    }
-
-    if (room.currentCapacity === 0) {
-        return true;
-    }
-
-    return hasGenderValue(room.genderType) && room.genderType === studentGender;
+    return true;
 };
 
 export const doesStudentMatchRoomGender = (
-    studentGender: StudentsDto['gender'] | null | undefined,
-    roomGender: RoomDto['genderType'] | null
+    _studentGender: StudentsDto['gender'] | null | undefined,
+    _roomGender: RoomDto['genderType'] | null
 ): boolean => {
-    if (!hasGenderValue(roomGender)) {
-        return true;
-    }
-
-    return hasGenderValue(studentGender) && studentGender === roomGender;
+    return true;
 };
 
 export const getBlockKey = (floorNumber: number, blockNumber: string): string => `${floorNumber}-${blockNumber}`;
