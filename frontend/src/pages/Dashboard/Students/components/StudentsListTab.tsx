@@ -13,6 +13,7 @@ import {
     formatBirthday,
     formatBirthdayForExport,
     formatGenderShort,
+    formatStudentName,
     getGenderLabel,
     getStudentImageSrc,
 } from '../../../../utils/students';
@@ -248,13 +249,6 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         const capacity = student.roomCapacity ?? 'нет';
         return `${student.blockNumber} (${capacity})`;
     };
-
-    const getInitials = (student: StudentsDto) => {
-        const surnameInitial = student.surname?.trim().charAt(0) ?? '';
-        const nameInitial = student.name?.trim().charAt(0) ?? '';
-        return `${surnameInitial}${nameInitial}`.toUpperCase();
-    };
-
     const sortStudents = useCallback((items: StudentsDto[]) => {
         const result = [...items];
 
@@ -271,8 +265,8 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
 
             switch (key) {
                 case 'fullName':
-                    aValue = `${a.surname || ''} ${a.name || ''} ${a.patronymic || ''}`.trim().toLowerCase();
-                    bValue = `${b.surname || ''} ${b.name || ''} ${b.patronymic || ''}`.trim().toLowerCase();
+                    aValue = formatStudentName(a).toLowerCase();
+                    bValue = formatStudentName(b).toLowerCase();
                     break;
                 case 'group.course':
                     aValue = a.group?.course ?? 0;
@@ -332,7 +326,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
             'Блок',
         ];
         const bodyRows = exportStudents.map(student => ([
-            `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim(),
+            formatStudentName(student),
             student.group?.name ?? '',
             student.group?.course ?? '',
             formatGenderShort(student.gender),
@@ -375,7 +369,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
             title: 'ФИО',
             sortable: true,
             render: (student: StudentsDto) => {
-                const fullName = `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'нет';
+                const fullName = formatStudentName(student, { emptyValue: 'нет' });
                 const imageSrc = getStudentImageSrc(student.image);
                 return (
                     <div className={styles.fioCell}>
@@ -383,7 +377,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
                             {imageSrc ? (
                                 <img src={imageSrc} alt={student.surname || 'Фото студента'} />
                             ) : (
-                                <span>{getInitials(student) || 'нет'}</span>
+                                <span>{formatStudentName(student, { format: 'initials', emptyValue: 'нет' })}</span>
                             )}
                         </div>
                         <span className={styles.fioText}>{fullName}</span>
@@ -474,7 +468,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
                             onClick={() => onStudentClick(student.id)}
                         >
                             <p className={styles.mobileCardTitle}>
-                                {`${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет'}
+                                {formatStudentName(student, { emptyValue: 'Нет' })}
                             </p>
                             <div className={styles.mobileCardDivider}></div>
                             <div className={styles.mobileCardRow}>

@@ -13,6 +13,7 @@ import type {
 } from '../../../../types/expendableDistribution';
 import type { ExpendableEquipmentDto } from '../../../../types/expendableEquipment';
 import type { StudentsDto } from '../../../../types/students';
+import { formatStudentName } from '../../../../utils/students';
 import styles from '../../Expendable/Expendable.module.css';
 import { useSortableConfig } from '../hooks/useSortableConfig';
 
@@ -345,15 +346,15 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const studentOptions = useMemo(() => {
         const source = isEditing ? students : eligibleStudents;
         const options = source.map(student => {
-            const fullName = [student.surname, student.name, student.patronymic].filter(Boolean).join(' ');
-            return { value: String(student.id), label: fullName || `Студент ${student.id}` };
+            const fullName = formatStudentName(student, { emptyValue: `Студент ${student.id}` });
+            return { value: String(student.id), label: fullName };
         });
 
         if (isEditing && selectedStudentId && !options.some(option => option.value === selectedStudentId)) {
             const fallback = students.find(student => String(student.id) === selectedStudentId);
             if (fallback) {
-                const fullName = [fallback.surname, fallback.name, fallback.patronymic].filter(Boolean).join(' ');
-                options.unshift({ value: String(fallback.id), label: fullName || `Студент ${fallback.id}` });
+                const fullName = formatStudentName(fallback, { emptyValue: `Студент ${fallback.id}` });
+                options.unshift({ value: String(fallback.id), label: fullName });
             }
         }
 
