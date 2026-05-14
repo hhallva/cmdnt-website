@@ -1,19 +1,15 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import InputField from '../../../components/InputField/InputField';
 import SelectField from '../../../components/SelectField/SelectField';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
-import { apiClient } from '../../../api/client';
-import type { StationaryEquipmentStatisticDto } from '../../../types/stationaryEquipmentStatistic';
+import { stationaryQueryKeys, useStationaryEquipmentStatisticsQuery } from '../../../hooks/useStationaryQuery';
 import FurnicheCategoriesTab from './components/FurnicheCategoriesTab';
 import FurnicheImportTab from './components/FurnicheImportTab';
 import FurnicheListTab from './components/FurnicheListTab';
 import styles from './Furniche.module.css';
-
-type LoadStatisticsOptions = {
-    silent?: boolean;
-};
 
 type BuildingFilterValue = number | 'all' | 'storage';
 type TypeFilterValue = number | 'all';
@@ -30,7 +26,16 @@ type ListFilterOptions = {
     statusOptions: FilterOption[];
 };
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 const FurnicheLayout: React.FC = () => {
+    const queryClient = useQueryClient();
     const [activeTabId, setActiveTabId] = useState<string>(() => {
         if (typeof window === 'undefined') {
             return 'list';
@@ -41,6 +46,7 @@ const FurnicheLayout: React.FC = () => {
     const [categoriesExportHandler, setCategoriesExportHandler] = useState<(() => void) | null>(null);
 
     const [listSearchTerm, setListSearchTerm] = useState('');
+    const [listPage, setListPage] = useState(1);
     const [selectedBuilding, setSelectedBuilding] = useState<BuildingFilterValue>('all');
     const [selectedType, setSelectedType] = useState<TypeFilterValue>('all');
     const [selectedStatus, setSelectedStatus] = useState<StatusFilterValue>('all');
@@ -54,36 +60,8 @@ const FurnicheLayout: React.FC = () => {
         typeOptions: [{ value: 'all', label: 'Все категории' }],
         statusOptions: [{ value: 'all', label: 'Все статусы' }],
     });
-    const [statistics, setStatistics] = useState<StationaryEquipmentStatisticDto | null>(null);
-    const [statsLoading, setStatsLoading] = useState(true);
-    const [statsError, setStatsError] = useState<string | null>(null);
-
-    const loadStatistics = useCallback(async ({ silent = false }: LoadStatisticsOptions = {}) => {
-        const shouldShowLoader = !silent;
-
-        if (shouldShowLoader) {
-            setStatsLoading(true);
-        }
-        if (!silent) {
-            setStatsError(null);
-        }
-        try {
-            const data = await apiClient.getStationaryEquipmentStatistics();
-            setStatistics(data);
-        } catch (err: any) {
-            if (shouldShowLoader) {
-                setStatsError(err?.message || 'Не удалось загрузить статистику мебели');
-            }
-        } finally {
-            if (shouldShowLoader) {
-                setStatsLoading(false);
-            }
-        }
-    }, []);
-
-    React.useEffect(() => {
-        void loadStatistics();
-    }, [loadStatistics]);
+    const { data: statistics, isLoading: statsLoading, error: statsError } = useStationaryEquipmentStatisticsQuery();
+    const statsErrorMessage = statsError ? getErrorMessage(statsError, 'Не удалось загрузить статистику мебели') : null;
 
     const handleCategoryReset = useCallback(() => {
         setCategoriesSearchTerm('');
@@ -94,10 +72,31 @@ const FurnicheLayout: React.FC = () => {
     }, [categoriesExportHandler]);
 
     const handleListReset = useCallback(() => {
+        setListPage(1);
         setListSearchTerm('');
         setSelectedBuilding('all');
         setSelectedType('all');
         setSelectedStatus('all');
+    }, []);
+
+    const handleListSearchChange = useCallback((value: string) => {
+        setListPage(1);
+        setListSearchTerm(value);
+    }, []);
+
+    const handleBuildingChange = useCallback((value: BuildingFilterValue) => {
+        setListPage(1);
+        setSelectedBuilding(value);
+    }, []);
+
+    const handleTypeChange = useCallback((value: TypeFilterValue) => {
+        setListPage(1);
+        setSelectedType(value);
+    }, []);
+
+    const handleStatusChange = useCallback((value: StatusFilterValue) => {
+        setListPage(1);
+        setSelectedStatus(value);
     }, []);
 
     const handleListExport = useCallback(() => {
@@ -105,8 +104,8 @@ const FurnicheLayout: React.FC = () => {
     }, [listExportHandler]);
 
     const handleImportComplete = useCallback(async () => {
-        await loadStatistics({ silent: true });
-    }, [loadStatistics]);
+        await queryClient.invalidateQueries({ queryKey: stationaryQueryKeys.all });
+    }, [queryClient]);
 
     const listHeader = (
         <div className={styles.searchPanel}>
@@ -118,7 +117,7 @@ const FurnicheLayout: React.FC = () => {
                             type="text"
                             placeholder="Поиск..."
                             value={listSearchTerm}
-                            onChange={(event) => setListSearchTerm(event.target.value)}
+                            onChange={(event) => handleListSearchChange(event.target.value)}
                         />
                     </div>
                     <div className={styles.searchButtons}>
@@ -164,10 +163,10 @@ const FurnicheLayout: React.FC = () => {
                             onChange={(event) => {
                                 const value = event.target.value;
                                 if (value === 'all' || value === 'storage') {
-                                    setSelectedBuilding(value);
+                                    handleBuildingChange(value);
                                     return;
                                 }
-                                setSelectedBuilding(Number(value));
+                                handleBuildingChange(Number(value));
                             }}
                             options={listFilterOptions.buildingOptions}
                         />
@@ -176,7 +175,7 @@ const FurnicheLayout: React.FC = () => {
                             value={selectedType}
                             onChange={(event) => {
                                 const value = event.target.value;
-                                setSelectedType(value === 'all' ? 'all' : Number(value));
+                                handleTypeChange(value === 'all' ? 'all' : Number(value));
                             }}
                             options={listFilterOptions.typeOptions}
                         />
@@ -185,7 +184,7 @@ const FurnicheLayout: React.FC = () => {
                             value={selectedStatus}
                             onChange={(event) => {
                                 const value = event.target.value;
-                                setSelectedStatus(value === 'all' ? 'all' : Number(value));
+                                handleStatusChange(value === 'all' ? 'all' : Number(value));
                             }}
                             options={listFilterOptions.statusOptions}
                         />
@@ -239,9 +238,11 @@ const FurnicheLayout: React.FC = () => {
             content: (
                 <FurnicheListTab
                     searchTerm={listSearchTerm}
+                    currentPage={listPage}
                     selectedBuilding={selectedBuilding}
                     selectedType={selectedType}
                     selectedStatus={selectedStatus}
+                    onPageChange={setListPage}
                     onExportReady={setListExportHandler}
                     onFilterOptionsReady={setListFilterOptions}
                 />
@@ -273,7 +274,7 @@ const FurnicheLayout: React.FC = () => {
     return (
         <div>
             {!statsLoading && statsError && (
-                <div className="alert alert-danger m-3">{statsError}</div>
+                <div className="alert alert-danger m-3">{statsErrorMessage}</div>
             )}
             {!statsLoading && !statsError && statistics && (
                 <StatisticsCard

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
 import CommonModal from '../../../../components/CommonModal/CommonModal';
 import CommonTable, { type ColumnDefinition, type RowActionConfig } from '../../../../components/CommonTable/CommonTable';
 import InputField from '../../../../components/InputField/InputField';
 import { apiClient } from '../../../../api/client';
+import { expendableQueryKeys, useExpendableEquipmentQuery } from '../../../../hooks/useExpendableQuery';
 import type { ExpendableEquipmentDto } from '../../../../types/expendableEquipment';
 import styles from '../Expendable.module.css';
 
@@ -15,6 +17,14 @@ type ExpendableListTabProps = {
     searchTerm: string;
     onExportReady?: (handler: (() => void) | null) => void;
     resetSignal?: number;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
 };
 
 const columns: ColumnDefinition<ExpendableEquipmentDto>[] = [
@@ -49,9 +59,9 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
     onExportReady,
     resetSignal,
 }) => {
-    const [items, setItems] = useState<ExpendableEquipmentDto[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
+    const { data: items = [], isLoading: loading, error: queryError } = useExpendableEquipmentQuery();
+    const error = queryError ? getErrorMessage(queryError, 'Не удалось загрузить список расходников') : null;
     const [sortConfig, setSortConfig] = useState<{ key: SortableKey; direction: 'asc' | 'desc' } | null>({
         key: 'typeName',
         direction: 'asc',
@@ -62,23 +72,6 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
     const [adjustCount, setAdjustCount] = useState('');
     const [adjustError, setAdjustError] = useState<string | null>(null);
     const [isAdjusting, setIsAdjusting] = useState(false);
-
-    const loadData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const itemsData = await apiClient.getExpendableEquipment();
-            setItems(itemsData);
-        } catch (err: any) {
-            setError(err?.message || 'Не удалось загрузить список расходников');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        void loadData();
-    }, [loadData]);
 
     useEffect(() => {
         if (resetSignal !== undefined) {
@@ -208,7 +201,10 @@ const ExpendableListTab: React.FC<ExpendableListTabProps> = ({
             }
             setIsAdjustModalOpen(false);
             setAdjustTarget(null);
-            await loadData();
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: expendableQueryKeys.equipment() }),
+                queryClient.invalidateQueries({ queryKey: expendableQueryKeys.distributions() }),
+            ]);
         } catch (err: any) {
             setAdjustError(err?.message || 'Не удалось сохранить');
         } finally {

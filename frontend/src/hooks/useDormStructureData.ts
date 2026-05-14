@@ -1,19 +1,22 @@
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { dormitoryApi } from '../api/dormitory';
 import { apiClient } from '../api/client';
 import type { RoomDto } from '../types/rooms';
 import type { StudentsDto } from '../types/students';
-import { useAsyncResource } from './shared/useAsyncResource';
+
+type RefetchOptions = {
+    silent?: boolean;
+};
+
+export const structureQueryKeys = {
+    dataset: (buildingId?: number) => ['structure', 'dataset', buildingId ?? 'all'] as const,
+};
 
 export const useDormStructureData = (buildingId?: number) => {
-    const initialData: { rooms: RoomDto[]; students: StudentsDto[] } = {
-        rooms: [],
-        students: [],
-    };
-
-    const { data, loading, error, refetch } = useAsyncResource({
-        enabled: true,
-        initialData,
-        loader: async () => {
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: structureQueryKeys.dataset(buildingId),
+        queryFn: async () => {
             if (buildingId) {
                 const [rooms, students] = await Promise.all([
                     apiClient.getRoomsByBuildingId(buildingId),
@@ -29,14 +32,17 @@ export const useDormStructureData = (buildingId?: number) => {
                 students: dataset.students,
             };
         },
-        deps: [buildingId],
     });
 
+    const refetchStructureData = useCallback(async (_options?: RefetchOptions) => {
+        await refetch();
+    }, [refetch]);
+
     return {
-        rooms: data.rooms,
-        students: data.students,
-        loading,
-        error,
-        refetch,
+        rooms: data?.rooms ?? ([] as RoomDto[]),
+        students: data?.students ?? ([] as StudentsDto[]),
+        loading: isLoading,
+        error: error instanceof Error ? error.message : null,
+        refetch: refetchStructureData,
     };
 };

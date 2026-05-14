@@ -1,31 +1,36 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { apiClient } from '../../../api/client';
-
-import type { StudentsDto } from '../../../types/students';
-import type { GroupDto } from '../../../types/groups';
 import type { UserSession } from '../../../types/UserSession';
-import type { BuildingDto } from '../../../types/buildings';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import StudentsListTab, { StudentsListFilters } from './components/StudentsListTab';
 import AddStudentTab from './components/AddStudentTab';
 import ImportStudentsTab from './components/ImportStudentsTab';
 import { MOBILE_IMPORT_BREAKPOINT } from './constants';
+import {
+    studentsQueryKeys,
+    useStudentBuildingsQuery,
+    useStudentGroupsQuery,
+    useStudentsQuery,
+    type StudentsFilters,
+} from '../../../hooks/useStudentsQuery';
 import styles from './Students.module.css';
 
 const STUDENTS_TAB_STORAGE_KEY = 'students-active-tab';
 const STUDENTS_DEFAULT_TAB_ID = 'list';
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 const StudentsLayout: React.FC = () => {
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [students, setStudents] = useState<StudentsDto[]>([]);
-    const [studentsTotalCount, setStudentsTotalCount] = useState(0);
     const [studentsPage, setStudentsPage] = useState(1);
-    const [groups, setGroups] = useState<GroupDto[]>([]);
-    const [buildings, setBuildings] = useState<BuildingDto[]>([]);
     const [selectedBuildingId, setSelectedBuildingId] = useState<number | 'unassigned' | null>(null);
     const [isMobileViewport, setIsMobileViewport] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -34,11 +39,10 @@ const StudentsLayout: React.FC = () => {
     const [selectedCourse, setSelectedCourse] = useState<number | 'all'>('all');
     const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'all'>('all');
     const [exportHandler, setExportHandler] = useState<(() => void) | null>(null);
-    const hasHandledStudentsPaginationRef = useRef(false);
-    const hasHandledStudentsFiltersRef = useRef(false);
 
     const navigate = useNavigate();
     const location = useLocation();
+    const queryClient = useQueryClient();
 
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
@@ -51,72 +55,56 @@ const StudentsLayout: React.FC = () => {
         return sessionStorage.getItem(STUDENTS_TAB_STORAGE_KEY) || STUDENTS_DEFAULT_TAB_ID;
     });
 
-    const fetchStudents = useCallback(async (page: number) => {
-        try {
-            const studentsResponse = await apiClient.getStudentsPage({
-                page,
-                search: searchTerm,
-                buildingId: typeof selectedBuildingId === 'number' ? selectedBuildingId : undefined,
-                unassigned: selectedBuildingId === 'unassigned',
-                groupId: selectedGroupId === 'all' ? undefined : selectedGroupId,
-                course: selectedCourse === 'all' ? undefined : selectedCourse,
-                gender: selectedGender === 'all' ? undefined : selectedGender === 'male',
-            });
-            setStudents(studentsResponse.items);
-            setStudentsTotalCount(studentsResponse.totalCount);
-            setError(null);
-        } catch (err: any) {
-            console.error('Ошибка при обновлении списка студентов:', err);
-            setError(err?.message || 'Не удалось обновить список студентов');
-        }
-    }, [searchTerm, selectedBuildingId, selectedCourse, selectedGender, selectedGroupId]);
+    const filters = useMemo<StudentsFilters>(() => ({
+        search: searchTerm,
+        buildingId: typeof selectedBuildingId === 'number' ? selectedBuildingId : undefined,
+        unassigned: selectedBuildingId === 'unassigned',
+        groupId: selectedGroupId === 'all' ? undefined : selectedGroupId,
+        course: selectedCourse === 'all' ? undefined : selectedCourse,
+        gender: selectedGender === 'all' ? undefined : selectedGender === 'male',
+    }), [searchTerm, selectedBuildingId, selectedGroupId, selectedCourse, selectedGender]);
 
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                setLoading(true);
-                const [studentsResponse, groupsResponse, buildingsResponse] = await Promise.all([
-                    apiClient.getStudentsPage({ page: 1 }),
-                    apiClient.getAllGroups(),
-                    apiClient.getAllBuildings(),
-                ]);
-                setStudents(studentsResponse.items);
-                setStudentsTotalCount(studentsResponse.totalCount);
-                setGroups(groupsResponse);
-                setBuildings(buildingsResponse);
-                setError(null);
-            } catch (err: any) {
-                console.error('Ошибка при загрузке данных:', err);
-                setError(err?.message || 'Ошибка при загрузке данных');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { data: studentsData, isLoading: isStudentsLoading, error: studentsError } = useStudentsQuery(filters, studentsPage);
+    const { data: groups = [], isLoading: areGroupsLoading, error: groupsError } = useStudentGroupsQuery();
+    const { data: buildings = [], isLoading: areBuildingsLoading, error: buildingsError } = useStudentBuildingsQuery();
 
-        fetchInitialData();
+    const students = studentsData?.items ?? [];
+    const studentsTotalCount = studentsData?.totalCount ?? 0;
+    const loading = isStudentsLoading || areGroupsLoading || areBuildingsLoading;
+    const error = studentsError
+        ? getErrorMessage(studentsError, 'Не удалось загрузить список студентов')
+        : groupsError
+            ? getErrorMessage(groupsError, 'Не удалось загрузить группы')
+            : buildingsError
+                ? getErrorMessage(buildingsError, 'Не удалось загрузить здания')
+                : null;
+
+    const updateStudentsPage = useCallback((nextValue: string | number | 'all' | 'male' | 'female' | null, setter: (value: any) => void) => {
+        setStudentsPage(1);
+        setter(nextValue);
     }, []);
 
-    useEffect(() => {
-        if (!hasHandledStudentsPaginationRef.current) {
-            hasHandledStudentsPaginationRef.current = true;
-            return;
-        }
-        void fetchStudents(studentsPage);
-    }, [studentsPage]);
+    const handleSearchTermChange = useCallback((value: string) => {
+        updateStudentsPage(value, setSearchTerm);
+    }, [updateStudentsPage]);
 
-    useEffect(() => {
-        if (!hasHandledStudentsFiltersRef.current) {
-            hasHandledStudentsFiltersRef.current = true;
-            return;
-        }
+    const handleGroupChange = useCallback((value: number | 'all') => {
+        updateStudentsPage(value, setSelectedGroupId);
+    }, [updateStudentsPage]);
 
-        if (studentsPage !== 1) {
-            setStudentsPage(1);
-            return;
-        }
+    const handleCourseChange = useCallback((value: number | 'all') => {
+        updateStudentsPage(value, setSelectedCourse);
+    }, [updateStudentsPage]);
 
-        void fetchStudents(1);
-    }, [fetchStudents, searchTerm, selectedBuildingId, selectedGroupId, selectedCourse, selectedGender]);
+    const handleGenderChange = useCallback((value: 'male' | 'female' | 'all') => {
+        updateStudentsPage(value, setSelectedGender);
+    }, [updateStudentsPage]);
+
+    const handleBuildingChange = useCallback((value: number | 'unassigned' | null) => {
+        updateStudentsPage(value, setSelectedBuildingId);
+    }, [updateStudentsPage]);
+
+    const refreshStudents = useCallback(() => queryClient.invalidateQueries({ queryKey: studentsQueryKeys.lists() }), [queryClient]);
 
 
     useEffect(() => {
@@ -142,6 +130,7 @@ const StudentsLayout: React.FC = () => {
     }, [navigate]);
 
     const resetFilters = () => {
+        setStudentsPage(1);
         setSearchTerm('');
         setSelectedBuildingId(null);
         setSelectedGroupId('all');
@@ -167,11 +156,11 @@ const StudentsLayout: React.FC = () => {
                         selectedBuildingId={selectedBuildingId}
                         isAdvancedFilterOpen={isAdvancedFilterOpen}
                         isEducator={isEducator}
-                        onSearchTermChange={setSearchTerm}
-                        onGroupChange={setSelectedGroupId}
-                        onCourseChange={setSelectedCourse}
-                        onGenderChange={setSelectedGender}
-                        onBuildingChange={setSelectedBuildingId}
+                        onSearchTermChange={handleSearchTermChange}
+                        onGroupChange={handleGroupChange}
+                        onCourseChange={handleCourseChange}
+                        onGenderChange={handleGenderChange}
+                        onBuildingChange={handleBuildingChange}
                         onToggleAdvancedFilters={() => setIsAdvancedFilterOpen(prev => !prev)}
                         onResetFilters={resetFilters}
                         onExport={() => exportHandler?.()}
@@ -206,7 +195,7 @@ const StudentsLayout: React.FC = () => {
                 content: (
                     <AddStudentTab
                         groups={groups}
-                        onStudentCreated={() => fetchStudents(studentsPage)}
+                        onStudentCreated={refreshStudents}
                     />
                 ),
             });
@@ -220,7 +209,7 @@ const StudentsLayout: React.FC = () => {
                 content: (
                     <ImportStudentsTab
                         groups={groups}
-                        onImportComplete={() => fetchStudents(studentsPage)}
+                        onImportComplete={refreshStudents}
                     />
                 ),
             });
@@ -242,7 +231,12 @@ const StudentsLayout: React.FC = () => {
         isEducator,
         canUseImportTab,
         exportHandler,
-        fetchStudents,
+        refreshStudents,
+        handleBuildingChange,
+        handleCourseChange,
+        handleGenderChange,
+        handleGroupChange,
+        handleSearchTermChange,
         handleStudentClick,
     ]);
 

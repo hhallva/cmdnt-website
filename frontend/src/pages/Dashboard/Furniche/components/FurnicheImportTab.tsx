@@ -1,11 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import * as XLSX from 'xlsx';
-import type { StationaryEquipmentDto, PostStationaryEquipmentDto } from '../../../../types/stationaryEquipment';
-import type { StationaryTypeDto } from '../../../../types/stationaryTypes';
-import type { StatusDto } from '../../../../types/statuses';
+import type { PostStationaryEquipmentDto } from '../../../../types/stationaryEquipment';
 
 import { apiClient } from '../../../../api/client';
+import {
+    stationaryQueryKeys,
+    useStationaryEquipmentQuery,
+    useStationaryTypesQuery,
+    useStatusesQuery,
+} from '../../../../hooks/useStationaryQuery';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
 import CommonTable from '../../../../components/CommonTable/CommonTable';
 import CommonModal from '../../../../components/CommonModal/CommonModal';
@@ -33,11 +38,20 @@ const normalizeText = (value: string) => value.trim().toLowerCase();
 const normalizeInventory = (value: string) => value.trim().toUpperCase();
 const inventoryPattern = /^[A-Z0-9]{6}$/;
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 interface FurnicheImportTabProps {
     onImportComplete?: () => Promise<void> | void;
 }
 
 const FurnicheImportTab: React.FC<FurnicheImportTabProps> = ({ onImportComplete }) => {
+    const queryClient = useQueryClient();
     const [importDragActive, setImportDragActive] = useState(false);
     const [importFileName, setImportFileName] = useState('');
     const [importRows, setImportRows] = useState<ImportRow[]>([]);
@@ -46,29 +60,18 @@ const FurnicheImportTab: React.FC<FurnicheImportTabProps> = ({ onImportComplete 
     const [isImporting, setIsImporting] = useState(false);
     const [infoModal, setInfoModal] = useState<{ title: string; tips: string[] } | null>(null);
     const [importToast, setImportToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-    const [types, setTypes] = useState<StationaryTypeDto[]>([]);
-    const [statuses, setStatuses] = useState<StatusDto[]>([]);
-    const [equipment, setEquipment] = useState<StationaryEquipmentDto[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    useEffect(() => {
-        const loadReferenceData = async () => {
-            try {
-                const [typesData, statusesData, equipmentData] = await Promise.all([
-                    apiClient.getStationaryTypes(),
-                    apiClient.getStatuses(),
-                    apiClient.getStationaryEquipment(),
-                ]);
-                setTypes(typesData);
-                setStatuses(statusesData);
-                setEquipment(equipmentData);
-            } catch (err: any) {
-                setImportError(err?.message || 'Не удалось загрузить справочники');
-            }
-        };
-
-        void loadReferenceData();
-    }, []);
+    const { data: types = [], error: typesError } = useStationaryTypesQuery();
+    const { data: statuses = [], error: statusesError } = useStatusesQuery();
+    const { data: equipment = [], error: equipmentError } = useStationaryEquipmentQuery();
+    const referenceError = typesError
+        ? getErrorMessage(typesError, 'Не удалось загрузить справочники')
+        : statusesError
+            ? getErrorMessage(statusesError, 'Не удалось загрузить справочники')
+            : equipmentError
+                ? getErrorMessage(equipmentError, 'Не удалось загрузить справочники')
+                : null;
+    const resolvedImportError = importError ?? referenceError;
 
     useEffect(() => {
         if (!importToast) {
@@ -348,12 +351,11 @@ const FurnicheImportTab: React.FC<FurnicheImportTabProps> = ({ onImportComplete 
         setImportRows([]);
         setImportFileName('');
         setRowErrors({});
-        const equipmentData = await apiClient.getStationaryEquipment();
-        setEquipment(equipmentData);
         if (successCount > 0) {
+            await queryClient.invalidateQueries({ queryKey: stationaryQueryKeys.all });
             await onImportComplete?.();
         }
-    }, [importRows, onImportComplete, statuses, types, validateRows]);
+    }, [importRows, onImportComplete, queryClient, statuses, types, validateRows]);
 
     const handleDownloadTemplate = useCallback(() => {
         const templateSheet = XLSX.utils.aoa_to_sheet([
@@ -496,9 +498,9 @@ const FurnicheImportTab: React.FC<FurnicheImportTabProps> = ({ onImportComplete 
                     className="visually-hidden"
                     onChange={handleFileInputChange}
                 />
-                {importError && (
+                {resolvedImportError && (
                     <div className="alert alert-danger mt-3" role="alert">
-                        {importError}
+                        {resolvedImportError}
                     </div>
                 )}
                 <div className={styles.previewTableWrapper}>

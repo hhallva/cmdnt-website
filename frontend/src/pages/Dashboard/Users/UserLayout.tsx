@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getUserSession } from '../../../components/ProtectedRoute';
 import { apiClient } from '../../../api/client';
+import { useRolesQuery, useUserStatisticsQuery, useUsersQuery, usersQueryKeys } from '../../../hooks/useUsersQuery';
 
 import type { UserDto } from '../../../types/UserDto';
-import type { UserStatisticDto } from '../../../types/UserStatisticDto';
-import type { RoleDto } from '../../../types/RoleDto';
 import type { PostUserDto } from '../../../types/PostUserDto';
 
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
@@ -24,20 +24,19 @@ import styles from './User.module.css'
 const USERS_TAB_STORAGE_KEY = 'users-active-tab';
 const USERS_DEFAULT_TAB_ID = 'list';
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 const UsersLayout: React.FC = () => {
     // #region Загрузка данных
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
     const userSession = getUserSession();
 
-    const [statistics, setStatistics] = useState<UserStatisticDto | null>(null);
-    const [users, setUsers] = useState<UserDto[]>([]);
-    const [usersTotalCount, setUsersTotalCount] = useState(0);
     const [usersPage, setUsersPage] = useState(1);
-    const hasHandledUsersPaginationRef = useRef(false);
-    const hasHandledUsersFiltersRef = useRef(false);
-    const [roles, setRoles] = useState<RoleDto[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
         key: 'fullName',
@@ -45,62 +44,37 @@ const UsersLayout: React.FC = () => {
     });
     const navigate = useNavigate();
     const location = useLocation();
+    const queryClient = useQueryClient();
     const [activeTabId, setActiveTabId] = useState<string>(() => {
         if (typeof window === 'undefined') {
             return USERS_DEFAULT_TAB_ID;
         }
         return sessionStorage.getItem(USERS_TAB_STORAGE_KEY) || USERS_DEFAULT_TAB_ID;
     });
+    const usersFilters = useMemo(() => ({
+        search: searchTerm,
+    }), [searchTerm]);
+    const { data: statistics, isLoading: isStatisticsLoading, error: statisticsError } = useUserStatisticsQuery();
+    const { data: usersResponse, isLoading: isUsersLoading, error: usersError } = useUsersQuery(usersFilters, usersPage);
+    const { data: roles = [], isLoading: areRolesLoading, error: rolesError } = useRolesQuery();
+    const users = usersResponse?.items ?? [];
+    const usersTotalCount = usersResponse?.totalCount ?? 0;
+    const loading = isStatisticsLoading || isUsersLoading || areRolesLoading;
+    const error = statisticsError
+        ? getErrorMessage(statisticsError, 'Ошибка при загрузке статистики')
+        : usersError
+            ? getErrorMessage(usersError, 'Ошибка при загрузке пользователей')
+            : rolesError
+                ? getErrorMessage(rolesError, 'Ошибка при загрузке ролей')
+                : null;
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [statsResponse, usersResponse, rolesResponse] = await Promise.all([
-                    apiClient.getUserStatistics(),
-                    apiClient.getUsersPage({ page: 1 }),
-                    apiClient.getAllRoles()
-                ]);
-
-                setStatistics(statsResponse);
-                setUsers(usersResponse.items);
-                setUsersTotalCount(usersResponse.totalCount);
-                setRoles(rolesResponse);
-                console.info("Получение статистики и пользователей");
-            } catch (err: any) {
-                console.error('Ошибка при загрузке данных:', err);
-
-                setError(err.message || 'Ошибка при загрузке данных');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [navigate]);
-
-    const fetchStatistics = async () => {
-        try {
-            const statsResponse = await apiClient.getUserStatistics();
-            setStatistics(statsResponse);
-        } catch (err: any) {
-            console.error('Ошибка при загрузке статистики:', err);
-            throw err;
-        }
-    };
-
-    const fetchUsers = async (page = usersPage) => {
-        try {
-            const usersResponse = await apiClient.getUsersPage({
-                page,
-                search: searchTerm,
-            });
-            setUsers(usersResponse.items);
-            setUsersTotalCount(usersResponse.totalCount);
-        } catch (err: any) {
-            console.error('Ошибка при загрузке пользователей:', err);
-            throw err;
-        }
-    };
+    const refreshUsersData = useCallback(async () => {
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: usersQueryKeys.statistics() }),
+            queryClient.invalidateQueries({ queryKey: usersQueryKeys.roles() }),
+            queryClient.invalidateQueries({ queryKey: usersQueryKeys.lists() }),
+        ]);
+    }, [queryClient]);
     // #endregion
 
     useEffect(() => {
@@ -109,28 +83,6 @@ const UsersLayout: React.FC = () => {
         }
         sessionStorage.setItem(USERS_TAB_STORAGE_KEY, activeTabId);
     }, [activeTabId]);
-
-    useEffect(() => {
-        if (!hasHandledUsersPaginationRef.current) {
-            hasHandledUsersPaginationRef.current = true;
-            return;
-        }
-        void fetchUsers(usersPage);
-    }, [usersPage]);
-
-    useEffect(() => {
-        if (!hasHandledUsersFiltersRef.current) {
-            hasHandledUsersFiltersRef.current = true;
-            return;
-        }
-
-        if (usersPage !== 1) {
-            setUsersPage(1);
-            return;
-        }
-
-        void fetchUsers(1);
-    }, [searchTerm]);
 
     useEffect(() => {
         const state = location.state as { fromSidebar?: boolean } | null;
@@ -157,10 +109,12 @@ const UsersLayout: React.FC = () => {
     }));
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUsersPage(1);
         setSearchTerm(e.target.value);
     };
 
     const handleResetFilters = () => {
+        setUsersPage(1);
         setSearchTerm('');
         setSortConfig({ key: 'fullName', direction: 'asc' });
     };
@@ -204,12 +158,10 @@ const UsersLayout: React.FC = () => {
     const handleSuccessEdit = async () => {
         console.log('Пользователь успешно обновлён. Перезагружаем список пользователей...');
         try {
-            // --- Перезагружаем список пользователей ---
-            await fetchUsers(); // Предполагается, что fetchUsers - асинхронная функция из твоего useEffect
+            await refreshUsersData();
         } catch (err: any) {
             console.error('Ошибка при перезагрузке списка пользователей после редактирования:', err);
             alert(err.message || 'Ошибка при обновлении списка пользователей');
-            // Ошибка 401 будет перехвачена в apiClient
         }
     };
 
@@ -226,8 +178,7 @@ const UsersLayout: React.FC = () => {
             try {
                 await apiClient.deleteUser(user.id);
                 console.log('Пользователь успешно удалён с сервера:', user);
-                setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
-                await fetchStatistics();
+                await refreshUsersData();
             } catch (err: any) {
                 console.error('Ошибка при удалении пользователя:', err);
                 alert(err.message || 'Ошибка при удалении пользователя');
@@ -572,13 +523,10 @@ const UsersLayout: React.FC = () => {
             });
             setConfirmPassword('');
             setAddErrors({});
-            // Перезагружаем список пользователей и статистику
-            await fetchUsers();
-            await fetchStatistics();
+            await refreshUsersData();
         } catch (err: any) {
             console.error('Ошибка при добавлении пользователя:', err);
             alert(err.message || 'Ошибка при добавлении пользователя');
-            // Ошибка 401 будет перехвачена в apiClient
         } finally {
             setIsAdding(false);
         }

@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
 import CommonTable, { type ColumnDefinition, type RowActionConfig } from '../../../../components/CommonTable/CommonTable';
@@ -6,6 +7,12 @@ import CommonModal from '../../../../components/CommonModal/CommonModal';
 import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import { apiClient } from '../../../../api/client';
+import {
+    expendableQueryKeys,
+    useExpendableDistributionsPageQuery,
+    useExpendableEquipmentQuery,
+    type ExpendableDistributionsFilters,
+} from '../../../../hooks/useExpendableQuery';
 import type {
     ExpendableDistributionBatchItemDto,
     ExpendableDistributionDto,
@@ -39,12 +46,18 @@ type SortableKey = 'studentName' | DistributionItemKey;
 type BeddingDistributionTabProps = {
     searchTerm: string;
     students: StudentsDto[];
+    currentPage: number;
+    onPageChange: (page: number) => void;
     onExportReady?: (handler: (() => void) | null) => void;
     resetSignal?: number;
 };
 
-type LoadDataOptions = {
-    soft?: boolean;
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
 };
 
 const distributionItems: Array<{ key: DistributionItemKey; label: string }> = [
@@ -71,17 +84,12 @@ const columns: ColumnDefinition<BeddingDistributionRow>[] = [
 const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     searchTerm,
     students,
+    currentPage,
+    onPageChange,
     onExportReady,
     resetSignal,
 }) => {
-    const [distributions, setDistributions] = useState<ExpendableDistributionDto[]>([]);
-    const [distributionsTotalCount, setDistributionsTotalCount] = useState(0);
-    const [distributionsPage, setDistributionsPage] = useState(1);
-    const hasHandledDistributionsPaginationRef = useRef(false);
-    const hasHandledDistributionsFiltersRef = useRef(false);
-    const [stock, setStock] = useState<ExpendableEquipmentDto[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingRow, setEditingRow] = useState<BeddingDistributionRow | null>(null);
     const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -98,6 +106,20 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const [formError, setFormError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const studentIdsQuery = useMemo(() => students.map(student => student.id).sort((left, right) => left - right), [students]);
+    const filters = useMemo<ExpendableDistributionsFilters>(() => ({
+        search: searchTerm,
+        studentIds: studentIdsQuery,
+    }), [searchTerm, studentIdsQuery]);
+    const { data: stock = [], isLoading: isStockLoading, error: stockError } = useExpendableEquipmentQuery();
+    const { data: distributionsResponse, isLoading: isDistributionsLoading, error: distributionsError } = useExpendableDistributionsPageQuery(filters, currentPage);
+    const distributions = distributionsResponse?.items ?? ([] as ExpendableDistributionDto[]);
+    const distributionsTotalCount = distributionsResponse?.totalCount ?? 0;
+    const loading = isStockLoading || isDistributionsLoading;
+    const error = stockError
+        ? getErrorMessage(stockError, 'Не удалось загрузить данные')
+        : distributionsError
+            ? getErrorMessage(distributionsError, 'Не удалось загрузить данные')
+            : null;
     const beddingSortKeys = useMemo(
         () => ['studentName', 'mattress', 'sheet', 'blanket', 'duvetCover', 'pillow', 'pillowcase', 'plaid'] as const,
         []
@@ -107,60 +129,12 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         beddingSortKeys
     );
 
-    const loadData = useCallback(async (options: LoadDataOptions = {}, page: number) => {
-        const isSoftUpdate = options.soft ?? false;
-
-        if (!isSoftUpdate) {
-            setLoading(true);
-            setError(null);
-        }
-
-        try {
-            const [stockData, distributionData] = await Promise.all([
-                apiClient.getExpendableEquipment(),
-                apiClient.getExpendableDistributionsPage({
-                    page,
-                    search: searchTerm,
-                    studentIds: studentIdsQuery,
-                }),
-            ]);
-            setStock(stockData);
-            setDistributions(distributionData.items);
-            setDistributionsTotalCount(distributionData.totalCount);
-        } catch (err: any) {
-            setError(err?.message || 'Не удалось загрузить данные');
-        } finally {
-            if (!isSoftUpdate) {
-                setLoading(false);
-            }
-        }
-    }, [searchTerm, studentIdsQuery]);
-
-    useEffect(() => {
-        void loadData({ soft: false }, 1);
-    }, []);
-
-    useEffect(() => {
-        if (!hasHandledDistributionsPaginationRef.current) {
-            hasHandledDistributionsPaginationRef.current = true;
-            return;
-        }
-        void loadData({ soft: false }, distributionsPage);
-    }, [distributionsPage]);
-
-    useEffect(() => {
-        if (!hasHandledDistributionsFiltersRef.current) {
-            hasHandledDistributionsFiltersRef.current = true;
-            return;
-        }
-
-        if (distributionsPage !== 1) {
-            setDistributionsPage(1);
-            return;
-        }
-
-        void loadData({ soft: false }, 1);
-    }, [loadData, searchTerm, studentIdsQuery]);
+    const refreshBeddingData = useCallback(async () => {
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: expendableQueryKeys.equipment() }),
+            queryClient.invalidateQueries({ queryKey: expendableQueryKeys.distributions() }),
+        ]);
+    }, [queryClient]);
 
     useEffect(() => {
         if (resetSignal !== undefined) {
@@ -483,13 +457,13 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
             }
 
             setIsAddModalOpen(false);
-            await loadData({ soft: true }, distributionsPage);
+            await refreshBeddingData();
         } catch (err: any) {
             setFormError(err?.message || 'Не удалось сохранить распределение');
         } finally {
             setIsSaving(false);
         }
-    }, [editingRow, fieldValues, getStockForLabel, loadData, selectedStudentId, validateForm]);
+    }, [editingRow, fieldValues, getStockForLabel, refreshBeddingData, selectedStudentId, validateForm]);
 
     const handleDeleteRow = useCallback(async (row: BeddingDistributionRow) => {
         if (!window.confirm('Удалить распределение для студента?')) {
@@ -498,11 +472,11 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
 
         try {
             await apiClient.editExpendableDisstributions(row.id, []);
-            await loadData({ soft: true }, distributionsPage);
+            await refreshBeddingData();
         } catch (err: any) {
-            setError(err?.message || 'Не удалось удалить распределение');
+            console.error('Не удалось удалить распределение', err);
         }
-    }, [loadData]);
+    }, [refreshBeddingData]);
 
     const rowAction = useMemo<RowActionConfig<BeddingDistributionRow>>(() => ({
         icon: 'bi-three-dots-vertical',
@@ -536,7 +510,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         return <div className="alert alert-danger m-3">{error}</div>;
     }
 
-    const rangeStart = distributionsTotalCount > 0 ? (distributionsPage - 1) * PAGE_SIZE + 1 : 0;
+    const rangeStart = distributionsTotalCount > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
     const rangeEnd = distributionsTotalCount > 0 ? rangeStart + sortedRows.length - 1 : 0;
     const totalLabel = `Всего: с ${rangeStart} по ${rangeEnd} из ${distributionsTotalCount}`;
 
@@ -566,8 +540,8 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                 enableSorting={true}
                 onSortRequest={requestSort}
                 sortConfig={sortConfig}
-                currentPage={distributionsPage}
-                onPageChange={setDistributionsPage}
+                currentPage={currentPage}
+                onPageChange={onPageChange}
                 showPaginationSummary={false}
             />
 

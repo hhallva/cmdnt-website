@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import CommonTable, { type ColumnDefinition, type RowActionConfig } from '../../../../components/CommonTable/CommonTable';
@@ -8,10 +9,15 @@ import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import inputStyles from '../../../../components/InputField/InputField.module.css';
 import { apiClient } from '../../../../api/client';
-import type { BuildingDto } from '../../../../types/buildings';
-import type { StationaryTypeDto } from '../../../../types/stationaryTypes';
-import type { StatusDto } from '../../../../types/statuses';
 import type { StationaryEquipmentDto } from '../../../../types/stationaryEquipment';
+import { useBuildingsQuery } from '../../../../hooks/useBuildingsQuery';
+import {
+    stationaryQueryKeys,
+    useStationaryEquipmentPageQuery,
+    useStationaryTypesQuery,
+    useStatusesQuery,
+    type StationaryEquipmentFilters,
+} from '../../../../hooks/useStationaryQuery';
 import styles from '../Furniche.module.css';
 
 type BuildingFilterValue = number | 'all' | 'storage';
@@ -72,34 +78,37 @@ const columns: ColumnDefinition<StationaryEquipmentDto>[] = [
 
 type FurnicheListTabProps = {
     searchTerm: string;
+    currentPage: number;
     selectedBuilding: BuildingFilterValue;
     selectedType: TypeFilterValue;
     selectedStatus: StatusFilterValue;
+    onPageChange: (page: number) => void;
     onExportReady?: (handler: (() => void) | null) => void;
     onFilterOptionsReady?: (options: ListFilterOptions) => void;
 };
 
 const PAGE_SIZE = 50;
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
     searchTerm,
+    currentPage,
     selectedBuilding,
     selectedType,
     selectedStatus,
+    onPageChange,
     onExportReady,
     onFilterOptionsReady,
 }) => {
     const navigate = useNavigate();
-    const [equipment, setEquipment] = useState<StationaryEquipmentDto[]>([]);
-    const [equipmentTotalCount, setEquipmentTotalCount] = useState(0);
-    const [equipmentPage, setEquipmentPage] = useState(1);
-    const hasHandledEquipmentPaginationRef = useRef(false);
-    const hasHandledEquipmentFiltersRef = useRef(false);
-    const [buildings, setBuildings] = useState<BuildingDto[]>([]);
-    const [types, setTypes] = useState<StationaryTypeDto[]>([]);
-    const [statuses, setStatuses] = useState<StatusDto[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
         key: 'inventoryNumber',
         direction: 'asc',
@@ -119,61 +128,35 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
     const [editDescription, setEditDescription] = useState('');
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isEditSaving, setIsEditSaving] = useState(false);
+    const filters = useMemo<StationaryEquipmentFilters>(() => ({
+        search: searchTerm,
+        building: selectedBuilding === 'all' ? undefined : selectedBuilding,
+        typeId: selectedType === 'all' ? undefined : selectedType,
+        statusId: selectedStatus === 'all' ? undefined : selectedStatus,
+    }), [searchTerm, selectedBuilding, selectedStatus, selectedType]);
+    const { data: equipmentResponse, isLoading: isEquipmentLoading, error: equipmentError } = useStationaryEquipmentPageQuery(filters, currentPage);
+    const { data: buildings = [], isLoading: areBuildingsLoading, error: buildingsError } = useBuildingsQuery();
+    const { data: types = [], isLoading: areTypesLoading, error: typesError } = useStationaryTypesQuery();
+    const { data: statuses = [], isLoading: areStatusesLoading, error: statusesError } = useStatusesQuery();
+    const equipment = equipmentResponse?.items ?? [];
+    const equipmentTotalCount = equipmentResponse?.totalCount ?? 0;
+    const loading = isEquipmentLoading || areBuildingsLoading || areTypesLoading || areStatusesLoading;
+    const error = equipmentError
+        ? getErrorMessage(equipmentError, 'Не удалось загрузить список мебели')
+        : buildingsError
+            ? getErrorMessage(buildingsError, 'Не удалось загрузить здания')
+            : typesError
+                ? getErrorMessage(typesError, 'Не удалось загрузить категории')
+                : statusesError
+                    ? getErrorMessage(statusesError, 'Не удалось загрузить статусы')
+                    : null;
 
-    const loadData = useCallback(async (page: number) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const [equipmentData, buildingData, typeData, statusData] = await Promise.all([
-                apiClient.getStationaryEquipmentPage({
-                    page,
-                    search: searchTerm,
-                    building: selectedBuilding === 'all' ? undefined : selectedBuilding,
-                    typeId: selectedType === 'all' ? undefined : selectedType,
-                    statusId: selectedStatus === 'all' ? undefined : selectedStatus,
-                }),
-                apiClient.getAllBuildings(),
-                apiClient.getStationaryTypes(),
-                apiClient.getStatuses(),
-            ]);
-
-            setEquipment(equipmentData.items);
-            setEquipmentTotalCount(equipmentData.totalCount);
-            setBuildings(buildingData);
-            setTypes(typeData);
-            setStatuses(statusData);
-        } catch (err: any) {
-            setError(err?.message || 'Не удалось загрузить список мебели');
-        } finally {
-            setLoading(false);
-        }
-    }, [searchTerm, selectedBuilding, selectedStatus, selectedType]);
-
-    useEffect(() => {
-        void loadData(1);
-    }, []);
-
-    useEffect(() => {
-        if (!hasHandledEquipmentPaginationRef.current) {
-            hasHandledEquipmentPaginationRef.current = true;
-            return;
-        }
-        void loadData(equipmentPage);
-    }, [equipmentPage]);
-
-    useEffect(() => {
-        if (!hasHandledEquipmentFiltersRef.current) {
-            hasHandledEquipmentFiltersRef.current = true;
-            return;
-        }
-
-        if (equipmentPage !== 1) {
-            setEquipmentPage(1);
-            return;
-        }
-
-        void loadData(1);
-    }, [loadData, searchTerm, selectedBuilding, selectedType, selectedStatus]);
+    const refreshStationaryData = useCallback(async () => {
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: stationaryQueryKeys.equipment() }),
+            queryClient.invalidateQueries({ queryKey: stationaryQueryKeys.statistics() }),
+        ]);
+    }, [queryClient]);
 
     const inventoryNumbers = useMemo(() => new Set(
         equipment.map(item => item.inventoryNumber.toUpperCase())
@@ -257,7 +240,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
                 description: newDescription.trim() || null,
             });
             setIsAddModalOpen(false);
-            await loadData(equipmentPage);
+            await refreshStationaryData();
         } catch (err: any) {
             setAddErrors(prev => ({
                 ...prev,
@@ -333,7 +316,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
             });
             setIsEditModalOpen(false);
             setEditTarget(null);
-            await loadData(equipmentPage);
+            await refreshStationaryData();
         } catch (err: any) {
             setEditErrors(prev => ({
                 ...prev,
@@ -421,11 +404,11 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         }
         try {
             await apiClient.deleteStationaryEquipment(item.id);
-            await loadData(equipmentPage);
+            await refreshStationaryData();
         } catch (err: any) {
             alert(err?.message || 'Не удалось удалить');
         }
-    }, [loadData]);
+    }, [refreshStationaryData]);
 
     const handleReturnToStorage = useCallback(async (item: StationaryEquipmentDto) => {
         if (!window.confirm(`Вернуть оборудование ${item.inventoryNumber} на склад?`)) {
@@ -437,11 +420,11 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         }
         try {
             await apiClient.evictStationaryEquipment(item.id, item.roomId);
-            await loadData(equipmentPage);
+            await refreshStationaryData();
         } catch (err: any) {
             alert(err?.message || 'Не удалось вернуть на склад');
         }
-    }, [loadData]);
+    }, [refreshStationaryData]);
 
     const handlePlaceNavigate = useCallback((item: StationaryEquipmentDto) => {
         let targetBuildingId: number | null = null;
@@ -635,7 +618,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         return <div className="alert alert-danger m-3">{error}</div>;
     }
 
-    const rangeStart = equipmentTotalCount > 0 ? (equipmentPage - 1) * PAGE_SIZE + 1 : 0;
+    const rangeStart = equipmentTotalCount > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
     const rangeEnd = equipmentTotalCount > 0 ? rangeStart + equipment.length - 1 : 0;
 
     return (
@@ -822,8 +805,8 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
                 enableSorting={true}
                 onSortRequest={requestSort}
                 sortConfig={sortConfig}
-                currentPage={equipmentPage}
-                onPageChange={setEquipmentPage}
+                currentPage={currentPage}
+                onPageChange={onPageChange}
                 showPaginationSummary={false}
                 emptyMessage="Мебель не найдена"
             />

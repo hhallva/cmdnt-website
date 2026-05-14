@@ -6,8 +6,11 @@ import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
 import Tabs from '../../../components/Tabs/Tabs';
 import { useDormStructureData } from '../../../hooks/useDormStructureData';
 import { apiClient } from '../../../api/client';
+import {
+    useBuildingByIdQuery,
+    useBuildingStructureStatisticsQuery,
+} from '../../../hooks/useBuildingsQuery';
 import type { StudentsDto } from '../../../types/students';
-import type { StructureStatisticDto } from '../../../types/structures';
 import type { UserSession } from '../../../types/UserSession';
 import type { RoomWithOccupants } from './types';
 import AddRoomModal from './components/AddRoomModal';
@@ -39,6 +42,14 @@ import { useSortableConfig } from './hooks/useSortableConfig';
 import { StructureSessionStorage } from './services/StructureSessionStorage';
 import { DragImageService } from './services/DragImageService';
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 type NewRoomFormState = {
     floorNumber: string;
     roomNumber: string;
@@ -53,6 +64,7 @@ const StructureLayout: React.FC = () => {
     const { buildingId } = useParams<{ buildingId: string }>();
     const buildingIdNum = buildingId ? Number(buildingId) : null;
     const { rooms, students, loading, error, refetch } = useDormStructureData(buildingIdNum ?? undefined);
+    const stateBuilding = (location.state as { building?: { id: number; name: string; address: string } } | null)?.building;
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
     const roleName = userSession?.role?.name?.toLowerCase() ?? '';
@@ -60,6 +72,24 @@ const StructureLayout: React.FC = () => {
     const canManageRooms = !isEducator;
     const [isMobileView, setIsMobileView] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
     const [isNotFound, setIsNotFound] = useState(false);
+    const [beddingPage, setBeddingPage] = useState(1);
+    const shouldFetchBuilding = Boolean(
+        buildingIdNum
+        && !Number.isNaN(buildingIdNum)
+        && (!stateBuilding || stateBuilding.id !== buildingIdNum)
+    );
+    const { data: activeBuilding, error: activeBuildingError } = useBuildingByIdQuery(
+        shouldFetchBuilding ? buildingIdNum ?? undefined : undefined,
+    );
+    const {
+        data: structureStats,
+        isLoading: statsLoading,
+        error: structureStatsError,
+        refetch: refetchStructureStats,
+    } = useBuildingStructureStatisticsQuery(buildingIdNum ?? undefined);
+    const statsError = structureStatsError
+        ? getErrorMessage(structureStatsError, 'Не удалось загрузить статистику общежития')
+        : null;
 
     const isNotFoundMessage = useCallback((message?: string) => {
         const normalized = message?.toLowerCase() ?? '';
@@ -78,31 +108,33 @@ const StructureLayout: React.FC = () => {
             return;
         }
 
-        const stateBuilding = (location.state as { building?: { id: number; name: string; address: string } } | null)?.building;
         if (stateBuilding && stateBuilding.id === buildingIdNum) {
             StructureSessionStorage.saveActiveBuilding(stateBuilding);
             return;
         }
 
-        const loadBuilding = async () => {
-            try {
-                const building = await apiClient.getBuildingById(buildingIdNum);
-                StructureSessionStorage.saveActiveBuilding({
-                    id: building.id,
-                    name: building.name,
-                    address: building.address,
-                });
-            } catch (err: any) {
-                if (isNotFoundMessage(err?.message)) {
-                    markNotFound();
-                    return;
-                }
-                console.error('Ошибка при загрузке здания:', err);
-            }
-        };
+        if (activeBuilding) {
+            StructureSessionStorage.saveActiveBuilding({
+                id: activeBuilding.id,
+                name: activeBuilding.name,
+                address: activeBuilding.address,
+            });
+        }
+    }, [activeBuilding, buildingIdNum, markNotFound, stateBuilding]);
 
-        loadBuilding();
-    }, [buildingIdNum, location.state, isNotFoundMessage, markNotFound]);
+    useEffect(() => {
+        if (!activeBuildingError) {
+            return;
+        }
+
+        const message = getErrorMessage(activeBuildingError, 'Ошибка при загрузке здания');
+        if (isNotFoundMessage(message)) {
+            markNotFound();
+            return;
+        }
+
+        console.error('Ошибка при загрузке здания:', activeBuildingError);
+    }, [activeBuildingError, isNotFoundMessage, markNotFound]);
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -118,9 +150,6 @@ const StructureLayout: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const [structureStats, setStructureStats] = useState<StructureStatisticDto | null>(null);
-    const [statsLoading, setStatsLoading] = useState(true);
-    const [statsError, setStatsError] = useState<string | null>(null);
     const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
     const [newRoomForm, setNewRoomForm] = useState<NewRoomFormState>({
         floorNumber: '',
@@ -139,40 +168,12 @@ const StructureLayout: React.FC = () => {
     const lastSoftRefreshAtRef = useRef(0);
     const dragImageService = useMemo(() => new DragImageService(), []);
 
-    const loadStructureStats = useCallback(async (options?: { silent?: boolean }) => {
-        if (!buildingIdNum || Number.isNaN(buildingIdNum)) {
-            setStructureStats(null);
-            setStatsError('Не удалось определить здание для статистики');
-            setStatsLoading(false);
-            return;
-        }
-
-        if (!options?.silent) {
-            setStatsLoading(true);
-        }
-        setStatsError(null);
-        try {
-            const data = await apiClient.getStructureStatistics(buildingIdNum);
-            setStructureStats(data);
-        } catch (err: any) {
-            const message = err?.message || 'Не удалось загрузить статистику общежития';
-            setStatsError(message);
-            console.error('Ошибка при загрузке статистики общежития:', err);
-        } finally {
-            setStatsLoading(false);
-        }
-    }, [buildingIdNum]);
-
-    useEffect(() => {
-        void loadStructureStats();
-    }, [loadStructureStats]);
-
     const refreshStructureView = useCallback(async (options?: { silent?: boolean }) => {
         await Promise.all([
             refetch({ silent: options?.silent }),
-            loadStructureStats({ silent: options?.silent }),
+            refetchStructureStats(),
         ]);
-    }, [loadStructureStats, refetch]);
+    }, [refetch, refetchStructureStats]);
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -277,7 +278,7 @@ const StructureLayout: React.FC = () => {
         onSuccess: async () => {
             await refetch({ silent: true });
         },
-        refreshStatistics: () => loadStructureStats({ silent: true }),
+        refreshStatistics: () => refetchStructureStats().then(() => undefined),
         activateSettlementTab,
     });
 
@@ -682,8 +683,14 @@ const StructureLayout: React.FC = () => {
     }, [beddingExportHandler]);
 
     const handleBeddingReset = useCallback(() => {
+        setBeddingPage(1);
         setBeddingSearchTerm('');
         setBeddingResetSignal(prev => prev + 1);
+    }, []);
+
+    const handleBeddingSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setBeddingPage(1);
+        setBeddingSearchTerm(event.target.value);
     }, []);
 
     const furnitureTabState = useFurnitureTabState(buildingIdNum ?? null);
@@ -815,7 +822,7 @@ const StructureLayout: React.FC = () => {
                         type="text"
                         placeholder="Поиск..."
                         value={beddingSearchTerm}
-                        onChange={(event) => setBeddingSearchTerm(event.target.value)}
+                        onChange={handleBeddingSearchChange}
                     />
                 </div>
                 <div className={expendableStyles.searchButtons}>
@@ -855,6 +862,8 @@ const StructureLayout: React.FC = () => {
         <BeddingDistributionTab
             searchTerm={beddingSearchTerm}
             students={buildingStudents}
+            currentPage={beddingPage}
+            onPageChange={setBeddingPage}
             onExportReady={setBeddingExportHandler}
             resetSignal={beddingResetSignal}
         />
