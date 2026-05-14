@@ -33,7 +33,17 @@ const UsersLayout: React.FC = () => {
 
     const [statistics, setStatistics] = useState<UserStatisticDto | null>(null);
     const [users, setUsers] = useState<UserDto[]>([]);
+    const [usersTotalCount, setUsersTotalCount] = useState(0);
+    const [usersPage, setUsersPage] = useState(1);
+    const hasHandledUsersPaginationRef = useRef(false);
+    const hasHandledUsersFiltersRef = useRef(false);
     const [roles, setRoles] = useState<RoleDto[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
+    });
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTabId, setActiveTabId] = useState<string>(() => {
@@ -48,12 +58,13 @@ const UsersLayout: React.FC = () => {
             try {
                 const [statsResponse, usersResponse, rolesResponse] = await Promise.all([
                     apiClient.getUserStatistics(),
-                    apiClient.getAllUsers(),
+                    apiClient.getUsersPage({ page: 1 }),
                     apiClient.getAllRoles()
                 ]);
 
                 setStatistics(statsResponse);
-                setUsers(usersResponse);
+                setUsers(usersResponse.items);
+                setUsersTotalCount(usersResponse.totalCount);
                 setRoles(rolesResponse);
                 console.info("Получение статистики и пользователей");
             } catch (err: any) {
@@ -78,10 +89,15 @@ const UsersLayout: React.FC = () => {
         }
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = usersPage) => {
         try {
-            const usersResponse = await apiClient.getAllUsers();
-            setUsers(usersResponse);
+            const usersResponse = await apiClient.getUsersPage({
+                page,
+                search: searchTerm,
+                roleId: selectedRoleId === 'all' ? undefined : selectedRoleId,
+            });
+            setUsers(usersResponse.items);
+            setUsersTotalCount(usersResponse.totalCount);
         } catch (err: any) {
             console.error('Ошибка при загрузке пользователей:', err);
             throw err;
@@ -95,6 +111,28 @@ const UsersLayout: React.FC = () => {
         }
         sessionStorage.setItem(USERS_TAB_STORAGE_KEY, activeTabId);
     }, [activeTabId]);
+
+    useEffect(() => {
+        if (!hasHandledUsersPaginationRef.current) {
+            hasHandledUsersPaginationRef.current = true;
+            return;
+        }
+        void fetchUsers(usersPage);
+    }, [usersPage]);
+
+    useEffect(() => {
+        if (!hasHandledUsersFiltersRef.current) {
+            hasHandledUsersFiltersRef.current = true;
+            return;
+        }
+
+        if (usersPage !== 1) {
+            setUsersPage(1);
+            return;
+        }
+
+        void fetchUsers(1);
+    }, [searchTerm, selectedRoleId]);
 
     useEffect(() => {
         const state = location.state as { fromSidebar?: boolean } | null;
@@ -115,15 +153,8 @@ const UsersLayout: React.FC = () => {
     // #region Список пользователей 
 
     // #region Поиск и фильтрация
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
-        key: 'fullName',
-        direction: 'asc',
-    });
-
     const roleOptions = [
-        { value: 'all', label: 'Все роли' },
+        { value: 'all', label: 'Выберите роль' },
         ...roles.map(role => ({
             value: role.id,
             label: role.name || `Роль ${role.id}`
@@ -157,15 +188,7 @@ const UsersLayout: React.FC = () => {
         });
     };
 
-    const filteredUsers = useMemo(() => users.filter(user => {
-        const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (user.surname?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (user.patronymic?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-
-        const matchesRole = selectedRoleId === 'all' || user.role?.id === selectedRoleId;
-
-        return matchesSearch && matchesRole;
-    }), [users, searchTerm, selectedRoleId]);
+    const filteredUsers = useMemo(() => users, [users]);
 
     // #endregion
 
@@ -397,12 +420,14 @@ const UsersLayout: React.FC = () => {
             <div className={styles.desktopTable}>
                 <CommonTable
                     data={sortedUsers}
-                    totalCount={users.length}
+                    totalCount={usersTotalCount}
                     columns={columns}
                     rowAction={rowAction}
                     enableSorting={true}
                     onSortRequest={requestSort}
                     sortConfig={sortConfig}
+                    currentPage={usersPage}
+                    onPageChange={setUsersPage}
                     emptyMessage="Пользователи не найдены"
                 />
             </div>

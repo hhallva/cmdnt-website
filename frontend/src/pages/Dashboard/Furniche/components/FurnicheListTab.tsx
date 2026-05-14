@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import CommonTable, { type ColumnDefinition, type RowActionConfig } from '../../../../components/CommonTable/CommonTable';
@@ -79,6 +79,8 @@ type FurnicheListTabProps = {
     onFilterOptionsReady?: (options: ListFilterOptions) => void;
 };
 
+const PAGE_SIZE = 50;
+
 const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
     searchTerm,
     selectedBuilding,
@@ -89,6 +91,10 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
 }) => {
     const navigate = useNavigate();
     const [equipment, setEquipment] = useState<StationaryEquipmentDto[]>([]);
+    const [equipmentTotalCount, setEquipmentTotalCount] = useState(0);
+    const [equipmentPage, setEquipmentPage] = useState(1);
+    const hasHandledEquipmentPaginationRef = useRef(false);
+    const hasHandledEquipmentFiltersRef = useRef(false);
     const [buildings, setBuildings] = useState<BuildingDto[]>([]);
     const [types, setTypes] = useState<StationaryTypeDto[]>([]);
     const [statuses, setStatuses] = useState<StatusDto[]>([]);
@@ -114,18 +120,25 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isEditSaving, setIsEditSaving] = useState(false);
 
-    const loadData = useCallback(async () => {
+    const loadData = useCallback(async (page: number) => {
         setLoading(true);
         setError(null);
         try {
             const [equipmentData, buildingData, typeData, statusData] = await Promise.all([
-                apiClient.getStationaryEquipment(),
+                apiClient.getStationaryEquipmentPage({
+                    page,
+                    search: searchTerm,
+                    building: selectedBuilding === 'all' ? undefined : selectedBuilding,
+                    typeId: selectedType === 'all' ? undefined : selectedType,
+                    statusId: selectedStatus === 'all' ? undefined : selectedStatus,
+                }),
                 apiClient.getAllBuildings(),
                 apiClient.getStationaryTypes(),
                 apiClient.getStatuses(),
             ]);
 
-            setEquipment(equipmentData);
+            setEquipment(equipmentData.items);
+            setEquipmentTotalCount(equipmentData.totalCount);
             setBuildings(buildingData);
             setTypes(typeData);
             setStatuses(statusData);
@@ -134,11 +147,33 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         } finally {
             setLoading(false);
         }
+    }, [searchTerm, selectedBuilding, selectedStatus, selectedType]);
+
+    useEffect(() => {
+        void loadData(1);
     }, []);
 
     useEffect(() => {
-        void loadData();
-    }, [loadData]);
+        if (!hasHandledEquipmentPaginationRef.current) {
+            hasHandledEquipmentPaginationRef.current = true;
+            return;
+        }
+        void loadData(equipmentPage);
+    }, [equipmentPage]);
+
+    useEffect(() => {
+        if (!hasHandledEquipmentFiltersRef.current) {
+            hasHandledEquipmentFiltersRef.current = true;
+            return;
+        }
+
+        if (equipmentPage !== 1) {
+            setEquipmentPage(1);
+            return;
+        }
+
+        void loadData(1);
+    }, [loadData, searchTerm, selectedBuilding, selectedType, selectedStatus]);
 
     const inventoryNumbers = useMemo(() => new Set(
         equipment.map(item => item.inventoryNumber.toUpperCase())
@@ -222,7 +257,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
                 description: newDescription.trim() || null,
             });
             setIsAddModalOpen(false);
-            await loadData();
+            await loadData(equipmentPage);
         } catch (err: any) {
             setAddErrors(prev => ({
                 ...prev,
@@ -298,7 +333,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
             });
             setIsEditModalOpen(false);
             setEditTarget(null);
-            await loadData();
+            await loadData(equipmentPage);
         } catch (err: any) {
             setEditErrors(prev => ({
                 ...prev,
@@ -309,41 +344,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         }
     };
 
-    const filteredEquipment = useMemo(() => {
-        const term = searchTerm.trim().toLowerCase();
-
-        return equipment.filter(item => {
-            if (selectedBuilding === 'storage' && item.roomId) {
-                return false;
-            }
-            if (typeof selectedBuilding === 'number' && item.buildingId !== selectedBuilding) {
-                return false;
-            }
-            if (selectedType !== 'all' && item.typeId !== selectedType) {
-                return false;
-            }
-            if (selectedStatus !== 'all' && item.statusId !== selectedStatus) {
-                return false;
-            }
-            if (!term) {
-                return true;
-            }
-
-            const haystack = [
-                item.inventoryNumber,
-                item.typeName,
-                item.statusName,
-                item.buildingName,
-                item.roomNumber,
-                item.description,
-            ]
-                .filter(Boolean)
-                .join(' ')
-                .toLowerCase();
-
-            return haystack.includes(term);
-        });
-    }, [equipment, searchTerm, selectedBuilding, selectedStatus, selectedType]);
+    const filteredEquipment = useMemo(() => equipment, [equipment]);
 
     const requestSort = useCallback((key: string) => {
         setSortConfig(prevConfig => {
@@ -420,7 +421,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         }
         try {
             await apiClient.deleteStationaryEquipment(item.id);
-            await loadData();
+            await loadData(equipmentPage);
         } catch (err: any) {
             alert(err?.message || 'Не удалось удалить');
         }
@@ -436,7 +437,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         }
         try {
             await apiClient.evictStationaryEquipment(item.id, item.roomId);
-            await loadData();
+            await loadData(equipmentPage);
         } catch (err: any) {
             alert(err?.message || 'Не удалось вернуть на склад');
         }
@@ -503,9 +504,62 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         ],
     }), [handleDeleteEquipment, handleEditEquipment, handlePlaceNavigate, handleReturnToStorage]);
 
-    const handleExport = useCallback(() => {
+    const handleExport = useCallback(async () => {
+        const exportEquipment = await apiClient.getStationaryEquipment({
+            search: searchTerm,
+            building: selectedBuilding === 'all' ? undefined : selectedBuilding,
+            typeId: selectedType === 'all' ? undefined : selectedType,
+            statusId: selectedStatus === 'all' ? undefined : selectedStatus,
+        });
+        const sortedExportEquipment = [...exportEquipment].sort((a, b) => {
+            if (!sortConfig) {
+                return 0;
+            }
+
+            const { key, direction } = sortConfig;
+            const multiplier = direction === 'asc' ? 1 : -1;
+            let aValue = '';
+            let bValue = '';
+
+            switch (key) {
+                case 'inventoryNumber':
+                    aValue = a.inventoryNumber ?? '';
+                    bValue = b.inventoryNumber ?? '';
+                    break;
+                case 'typeName':
+                    aValue = a.typeName ?? '';
+                    bValue = b.typeName ?? '';
+                    break;
+                case 'description':
+                    aValue = a.description ?? '';
+                    bValue = b.description ?? '';
+                    break;
+                case 'statusName':
+                    aValue = a.statusName ?? '';
+                    bValue = b.statusName ?? '';
+                    break;
+                case 'buildingName':
+                    aValue = a.roomId ? (a.buildingName ?? '') : 'На складе';
+                    bValue = b.roomId ? (b.buildingName ?? '') : 'На складе';
+                    break;
+                case 'roomNumber':
+                    aValue = a.roomNumber ?? '';
+                    bValue = b.roomNumber ?? '';
+                    break;
+                default:
+                    return 0;
+            }
+
+            const left = aValue.toString().toLowerCase();
+            const right = bValue.toString().toLowerCase();
+
+            if (left < right) return -1 * multiplier;
+            if (left > right) return 1 * multiplier;
+            return 0;
+        });
+
         const headerRow = ['Инвентарный номер', 'Тип', 'Статус', 'Здание', 'Блок', 'Описание'];
-        const bodyRows = filteredEquipment.map(item => ([
+        const bodyRows = sortedExportEquipment.map(item => ([
             item.inventoryNumber || '',
             item.typeName || '',
             item.statusName || '',
@@ -518,10 +572,12 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Мебель');
         XLSX.writeFile(workbook, `Список_мебели_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    }, [filteredEquipment]);
+    }, [searchTerm, selectedBuilding, selectedStatus, selectedType, sortConfig]);
 
     useEffect(() => {
-        onExportReady?.(() => handleExport);
+        onExportReady?.(() => () => {
+            void handleExport();
+        });
         return () => {
             onExportReady?.(null);
         };
@@ -579,13 +635,14 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         return <div className="alert alert-danger m-3">{error}</div>;
     }
 
+    const rangeStart = equipmentTotalCount > 0 ? (equipmentPage - 1) * PAGE_SIZE + 1 : 0;
+    const rangeEnd = equipmentTotalCount > 0 ? rangeStart + equipment.length - 1 : 0;
+
     return (
         <div className={styles.tableBlock}>
             <div className={styles.tableHeaderRow}>
                 <span className={styles.tableTotal}>
-                    {searchTerm.trim()
-                        ? `Всего: ${filteredEquipment.length} из ${equipment.length}`
-                        : `Всего: ${equipment.length}`}
+                    {`Всего: с ${rangeStart} по ${rangeEnd} из ${equipmentTotalCount}`}
                 </span>
                 <ActionButton
                     variant="light"
@@ -759,11 +816,15 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
             </CommonModal>
             <CommonTable
                 data={sortedEquipment}
+                totalCount={equipmentTotalCount}
                 columns={columns}
                 rowAction={rowAction}
                 enableSorting={true}
                 onSortRequest={requestSort}
                 sortConfig={sortConfig}
+                currentPage={equipmentPage}
+                onPageChange={setEquipmentPage}
+                showPaginationSummary={false}
                 emptyMessage="Мебель не найдена"
             />
         </div>

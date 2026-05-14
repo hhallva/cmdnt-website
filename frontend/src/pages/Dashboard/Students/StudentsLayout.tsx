@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { apiClient } from '../../../api/client';
@@ -22,6 +22,8 @@ const StudentsLayout: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [students, setStudents] = useState<StudentsDto[]>([]);
+    const [studentsTotalCount, setStudentsTotalCount] = useState(0);
+    const [studentsPage, setStudentsPage] = useState(1);
     const [groups, setGroups] = useState<GroupDto[]>([]);
     const [buildings, setBuildings] = useState<BuildingDto[]>([]);
     const [selectedBuildingId, setSelectedBuildingId] = useState<number | 'unassigned' | null>(null);
@@ -32,6 +34,8 @@ const StudentsLayout: React.FC = () => {
     const [selectedCourse, setSelectedCourse] = useState<number | 'all'>('all');
     const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'all'>('all');
     const [exportHandler, setExportHandler] = useState<(() => void) | null>(null);
+    const hasHandledStudentsPaginationRef = useRef(false);
+    const hasHandledStudentsFiltersRef = useRef(false);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -47,27 +51,37 @@ const StudentsLayout: React.FC = () => {
         return sessionStorage.getItem(STUDENTS_TAB_STORAGE_KEY) || STUDENTS_DEFAULT_TAB_ID;
     });
 
-    const fetchStudents = useCallback(async () => {
+    const fetchStudents = useCallback(async (page: number) => {
         try {
-            const studentsResponse = await apiClient.getAllStudents();
-            setStudents(studentsResponse);
+            const studentsResponse = await apiClient.getStudentsPage({
+                page,
+                search: searchTerm,
+                buildingId: typeof selectedBuildingId === 'number' ? selectedBuildingId : undefined,
+                unassigned: selectedBuildingId === 'unassigned',
+                groupId: selectedGroupId === 'all' ? undefined : selectedGroupId,
+                course: selectedCourse === 'all' ? undefined : selectedCourse,
+                gender: selectedGender === 'all' ? undefined : selectedGender === 'male',
+            });
+            setStudents(studentsResponse.items);
+            setStudentsTotalCount(studentsResponse.totalCount);
             setError(null);
         } catch (err: any) {
             console.error('Ошибка при обновлении списка студентов:', err);
             setError(err?.message || 'Не удалось обновить список студентов');
         }
-    }, []);
+    }, [searchTerm, selectedBuildingId, selectedCourse, selectedGender, selectedGroupId]);
 
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
                 setLoading(true);
                 const [studentsResponse, groupsResponse, buildingsResponse] = await Promise.all([
-                    apiClient.getAllStudents(),
+                    apiClient.getStudentsPage({ page: 1 }),
                     apiClient.getAllGroups(),
                     apiClient.getAllBuildings(),
                 ]);
-                setStudents(studentsResponse);
+                setStudents(studentsResponse.items);
+                setStudentsTotalCount(studentsResponse.totalCount);
                 setGroups(groupsResponse);
                 setBuildings(buildingsResponse);
                 setError(null);
@@ -81,6 +95,28 @@ const StudentsLayout: React.FC = () => {
 
         fetchInitialData();
     }, []);
+
+    useEffect(() => {
+        if (!hasHandledStudentsPaginationRef.current) {
+            hasHandledStudentsPaginationRef.current = true;
+            return;
+        }
+        void fetchStudents(studentsPage);
+    }, [studentsPage]);
+
+    useEffect(() => {
+        if (!hasHandledStudentsFiltersRef.current) {
+            hasHandledStudentsFiltersRef.current = true;
+            return;
+        }
+
+        if (studentsPage !== 1) {
+            setStudentsPage(1);
+            return;
+        }
+
+        void fetchStudents(1);
+    }, [fetchStudents, searchTerm, selectedBuildingId, selectedGroupId, selectedCourse, selectedGender]);
 
 
     useEffect(() => {
@@ -152,6 +188,9 @@ const StudentsLayout: React.FC = () => {
                         selectedGroupId={selectedGroupId}
                         selectedCourse={selectedCourse}
                         selectedGender={selectedGender}
+                        totalCount={studentsTotalCount}
+                        currentPage={studentsPage}
+                        onPageChange={setStudentsPage}
                         onExportReady={setExportHandler}
                         onStudentClick={handleStudentClick}
                     />
@@ -167,7 +206,7 @@ const StudentsLayout: React.FC = () => {
                 content: (
                     <AddStudentTab
                         groups={groups}
-                        onStudentCreated={fetchStudents}
+                        onStudentCreated={() => fetchStudents(studentsPage)}
                     />
                 ),
             });
@@ -181,7 +220,7 @@ const StudentsLayout: React.FC = () => {
                 content: (
                     <ImportStudentsTab
                         groups={groups}
-                        onImportComplete={fetchStudents}
+                        onImportComplete={() => fetchStudents(studentsPage)}
                     />
                 ),
             });
@@ -190,6 +229,8 @@ const StudentsLayout: React.FC = () => {
         return items;
     }, [
         students,
+        studentsTotalCount,
+        studentsPage,
         groups,
         buildings,
         selectedBuildingId,

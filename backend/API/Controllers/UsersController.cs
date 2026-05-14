@@ -56,10 +56,26 @@ namespace API.Controllers
             Description = "Возвращает полный список пользователей системы.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Список пользователей успешно получен.", Type = typeof(IEnumerable<UserDto>))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Пользователи не найдены.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetAvailablBuildings()
+        public async Task<IActionResult> GetAvailablBuildings(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] bool all = false,
+            [FromQuery] string? search = null,
+            [FromQuery] int? roleId = null)
         {
-            var users = await _context.Users
+            if (page <= 0)
+                return BadRequest(new ApiErrorDto("Номер страницы должен быть больше 0", StatusCodes.Status400BadRequest));
+
+            var normalizedPageSize = pageSize > 0 ? pageSize : 50;
+
+            var query = _context.Users
+                .AsNoTracking()
                 .Include(u => u.Role)
+                .Where(u => !roleId.HasValue || u.RoleId == roleId.Value)
+                .Where(u => string.IsNullOrWhiteSpace(search)
+                    || EF.Functions.Like(u.Surname, $"%{search.Trim()}%")
+                    || EF.Functions.Like(u.Name, $"%{search.Trim()}%")
+                    || (u.Patronymic != null && EF.Functions.Like(u.Patronymic, $"%{search.Trim()}%")))
                 .Select(u => new UserDto
                 {
                     Id = u.Id,
@@ -72,9 +88,31 @@ namespace API.Controllers
                         Id = u.Role.Id,
                         Name = u.Role.Name
                     }
-                }).ToListAsync();
+                })
+                .OrderBy(u => u.Surname)
+                .ThenBy(u => u.Name)
+                .ThenBy(u => u.Patronymic)
+                .ThenBy(u => u.Id);
 
-            return Ok(users);
+            if (all)
+            {
+                var users = await query.ToListAsync();
+                return Ok(users);
+            }
+
+            var totalCount = await query.CountAsync();
+            var usersPage = await query
+                .Skip((page - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
+                .ToListAsync();
+
+            return Ok(new PaginatedResponseDto<UserDto>
+            {
+                Items = usersPage,
+                Page = page,
+                PageSize = normalizedPageSize,
+                TotalCount = totalCount,
+            });
         }
 
         [HttpGet("{id}")]

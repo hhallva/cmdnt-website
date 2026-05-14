@@ -160,14 +160,47 @@ namespace API.Controllers
             Summary = "Получение распределений расходников",
             Description = "Возвращает список распределений по студентам и типам расходных материалов.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Список успешно получен.", Type = typeof(IEnumerable<ExpendableDistributionDto>))]
-        public async Task<ActionResult<IEnumerable<ExpendableDistributionDto>>> GetDistributions()
+        public async Task<IActionResult> GetDistributions(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] bool all = false,
+            [FromQuery] string? search = null,
+            [FromQuery] string? studentIds = null)
         {
-            var distributions = await _context.ExpendableDistributions
+            if (page <= 0)
+                return BadRequest(new ApiErrorDto("Номер страницы должен быть больше 0", StatusCodes.Status400BadRequest));
+
+            var normalizedPageSize = pageSize > 0 ? pageSize : 50;
+
+            var studentIdValues = string.IsNullOrWhiteSpace(studentIds)
+                ? []
+                : studentIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(value => int.TryParse(value, out var parsed) ? parsed : (int?)null)
+                    .Where(value => value.HasValue)
+                    .Select(value => value!.Value)
+                    .Distinct()
+                    .ToArray();
+
+            var query = _context.ExpendableDistributions
                 .AsNoTracking()
                 .Include(item => item.Student)
                 .Include(item => item.Expendable)
                 .ThenInclude(item => item.Type)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (studentIdValues.Length > 0)
+                query = query.Where(item => studentIdValues.Contains(item.StudentId));
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchPattern = $"%{search.Trim()}%";
+                query = query.Where(item =>
+                    EF.Functions.Like(item.Student.Surname, searchPattern)
+                    || EF.Functions.Like(item.Student.Name, searchPattern)
+                    || (item.Student.Patronymic != null && EF.Functions.Like(item.Student.Patronymic, searchPattern)));
+            }
+
+            var distributions = await query.ToListAsync();
 
             var grouped = distributions
                 .GroupBy(item => item.StudentId)
@@ -175,7 +208,24 @@ namespace API.Controllers
                 .OrderBy(item => item.Student.FullName)
                 .ToList();
 
-            return Ok(grouped);
+            if (all)
+            {
+                return Ok(grouped);
+            }
+
+            var totalCount = grouped.Count;
+            var pageItems = grouped
+                .Skip((page - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
+                .ToList();
+
+            return Ok(new PaginatedResponseDto<ExpendableDistributionDto>
+            {
+                Items = pageItems,
+                Page = page,
+                PageSize = normalizedPageSize,
+                TotalCount = totalCount,
+            });
         }
 
         private async Task<ExpendableEquipmentDto> BuildSummaryAsync(int typeId)

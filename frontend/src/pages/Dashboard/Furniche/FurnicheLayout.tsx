@@ -11,6 +11,10 @@ import FurnicheImportTab from './components/FurnicheImportTab';
 import FurnicheListTab from './components/FurnicheListTab';
 import styles from './Furniche.module.css';
 
+type LoadStatisticsOptions = {
+    silent?: boolean;
+};
+
 type BuildingFilterValue = number | 'all' | 'storage';
 type TypeFilterValue = number | 'all';
 type StatusFilterValue = number | 'all';
@@ -54,16 +58,26 @@ const FurnicheLayout: React.FC = () => {
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState<string | null>(null);
 
-    const loadStatistics = useCallback(async () => {
-        setStatsLoading(true);
-        setStatsError(null);
+    const loadStatistics = useCallback(async ({ silent = false }: LoadStatisticsOptions = {}) => {
+        const shouldShowLoader = !silent;
+
+        if (shouldShowLoader) {
+            setStatsLoading(true);
+        }
+        if (!silent) {
+            setStatsError(null);
+        }
         try {
             const data = await apiClient.getStationaryEquipmentStatistics();
             setStatistics(data);
         } catch (err: any) {
-            setStatsError(err?.message || 'Не удалось загрузить статистику мебели');
+            if (shouldShowLoader) {
+                setStatsError(err?.message || 'Не удалось загрузить статистику мебели');
+            }
         } finally {
-            setStatsLoading(false);
+            if (shouldShowLoader) {
+                setStatsLoading(false);
+            }
         }
     }, []);
 
@@ -89,6 +103,10 @@ const FurnicheLayout: React.FC = () => {
     const handleListExport = useCallback(() => {
         listExportHandler?.();
     }, [listExportHandler]);
+
+    const handleImportComplete = useCallback(async () => {
+        await loadStatistics({ silent: true });
+    }, [loadStatistics]);
 
     const listHeader = (
         <div className={styles.searchPanel}>
@@ -233,7 +251,7 @@ const FurnicheLayout: React.FC = () => {
             id: 'import',
             title: 'Импорт',
             content: (
-                <FurnicheImportTab />
+                <FurnicheImportTab onImportComplete={handleImportComplete} />
             ),
         },
         {
@@ -244,7 +262,7 @@ const FurnicheLayout: React.FC = () => {
                 <FurnicheCategoriesTab searchTerm={categoriesSearchTerm} onExportReady={setCategoriesExportHandler} />
             ),
         },
-    ], [categoriesSearchTerm, categorySearchBar, listHeader, listSearchTerm, selectedBuilding, selectedStatus, selectedType]);
+    ], [categoriesSearchTerm, categorySearchBar, handleImportComplete, listHeader, listSearchTerm, selectedBuilding, selectedStatus, selectedType]);
 
     React.useEffect(() => {
         if (typeof window !== 'undefined') {

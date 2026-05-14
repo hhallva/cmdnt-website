@@ -33,7 +33,11 @@ const normalizeText = (value: string) => value.trim().toLowerCase();
 const normalizeInventory = (value: string) => value.trim().toUpperCase();
 const inventoryPattern = /^[A-Z0-9]{6}$/;
 
-const FurnicheImportTab: React.FC = () => {
+interface FurnicheImportTabProps {
+    onImportComplete?: () => Promise<void> | void;
+}
+
+const FurnicheImportTab: React.FC<FurnicheImportTabProps> = ({ onImportComplete }) => {
     const [importDragActive, setImportDragActive] = useState(false);
     const [importFileName, setImportFileName] = useState('');
     const [importRows, setImportRows] = useState<ImportRow[]>([]);
@@ -346,7 +350,10 @@ const FurnicheImportTab: React.FC = () => {
         setRowErrors({});
         const equipmentData = await apiClient.getStationaryEquipment();
         setEquipment(equipmentData);
-    }, [importRows, statuses, types, validateRows]);
+        if (successCount > 0) {
+            await onImportComplete?.();
+        }
+    }, [importRows, onImportComplete, statuses, types, validateRows]);
 
     const handleDownloadTemplate = useCallback(() => {
         const templateSheet = XLSX.utils.aoa_to_sheet([
