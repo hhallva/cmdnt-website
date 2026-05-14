@@ -103,10 +103,13 @@ const UsersLayout: React.FC = () => {
     // #region Список пользователей 
 
     // #region Поиск и фильтрация
-    const roleOptions = roles.map(role => ({
-        value: role.id,
-        label: role.name || `Роль ${role.id}`
-    }));
+    const roleOptions = [
+        { value: 0, label: 'Выберите роль' },
+        ...roles.map(role => ({
+            value: role.id,
+            label: role.name || `Роль ${role.id}`
+        })),
+    ];
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsersPage(1);

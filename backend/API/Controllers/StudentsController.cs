@@ -378,7 +378,7 @@ namespace API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [SwaggerOperation(Summary = "Удаление данных студента", Description = "Удаляет студента из системы. При этом удаляются все связанные контакты и его заселение.")]
+        [SwaggerOperation(Summary = "Удаление данных студента", Description = "Удаляет студента из системы. При этом удаляются все связанные контакты, заметки, выдачи расходников и его заселение.")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Студент успешно удалён.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
         public async Task<IActionResult> DeleteStudent(
@@ -386,6 +386,8 @@ namespace API.Controllers
         {
             var student = await _context.Students
                 .Include(s => s.Contacts)
+                .Include(s => s.Notes)
+                .Include(s => s.ExpendableDistributions)
                 .Include(s => s.Resettlements)
                     .ThenInclude(r => r.Room)
                 .FirstOrDefaultAsync(u => u.Id == id);
@@ -395,6 +397,15 @@ namespace API.Controllers
 
             if (student.Contacts.Count != 0)
                 _context.Contacts.RemoveRange(student.Contacts);
+
+            if (student.Notes.Count != 0)
+                _context.Notes.RemoveRange(student.Notes);
+
+            if (student.ExpendableDistributions.Count != 0)
+                _context.ExpendableDistributions.RemoveRange(student.ExpendableDistributions);
+
+            if (student.Resettlements.Count != 0)
+                _context.Resettlements.RemoveRange(student.Resettlements);
 
             _context.Students.Remove(student);
             await _context.SaveChangesAsync();
