@@ -657,7 +657,7 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
                 </ActionButton>
             </div>
             <CommonModal
-                title="Новое оборудование"
+                title="Новая мебель"
                 isOpen={isAddModalOpen}
                 onClose={closeAddModal}
                 minWidth={560}

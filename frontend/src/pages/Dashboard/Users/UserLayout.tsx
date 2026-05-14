@@ -39,7 +39,6 @@ const UsersLayout: React.FC = () => {
     const hasHandledUsersFiltersRef = useRef(false);
     const [roles, setRoles] = useState<RoleDto[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
         key: 'fullName',
         direction: 'asc',
@@ -94,7 +93,6 @@ const UsersLayout: React.FC = () => {
             const usersResponse = await apiClient.getUsersPage({
                 page,
                 search: searchTerm,
-                roleId: selectedRoleId === 'all' ? undefined : selectedRoleId,
             });
             setUsers(usersResponse.items);
             setUsersTotalCount(usersResponse.totalCount);
@@ -132,7 +130,7 @@ const UsersLayout: React.FC = () => {
         }
 
         void fetchUsers(1);
-    }, [searchTerm, selectedRoleId]);
+    }, [searchTerm]);
 
     useEffect(() => {
         const state = location.state as { fromSidebar?: boolean } | null;
@@ -153,26 +151,17 @@ const UsersLayout: React.FC = () => {
     // #region Список пользователей 
 
     // #region Поиск и фильтрация
-    const roleOptions = [
-        { value: 'all', label: 'Выберите роль' },
-        ...roles.map(role => ({
-            value: role.id,
-            label: role.name || `Роль ${role.id}`
-        }))
-    ];
+    const roleOptions = roles.map(role => ({
+        value: role.id,
+        label: role.name || `Роль ${role.id}`
+    }));
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
 
-    const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const value = e.target.value;
-        setSelectedRoleId(value === 'all' ? 'all' : Number(value));
-    };
-
     const handleResetFilters = () => {
         setSearchTerm('');
-        setSelectedRoleId('all');
         setSortConfig({ key: 'fullName', direction: 'asc' });
     };
 
@@ -207,12 +196,12 @@ const UsersLayout: React.FC = () => {
         }
     };
 
-    const handleCloseEditUserModal = () => {
+    const handleCloseEdit = () => {
         setShowEditUserModal(false);
         setUserForEdit(null);
     };
 
-    const handleSuccessEditUser = async () => {
+    const handleSuccessEdit = async () => {
         console.log('Пользователь успешно обновлён. Перезагружаем список пользователей...');
         try {
             // --- Перезагружаем список пользователей ---
@@ -387,30 +376,25 @@ const UsersLayout: React.FC = () => {
     }, [activeMobileMenuUserId, activeMobileUser, closeMobileMenu]);
 
     const listTabHeader = (
-        <div className={styles.filterBar}>
-            <div className={styles.filterField}
-            >
-                <InputField
-                    type="text"
-                    placeholder="Поиск по ФИО..."
-                    value={searchTerm}
-                    onChange={handleSearchChange} />
-            </div>
-            <div className={styles.filterField}>
-                <SelectField
-                    value={selectedRoleId}
-                    onChange={handleRoleChange}
-                    options={roleOptions} />
-            </div>
-            <div className={styles.filterActions}>
-                <ActionButton
-                    size='md'
-                    variant='secondary'
-                    onClick={handleResetFilters}
-                    className={styles.modilButton}
-                >
-                    Сбросить
-                </ActionButton>
+        <div className={styles.searchPanelRow}>
+            <div className={styles.searchLeft}>
+                <div className={styles.searchInputWrapper}>
+                    <InputField
+                        type="text"
+                        placeholder="Поиск..."
+                        value={searchTerm}
+                        onChange={handleSearchChange} />
+                </div>
+                <div className={styles.searchButtons}>
+                    <ActionButton
+                        size='md'
+                        variant='secondary'
+                        onClick={handleResetFilters}
+                        className={styles.resetButton}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
             </div>
         </div>
     );
@@ -563,7 +547,7 @@ const UsersLayout: React.FC = () => {
         return Object.keys(errors).length === 0;
     };
 
-    const handleAddUserSubmit = async (e: React.FormEvent) => {
+    const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateAddUserForm()) {
             return;
@@ -602,7 +586,7 @@ const UsersLayout: React.FC = () => {
 
     const addTabContent = (
         <div>
-            <form onSubmit={handleAddUserSubmit} >
+            <form onSubmit={handleAddSubmit} >
                 <div className={styles.formSection}>
                     <h4 className={styles.formSectionTitle}>Основное</h4>
                     <div className="row g-3">
@@ -725,7 +709,7 @@ const UsersLayout: React.FC = () => {
     if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
 
     const userStats = [
-        { value: statistics.totalUsers, label: 'пользователей' },
+        { value: statistics.totalUsers, label: 'пользователи' },
         { value: statistics.adminCount, label: 'администраторы' },
         { value: statistics.commandantCount, label: 'коменданты' },
         { value: statistics.educatorCount, label: 'воспитатели' },
@@ -774,8 +758,8 @@ const UsersLayout: React.FC = () => {
                 <EditUserModal
                     user={userForEdit}
                     roles={roles}
-                    onClose={handleCloseEditUserModal}
-                    onSuccess={handleSuccessEditUser}
+                    onClose={handleCloseEdit}
+                    onSuccess={handleSuccessEdit}
                     onError={(msg) => {
                         alert(msg);
                     }}

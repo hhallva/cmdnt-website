@@ -16,6 +16,33 @@
     border-radius: var(--radius-16);
 }
 
+.searchPanelRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
+}
+
+.searchLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    flex-wrap: wrap;
+}
+
+.searchInputWrapper {
+    width: 280px;
+    min-width: 280px;
+    flex: 0 0 15rem;
+}
+
+.resetButton {
+    width: 6.25rem;
+    min-width: 6.25rem;
+}
+
 .addPanelActions {
     display: flex;
     justify-content: flex-end;

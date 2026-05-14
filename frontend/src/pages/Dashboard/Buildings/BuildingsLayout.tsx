@@ -255,20 +255,19 @@ const BuildingsLayout: React.FC = () => {
 
     const searchBar = (
         <div className={`${tabsStyles.tabsSurface} ${styles.searchBarSurface}`}>
-            <div className={structureStyles.searchSection}>
-                <div className={`${structureStyles.searchControls} ${styles.searchControls}`}>
-                    <div className={structureStyles.searchInputWrapper}>
+            <div className={styles.searchPanelRow}>
+                <div className={styles.searchLeft}>
+                    <div className={styles.searchInputWrapper}>
                         <InputField
                             type="text"
-                            placeholder="Поиск по названию или адресу..."
+                            placeholder="Поиск..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                            onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
-                    <div className={structureStyles.searchButtons}>
+                    <div className={styles.searchButtons}>
                         <ActionButton
-                            size="md"
-                            variant="secondary"
+                            size='md'
+                            variant='secondary'
                             onClick={() => setSearchTerm('')}
                             className={styles.resetButton}
                         >

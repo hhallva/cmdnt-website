@@ -67,15 +67,21 @@ namespace API.Controllers
                 return BadRequest(new ApiErrorDto("Номер страницы должен быть больше 0", StatusCodes.Status400BadRequest));
 
             var normalizedPageSize = pageSize > 0 ? pageSize : 50;
+            var normalizedSearch = search?.Trim();
 
             var query = _context.Users
                 .AsNoTracking()
                 .Include(u => u.Role)
                 .Where(u => !roleId.HasValue || u.RoleId == roleId.Value)
-                .Where(u => string.IsNullOrWhiteSpace(search)
-                    || EF.Functions.Like(u.Surname, $"%{search.Trim()}%")
-                    || EF.Functions.Like(u.Name, $"%{search.Trim()}%")
-                    || (u.Patronymic != null && EF.Functions.Like(u.Patronymic, $"%{search.Trim()}%")))
+                .Where(u => string.IsNullOrWhiteSpace(normalizedSearch)
+                    || EF.Functions.Like(u.Surname, $"%{normalizedSearch}%")
+                    || EF.Functions.Like(u.Name, $"%{normalizedSearch}%")
+                    || (u.Patronymic != null && EF.Functions.Like(u.Patronymic, $"%{normalizedSearch}%"))
+                    || EF.Functions.Like(u.Login, $"%{normalizedSearch}%")
+                    || EF.Functions.Like(u.Role.Name, $"%{normalizedSearch}%")
+                    || EF.Functions.Like(
+                        (u.Surname ?? string.Empty) + " " + (u.Name ?? string.Empty) + " " + (u.Patronymic ?? string.Empty),
+                        $"%{normalizedSearch}%"))
                 .Select(u => new UserDto
                 {
                     Id = u.Id,

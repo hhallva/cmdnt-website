@@ -249,7 +249,7 @@ const FurnicheLayout: React.FC = () => {
         },
         {
             id: 'import',
-            title: 'Импорт',
+            title: 'Импорт мебели',
             content: (
                 <FurnicheImportTab onImportComplete={handleImportComplete} />
             ),

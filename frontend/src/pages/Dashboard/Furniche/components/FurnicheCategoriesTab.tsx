@@ -192,7 +192,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
     };
 
     const handleDeleteType = useCallback(async (type: StationaryTypeDto) => {
-        if (!window.confirm(`Удалить категорию "${type.name}"?`)) {
+        if (!window.confirm(`Удалить категорию "${type.name}"? Все объекты мебели этой категории будут удалены без возможности восстановления.`)) {
             return;
         }
         try {
