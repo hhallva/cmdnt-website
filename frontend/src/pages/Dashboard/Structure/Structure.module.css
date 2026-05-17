@@ -1,6 +1,5 @@
 .structureWrapper {
     background: var(--color-transparent);
-    border-radius: 0;
     padding: 0;
     box-shadow: none;
     display: flex;
@@ -19,7 +18,7 @@
 .mobileCard {
     width: 100%;
     text-align: left;
-    border-radius: 10px;
+    border-radius: var(--radius-10);
     border: none;
     padding: 1rem 1.25rem;
     background: var(--color-white);
@@ -57,9 +56,8 @@
 
 .mobileCardActionButton {
     border: none;
-    background: var(--color-bg);
+    background: none;
     color: var(--color-text-dark);
-    border-radius: 999px;
     width: 38px;
     height: 38px;
     display: inline-flex;
@@ -122,7 +120,7 @@
 
 .statCard {
     background: var(--color-bg);
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     padding: 1rem 1.25rem;
     display: flex;
     flex-direction: column;
@@ -191,7 +189,7 @@
 
 .emptyState {
     background-color: var(--color-white);
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     padding: 2rem;
     text-align: center;
     color: var(--color-text-light);
@@ -207,7 +205,7 @@
 .tableContainer {
     padding: 1rem;
     background: var(--color-white);
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     margin-bottom: 1rem;
     display: flex;
     justify-content: flex-end;
@@ -222,7 +220,7 @@
 .fioAvatar {
     width: 34px;
     height: 34px;
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     background: var(--color-accent);
     color: var(--color-white);
     display: inline-flex;
@@ -281,7 +279,7 @@
 .toast {
     min-width: 280px;
     max-width: 360px;
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     padding: 0.85rem 1rem;
     border: 1px solid var(--color-transparent);
     box-shadow: 0 10px 25px var(--color-shadow-15);
@@ -398,8 +396,9 @@
 
 .addRoomActions {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
     gap: 0.75rem;
 }
 
@@ -426,7 +425,7 @@
     }
 
     .addRoomButton {
-        border-radius: 8px !important;
+        border-radius: var(--radius-12) !important;
     }
 
     .resetButton {
@@ -454,14 +453,6 @@
     color: var(--color-text-light);
 }
 
-.floorBadge {
-    background: var(--color-bg);
-    color: var(--color-accent);
-    border-radius: 999px;
-    padding: 0.35rem 0.75rem;
-    font-weight: 600;
-}
-
 .blocksGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -471,7 +462,7 @@
 .blockCard {
     background: var(--color-white);
     border: 2px solid var(--color-white);
-    border-radius: 16px;
+    border-radius: var(--radius-16);
     padding: 1rem;
     display: flex;
     flex-direction: column;
@@ -511,7 +502,7 @@
     justify-content: center;
     min-width: 52px;
     padding: 0.85rem 1.7rem;
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     border: 2px solid var(--btn-primary);
 }
 
@@ -576,13 +567,6 @@
     width: 100%;
 }
 
-.statusBadge {
-    border-radius: 999px;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
 .modalContentWrapper {
     display: flex;
     flex-direction: column;
@@ -602,7 +586,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     z-index: 2;
 }
 
@@ -611,7 +595,7 @@
 }
 
 .blockRoomSection {
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -676,8 +660,6 @@
 
 .studentsList {
     background: var(--color-transparent);
-    border-radius: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -689,7 +671,7 @@
     gap: 1rem;
     padding: 0.75rem;
     background: var(--color-white);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-12);
     border: 1px solid var(--color-border);
     align-items: center;
     flex-wrap: nowrap;
@@ -714,7 +696,7 @@
 .studentAvatar {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: var(--radius-circle);
     background: var(--btn-primary);
     color: var(--color-white);
     display: flex;
@@ -764,6 +746,14 @@
     white-space: nowrap;
 }
 
+.studentCardButtonIcon {
+    display: none;
+}
+
+.studentCardButtonText {
+    display: inline;
+}
+
 .blockMenuButton {
     position: fixed;
     top: 20px;
@@ -771,7 +761,7 @@
     z-index: 1200;
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     border: 1px solid var(--color-border);
     background: var(--color-white);
     color: var(--color-text-dark);
@@ -797,53 +787,8 @@
     align-items: center;
 }
 
-.blockRoomMenuButton {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-}
-
 .blockRoomMenuButton i {
     font-size: 1.1rem;
-}
-
-.blockRoomMenuList {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    background: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    box-shadow: 0 10px 24px var(--color-shadow-15);
-    min-width: 180px;
-    padding: 0.35rem 0;
-    z-index: 10;
-}
-
-.blockRoomMenuItem {
-    width: 100%;
-    background: transparent;
-    border: none;
-    text-align: left;
-    padding: 0.45rem 0.9rem;
-    color: var(--color-text-dark);
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.blockRoomMenuItem:hover,
-.blockRoomMenuItem:focus-visible {
-    background: var(--color-bg);
-    outline: none;
-}
-
-.blockRoomMenuDanger {
-    color: var(--color-danger);
 }
 
 .sideMenu {
@@ -921,7 +866,7 @@
 
 .sideMenuCard {
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -944,7 +889,7 @@
     max-width: 188px;
     aspect-ratio: 188 / 210;
     height: auto;
-    border-radius: 12px;
+    border-radius: var(--radius-12);
     background: var(--btn-primary);
     color: var(--color-white);
     display: flex;
@@ -988,6 +933,10 @@
 }
 
 @media (max-width: 768px) {
+    .blockMenuButton {
+        display: none;
+    }
+
     .topRow {
         flex-direction: column;
         align-items: flex-start;
@@ -1012,7 +961,15 @@
     }
 
     .filtersGrid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filtersGrid> :first-child {
+        grid-column: 1 / -1;
+    }
+
+    .filtersGrid> :last-child {
+        grid-column: 1 / -1;
     }
 
     .floorHeader {
@@ -1028,7 +985,7 @@
 
     .addRoomButton {
         padding: 0.45rem !important;
-        border-radius: 999px;
+        border-radius: var(--radiuws-16);
         background: var(--color-primary);
         min-width: 44px;
         justify-content: center;
@@ -1039,12 +996,34 @@
     }
 
     .settlementFormGrid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .settlementFormGrid> :first-child {
+        grid-column: 1 / -1;
     }
 
     .settlementActions {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .settlementActions .fullWidthMobileButton {
+        width: auto;
+    }
+
+    .settlementActions> :first-child {
+        flex: 1 1 0;
+    }
+
+    .settlementActions> :last-child {
+        flex: 1 1 0;
+    }
+
+    .mobileCardRow {
+        column-gap: 3rem;
     }
 
     .blockHeader {
@@ -1068,12 +1047,36 @@
         gap: 0.75rem;
     }
 
+    .studentCardButton {
+        min-width: 40px;
+        width: 40px;
+        height: 40px;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-light);
+    }
+
+    .studentCardButtonIcon {
+        display: inline-flex;
+        font-size: 17px;
+        line-height: 17px;
+    }
+
+    .studentCardButtonText {
+        display: none;
+    }
+
     .blockRoomHeader {
         flex-direction: row;
         align-items: flex-start;
     }
 
     .blockCard {
-        border-radius: 12px;
+        border-radius: var(--radius-12);
     }
 }

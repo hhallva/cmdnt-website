@@ -22,6 +22,7 @@ const STORAGE_DEFAULT_TAB: StudentTabKey = 'personal';
 const STRUCTURE_TABS_STORAGE_KEY = 'structure-active-tab';
 const STRUCTURE_SETTLEMENT_PREFILL_KEY = 'structure-settlement-prefill';
 const SETTLEMENT_TAB_ID = 'settlement';
+
 const getStoredTab = (key: string): StudentTabKey => {
     if (typeof window === 'undefined') return STORAGE_DEFAULT_TAB;
     const saved = sessionStorage.getItem(key);
@@ -138,6 +139,10 @@ const StudentCardLayout: React.FC = () => {
 
     const handleEvictClick = async () => {
         if (!student?.id) return;
+        if (!student.roomId) {
+            alert('Студент не привязан к комнате.');
+            return;
+        }
         const confirmed = confirm(
             'Вы уверены, что хотите выселить студента?\n'
         );
@@ -212,7 +217,7 @@ const StudentCardLayout: React.FC = () => {
                             )}
                         </div>
                         <div className={styles.studentNameInfo}>
-                            <h2>{student.surname} <br />{studentFullName || '—'}</h2>
+                            <h2>{student.surname} <br />{studentFullName || 'нет'}</h2>
                         </div>
                     </div>
                 </div>
@@ -250,10 +255,18 @@ const StudentCardLayout: React.FC = () => {
                             <div className={styles.actionButtonsGroup}>
                                 {activeTab === 'personal' && (
                                     <ActionButton
-                                        className={styles.actionButtonFullWidth}
+                                        className={`${styles.actionButtonFullWidth} ${styles.deleteButton}`}
                                         size='md'
                                         variant="danger" onClick={handleDeleteClick}>
                                         Удалить
+                                    </ActionButton>
+                                )}
+                                {activeTab === 'personal' && (
+                                    <ActionButton
+                                        className={`${styles.actionButtonFullWidth} ${styles.editButton}`}
+                                        size='md'
+                                        onClick={() => setEditModalOpen(true)}>
+                                        Редактировать
                                     </ActionButton>
                                 )}
                             </div>
@@ -276,15 +289,6 @@ const StudentCardLayout: React.FC = () => {
                                     </ActionButton>
                                 )
                             )}
-                            {activeTab === 'personal' && (
-                                <ActionButton
-                                    className={styles.actionButtonFullWidth}
-                                    size='md'
-                                    onClick={() => setEditModalOpen(true)}>
-                                    Редактировать
-                                </ActionButton>
-                            )}
-
                         </div>
                     </div >
                 )

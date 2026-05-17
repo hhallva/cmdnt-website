@@ -1,10 +1,10 @@
+using Core.DTOs.Types;
+
 namespace Core.DTOs.ExpendableEquipment
 {
     public class ExpendableEquipmentDto
     {
-        public int TypeId { get; set; }
-
-        public string TypeName { get; set; } = null!;
+        public TypeDto Type { get; set; } = null!;
 
         public int TotalCount { get; set; }
 

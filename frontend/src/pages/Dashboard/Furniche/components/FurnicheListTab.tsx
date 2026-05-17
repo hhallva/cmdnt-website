@@ -34,39 +34,39 @@ const columns: ColumnDefinition<StationaryEquipmentDto>[] = [
         key: 'inventoryNumber',
         title: 'Инвентарный номер',
         sortable: true,
-        render: (item) => item.inventoryNumber || '—',
+        render: (item) => item.inventoryNumber || 'нет',
     },
     {
         key: 'typeName',
         title: 'Категория',
         sortable: true,
-        render: (item) => item.typeName || '—',
+        render: (item) => item.typeName || 'нет',
     },
     {
         key: 'description',
         title: 'Описание',
         sortable: true,
-        render: (item) => item.description || '—',
+        render: (item) => item.description || 'нет',
     },
     {
         key: 'statusName',
         title: 'Статус',
         sortable: true,
-        render: (item) => item.statusName || '—',
+        render: (item) => item.statusName || 'нет',
     },
     {
         key: 'buildingName',
         title: 'Здание',
         sortable: true,
-        render: (item) => item.roomId ? (item.buildingName || '—') : 'На складе',
+        render: (item) => item.roomId ? (item.buildingName || 'нет') : 'На складе',
     },
     {
         key: 'roomNumber',
         title: 'Блок',
         sortable: true,
         render: (item) => item.roomId
-            ? `${item.roomNumber || '—'} (${item.roomCapacity ?? '—'})`
-            : '—',
+            ? `${item.roomNumber || 'нет'} (${item.roomCapacity ?? 'нет'})`
+            : 'нет',
     },
 ];
 
@@ -430,8 +430,12 @@ const FurnicheListTab: React.FC<FurnicheListTabProps> = ({
         if (!window.confirm(`Вернуть оборудование ${item.inventoryNumber} на склад?`)) {
             return;
         }
+        if (!item.roomId) {
+            alert('Оборудование уже находится на складе');
+            return;
+        }
         try {
-            await apiClient.evictStationaryEquipment(item.id);
+            await apiClient.evictStationaryEquipment(item.id, item.roomId);
             await loadData();
         } catch (err: any) {
             alert(err?.message || 'Не удалось вернуть на склад');

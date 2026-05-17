@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import type { RoomDto } from '../../../../types/rooms';
 import type { StudentsDto } from '../../../../types/students';
 import type { RoomWithOccupants, SettlementFormErrors, SettlementFormState } from '../types';
-import { STRUCTURE_SETTLEMENT_PREFILL_KEY } from '../constants';
 import { apiClient } from '../../../../api/client';
 import { doesRoomMatchStudentGender, doesStudentMatchRoomGender, formatShortName, hasGenderValue } from '../utils';
+import { StructureSessionStorage } from '../services/StructureSessionStorage';
 
 const settlementFormInitialState: SettlementFormState = {
     studentId: '',
@@ -37,20 +37,7 @@ export const useSettlementForm = ({
     const [isSettling, setIsSettling] = useState(false);
 
     const [pendingSettlementStudentId, setPendingSettlementStudentId] = useState<string | null>(() => {
-        if (typeof window === 'undefined') {
-            return null;
-        }
-        const payload = sessionStorage.getItem(STRUCTURE_SETTLEMENT_PREFILL_KEY);
-        if (!payload) {
-            return null;
-        }
-        sessionStorage.removeItem(STRUCTURE_SETTLEMENT_PREFILL_KEY);
-        try {
-            const parsed = JSON.parse(payload);
-            return parsed?.studentId ? String(parsed.studentId) : null;
-        } catch {
-            return null;
-        }
+        return StructureSessionStorage.consumeSettlementPrefillStudentId();
     });
 
     useEffect(() => {

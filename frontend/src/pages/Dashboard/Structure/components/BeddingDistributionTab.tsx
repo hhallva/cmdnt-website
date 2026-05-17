@@ -6,10 +6,15 @@ import CommonModal from '../../../../components/CommonModal/CommonModal';
 import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import { apiClient } from '../../../../api/client';
-import type { ExpendableDistributionDto, ExpendableDistributionUpsertDto } from '../../../../types/expendableDistribution';
+import type {
+    ExpendableDistributionBatchItemDto,
+    ExpendableDistributionDto,
+    ExpendableDistributionTypeDto,
+} from '../../../../types/expendableDistribution';
 import type { ExpendableEquipmentDto } from '../../../../types/expendableEquipment';
 import type { StudentsDto } from '../../../../types/students';
 import styles from '../../Expendable/Expendable.module.css';
+import { useSortableConfig } from '../hooks/useSortableConfig';
 
 type BeddingDistributionRow = {
     id: number;
@@ -21,7 +26,7 @@ type BeddingDistributionRow = {
     sheet: number;
     duvetCover: number;
     plaid: number;
-    recordMap: Partial<Record<DistributionItemKey, ExpendableDistributionDto>>;
+    recordMap: Partial<Record<DistributionItemKey, ExpendableDistributionTypeDto>>;
 };
 
 type DistributionItemKey = 'pillow' | 'mattress' | 'blanket' | 'pillowcase' | 'sheet' | 'duvetCover' | 'plaid';
@@ -35,6 +40,10 @@ type BeddingDistributionTabProps = {
     resetSignal?: number;
 };
 
+type LoadDataOptions = {
+    soft?: boolean;
+};
+
 const distributionItems: Array<{ key: DistributionItemKey; label: string }> = [
     { key: 'mattress', label: 'Матрас' },
     { key: 'sheet', label: 'Простынь' },
@@ -46,7 +55,7 @@ const distributionItems: Array<{ key: DistributionItemKey; label: string }> = [
 ];
 
 const columns: ColumnDefinition<BeddingDistributionRow>[] = [
-    { key: 'studentName', title: 'Студент', sortable: true, render: (item) => item.studentName || '—' },
+    { key: 'studentName', title: 'Студент', sortable: true, render: (item) => item.studentName || 'нет' },
     { key: 'mattress', title: 'Матрас', sortable: true, render: (item) => item.mattress },
     { key: 'sheet', title: 'Простынь', sortable: true, render: (item) => item.sheet },
     { key: 'blanket', title: 'Одеяло', sortable: true, render: (item) => item.blanket },
@@ -81,14 +90,23 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<DistributionItemKey, string>>>({});
     const [formError, setFormError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [sortConfig, setSortConfig] = useState<{ key: SortableKey; direction: 'asc' | 'desc' } | null>({
-        key: 'studentName',
-        direction: 'asc',
-    });
+    const beddingSortKeys = useMemo(
+        () => ['studentName', 'mattress', 'sheet', 'blanket', 'duvetCover', 'pillow', 'pillowcase', 'plaid'] as const,
+        []
+    );
+    const { sortConfig, setSortConfig, requestSort } = useSortableConfig<SortableKey>(
+        { key: 'studentName', direction: 'asc' },
+        beddingSortKeys
+    );
 
-    const loadData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+    const loadData = useCallback(async (options: LoadDataOptions = {}) => {
+        const isSoftUpdate = options.soft ?? false;
+
+        if (!isSoftUpdate) {
+            setLoading(true);
+            setError(null);
+        }
+
         try {
             const [stockData, distributionData] = await Promise.all([
                 apiClient.getExpendableEquipment(),
@@ -99,12 +117,14 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         } catch (err: any) {
             setError(err?.message || 'Не удалось загрузить данные');
         } finally {
-            setLoading(false);
+            if (!isSoftUpdate) {
+                setLoading(false);
+            }
         }
     }, []);
 
     useEffect(() => {
-        void loadData();
+        void loadData({ soft: false });
     }, [loadData]);
 
     useEffect(() => {
@@ -118,7 +138,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const stockByName = useMemo(() => {
         const map = new Map<string, ExpendableEquipmentDto>();
         stock.forEach(item => {
-            map.set(normalize(item.typeName), item);
+            map.set(normalize(item.type.name), item);
         });
         return map;
     }, [normalize, stock]);
@@ -136,22 +156,17 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
     const studentIdSet = useMemo(() => new Set(students.map(student => student.id)), [students]);
 
     const buildingDistributions = useMemo(
-        () => distributions.filter(item => studentIdSet.has(item.studentId)),
+        () => distributions.filter(item => studentIdSet.has(item.student.id)),
         [distributions, studentIdSet]
     );
 
     const rows = useMemo(() => {
         const map = new Map<number, BeddingDistributionRow>();
-        buildingDistributions.forEach(item => {
-            const key = keyByTypeName.get(normalize(item.typeName));
-            if (!key) {
-                return;
-            }
-
-            const existing = map.get(item.studentId);
+        buildingDistributions.forEach(distribution => {
+            const existing = map.get(distribution.student.id);
             const row = existing ?? {
-                id: item.studentId,
-                studentName: item.studentFullName || `Студент ${item.studentId}`,
+                id: distribution.student.id,
+                studentName: distribution.student.fullName || `Студент ${distribution.student.id}`,
                 pillow: 0,
                 mattress: 0,
                 blanket: 0,
@@ -162,9 +177,17 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                 recordMap: {},
             };
 
-            row[key] = item.count;
-            row.recordMap[key] = item;
-            map.set(item.studentId, row);
+            distribution.types.forEach(typeItem => {
+                const key = keyByTypeName.get(normalize(typeItem.name));
+                if (!key) {
+                    return;
+                }
+
+                row[key] = typeItem.count;
+                row.recordMap[key] = typeItem;
+            });
+
+            map.set(distribution.student.id, row);
         });
 
         return Array.from(map.values());
@@ -197,38 +220,13 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         XLSX.writeFile(workbook, `Постельное_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }, [filteredRows]);
 
-    const requestSort = useCallback((key: string) => {
-        const allowedKeys: SortableKey[] = [
-            'studentName',
-            'mattress',
-            'sheet',
-            'blanket',
-            'duvetCover',
-            'pillow',
-            'pillowcase',
-            'plaid',
-        ];
-        if (!allowedKeys.includes(key as SortableKey)) {
-            return;
-        }
-        setSortConfig(prevConfig => {
-            if (prevConfig && prevConfig.key === key) {
-                return {
-                    key: key as SortableKey,
-                    direction: prevConfig.direction === 'asc' ? 'desc' : 'asc',
-                };
-            }
-            return { key: key as SortableKey, direction: 'asc' };
-        });
-    }, []);
-
     const sortedRows = useMemo(() => {
         const result = [...filteredRows];
         if (!sortConfig) {
             return result;
         }
         const { key, direction } = sortConfig;
-        const multiplier = direction === 'asc' ? -1 : 1;
+        const multiplier = direction === 'asc' ? 1 : -1;
 
         result.sort((a, b) => {
             if (key === 'studentName') {
@@ -251,7 +249,7 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
 
     const studentsWithDistribution = useMemo(() => {
         const map = new Set<number>();
-        buildingDistributions.forEach(item => map.add(item.studentId));
+        buildingDistributions.forEach(item => map.add(item.student.id));
         return map;
     }, [buildingDistributions]);
 
@@ -355,12 +353,6 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         return Object.keys(nextErrors).length === 0 && Boolean(selectedStudentId);
     }, [editingRow, fieldValues, getStockForLabel, selectedStudentId]);
 
-    const buildPayload = useCallback((studentId: number, typeId: number, count: number): ExpendableDistributionUpsertDto => ({
-        studentId,
-        typeId,
-        count,
-    }), []);
-
     const handleAddSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!validateForm()) {
@@ -376,36 +368,14 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
         setFormError(null);
 
         try {
-            const operations: Array<Promise<unknown>> = [];
             let hasInvalidType = false;
-            const isStudentChanged = Boolean(editingRow) && studentId !== editingRow?.id;
-            const targetRecordMap = new Map<DistributionItemKey, ExpendableDistributionDto>();
-
-            if (isStudentChanged) {
-                distributions.forEach(item => {
-                    if (item.studentId !== studentId) {
-                        return;
-                    }
-                    const key = keyByTypeName.get(normalize(item.typeName));
-                    if (!key) {
-                        return;
-                    }
-                    targetRecordMap.set(key, item);
-                });
-
-                Object.values(editingRow?.recordMap ?? {}).forEach(record => {
-                    if (record) {
-                        operations.push(apiClient.deleteExpendableDistribution(record.id));
-                    }
-                });
-            }
+            const createItems: ExpendableDistributionBatchItemDto[] = [];
 
             distributionItems.forEach(item => {
                 const rawValue = fieldValues[item.key];
                 const nextCount = rawValue ? Number.parseInt(rawValue, 10) : 0;
                 const stockInfo = getStockForLabel(item.label);
-                const typeId = stockInfo?.typeId;
-                const existing = isStudentChanged ? targetRecordMap.get(item.key) : editingRow?.recordMap[item.key];
+                const typeId = stockInfo?.type.id;
 
                 if (!typeId && nextCount > 0) {
                     setFormError(`Категория "${item.label}" не найдена на складе`);
@@ -413,14 +383,8 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                     return;
                 }
 
-                if (existing) {
-                    if (nextCount === 0) {
-                        operations.push(apiClient.deleteExpendableDistribution(existing.id));
-                    } else if (nextCount !== existing.count || existing.studentId !== studentId || existing.typeId !== typeId) {
-                        operations.push(apiClient.updateExpendableDistribution(existing.id, buildPayload(studentId, typeId!, nextCount)));
-                    }
-                } else if (nextCount > 0 && typeId) {
-                    operations.push(apiClient.createExpendableDistribution(buildPayload(studentId, typeId, nextCount)));
+                if (nextCount > 0 && typeId) {
+                    createItems.push({ id: typeId, count: nextCount });
                 }
             });
 
@@ -429,34 +393,29 @@ const BeddingDistributionTab: React.FC<BeddingDistributionTabProps> = ({
                 return;
             }
 
-            if (operations.length) {
-                await Promise.all(operations);
+            if (editingRow) {
+                await apiClient.editExpendableDisstributions(studentId, createItems);
+            } else if (createItems.length > 0) {
+                await apiClient.editExpendableDisstributions(studentId, createItems);
             }
 
             setIsAddModalOpen(false);
-            await loadData();
+            await loadData({ soft: true });
         } catch (err: any) {
             setFormError(err?.message || 'Не удалось сохранить распределение');
         } finally {
             setIsSaving(false);
         }
-    }, [buildPayload, editingRow, fieldValues, getStockForLabel, loadData, selectedStudentId, validateForm]);
+    }, [editingRow, fieldValues, getStockForLabel, loadData, selectedStudentId, validateForm]);
 
     const handleDeleteRow = useCallback(async (row: BeddingDistributionRow) => {
         if (!window.confirm('Удалить распределение для студента?')) {
             return;
         }
-        const operations = Object.values(row.recordMap)
-            .filter((record): record is ExpendableDistributionDto => Boolean(record))
-            .map(record => apiClient.deleteExpendableDistribution(record.id));
-
-        if (!operations.length) {
-            return;
-        }
 
         try {
-            await Promise.all(operations);
-            await loadData();
+            await apiClient.editExpendableDisstributions(row.id, []);
+            await loadData({ soft: true });
         } catch (err: any) {
             setError(err?.message || 'Не удалось удалить распределение');
         }

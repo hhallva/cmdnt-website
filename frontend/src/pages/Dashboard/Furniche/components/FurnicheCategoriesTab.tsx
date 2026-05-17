@@ -12,7 +12,7 @@ const columns: ColumnDefinition<StationaryTypeDto>[] = [
         key: 'name',
         title: 'Название',
         sortable: true,
-        render: (item) => item.name || '—',
+        render: (item) => item.name || 'нет',
     },
 ];
 

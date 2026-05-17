@@ -3,7 +3,7 @@
     min-width: 200px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 1rem;
+    border-radius: var(--radius-16);
     padding: 0.25rem;
     z-index: 1100;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
@@ -17,7 +17,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.4rem 0.5rem;
-    border-radius: 1rem;
+    border-radius: var(--radius-16);
     cursor: pointer;
     color: var(--color-text-dark);
     font-size: 0.9rem;

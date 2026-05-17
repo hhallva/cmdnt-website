@@ -1,6 +1,7 @@
 ﻿using Core.Data;
 using Core.DTOs;
 using Core.DTOs.Contacts;
+using Core.DTOs.ExpendableDistributions;
 using Core.DTOs.Notes;
 using Core.DTOs.Resettlements;
 using Core.DTOs.Students;
@@ -56,7 +57,7 @@ namespace API.Controllers
             return Ok(student.ToDto());
         }
 
-        [HttpGet("{id}/resettlements/history")]
+        [HttpGet("{id}/resettlements")]
         [SwaggerOperation(
             Summary = "Получение истории проживания студента",
             Description = "Возвращает завершенные периоды проживания студента с соседями по комнате."
@@ -167,6 +168,27 @@ namespace API.Controllers
                 return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
 
             return Ok(new ExtStudentData(student.Origin));
+        }
+
+        [HttpGet("{id}/notes")]
+        [SwaggerOperation(Summary = "Получение заметок студента", Description = "Возвращает отсортированный список заметок, связанных с конкретным студентом.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Заметки успешно получены.", Type = typeof(IEnumerable<NoteDto>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<IEnumerable<NoteDto>>> GetStudentNotes(int id)
+        {
+            var studentExists = await _context.Students.AnyAsync(s => s.Id == id);
+
+            if (!studentExists)
+                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
+
+            var notes = await _context.Notes
+                .Include(note => note.User)
+                    .ThenInclude(user => user!.Role)
+                .Where(note => note.StudentId == id)
+                .OrderByDescending(note => note.CreateDate)
+                .ToListAsync();
+
+            return Ok(notes.Select(note => note.ToDto()).ToList());
         }
 
         #endregion
@@ -359,7 +381,7 @@ namespace API.Controllers
         #endregion
 
         #region Работа с комнатами студентов
-        [HttpPost("{id}/assign-room/{roomId}")]
+        [HttpPost("{id}/room/{roomId}")]
         [SwaggerOperation(Summary = "Привязка студента к комнате", Description = "Привязывает студента к указанной комнате, проверяя соответствие пола студента, других жильцов и вместимость комнаты.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно привязан к комнате.")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные, студент уже привязан к комнате или комната переполнена.", Type = typeof(ApiErrorDto))]
@@ -414,11 +436,12 @@ namespace API.Controllers
             return Ok(new { Message = "Студент успешно привязан к комнате" });
         }
 
-        [HttpPost("{id}/evict-room")]
-        [SwaggerOperation(Summary = "Выселение студента из комнаты", Description = "Выселяет студента из всех комнат, в которых он проживает. В бизнес-логике студент может жить только в одной комнате.")]
+        [HttpDelete("{id}/room")]
+        [SwaggerOperation(Summary = "Выселение студента из комнаты", Description = "Выселяет студента из текущей комнаты.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Студент успешно выселен из комнаты.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> EvictRoom([SwaggerParameter("ID студента", Required = true)] int id)
+        public async Task<IActionResult> EvictRoom(
+            [SwaggerParameter("ID студента", Required = true)] int id)
         {
             if (id <= 0)
                 return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
@@ -432,13 +455,131 @@ namespace API.Controllers
 
             var activeResettlement = student.Resettlements
                 .FirstOrDefault(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue);
+
             if (activeResettlement != null)
             {
-                activeResettlement.CheckOutDate = DateTime.UtcNow;
+                activeResettlement.CheckOutDate = DateTime.Now;
                 await _context.SaveChangesAsync();
             }
 
             return Ok(new { Message = "Студент успешно выселен из комнаты" });
+        }
+        #endregion
+
+        #region Распределение расходников студента
+        [HttpPut("{id}/expendable")]
+        [SwaggerOperation(
+            Summary = "Управление замена распределений расходников студента",
+            Description = "Полностью заменяет набор распределений расходников для студента одним запросом.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Распределения успешно обновлены.", Type = typeof(ExpendableDistributionDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<ExpendableDistributionDto>> ReplaceStudentDistributions(
+            int id,
+            [FromBody] List<ExpendableDistributionBatchItemDto> items)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
+
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор студента", StatusCodes.Status400BadRequest));
+
+            if (items == null)
+                return BadRequest(new ApiErrorDto("Список распределений не передан", StatusCodes.Status400BadRequest));
+
+            var studentExists = await _context.Students.AnyAsync(student => student.Id == id);
+            if (!studentExists)
+                return BadRequest(new ApiErrorDto("Студент не найден", StatusCodes.Status400BadRequest));
+
+            var duplicatedTypeIds = items
+                .GroupBy(item => item.Id)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+
+            if (duplicatedTypeIds.Count != 0)
+                return BadRequest(new ApiErrorDto("Категории расходников не должны повторяться в одном запросе", StatusCodes.Status400BadRequest));
+
+            var typeIds = items.Select(item => item.Id).ToList();
+
+            var equipmentByType = await _context.ExpendableEquipments
+                .Include(item => item.ExpendableDistributions)
+                .Include(item => item.Type)
+                .Where(item => typeIds.Contains(item.TypeId))
+                .ToDictionaryAsync(item => item.TypeId);
+
+            foreach (var item in items)
+            {
+                if (!equipmentByType.TryGetValue(item.Id, out var equipment))
+                    return BadRequest(new ApiErrorDto($"Категория расходников с ID={item.Id} не найдена", StatusCodes.Status400BadRequest));
+
+                var usedByOthers = equipment.ExpendableDistributions
+                    .Where(dist => dist.StudentId != id)
+                    .Sum(dist => dist.Count);
+
+                var availableForStudent = equipment.Count - usedByOthers;
+                if (availableForStudent < item.Count)
+                    return BadRequest(new ApiErrorDto($"Недостаточно расходников на складе для категории с ID={item.Id}", StatusCodes.Status400BadRequest));
+            }
+
+            var existing = await _context.ExpendableDistributions
+                .Where(item => item.StudentId == id)
+                .ToListAsync();
+
+            _context.ExpendableDistributions.RemoveRange(existing);
+
+            var entities = items.Select(item => new ExpendableDistribution
+            {
+                StudentId = id,
+                ExpendableId = equipmentByType[item.Id].Id,
+                Count = item.Count,
+            });
+
+            _context.ExpendableDistributions.AddRange(entities);
+            await _context.SaveChangesAsync();
+
+            var updatedGrouped = await GetStudentGroupedDistributionAsync(id);
+            return Ok(updatedGrouped);
+        }
+
+        private async Task<ExpendableDistributionDto> GetStudentGroupedDistributionAsync(int studentId)
+        {
+            var studentDistributions = await _context.ExpendableDistributions
+                .AsNoTracking()
+                .Include(item => item.Student)
+                .Include(item => item.Expendable)
+                .ThenInclude(item => item.Type)
+                .Where(item => item.StudentId == studentId)
+                .ToListAsync();
+
+            if (studentDistributions.Count == 0)
+            {
+                var student = await _context.Students
+                    .AsNoTracking()
+                    .FirstAsync(item => item.Id == studentId);
+
+                return new ExpendableDistributionDto
+                {
+                    Id = studentId,
+                    Student = new ExpendableDistributionStudentDto
+                    {
+                        Id = student.Id,
+                        FullName = BuildStudentFullName(student),
+                    },
+                    Types = [],
+                };
+            }
+
+            return studentDistributions
+                .GroupBy(item => item.StudentId)
+                .Select(group => group.ToGroupedDto())
+                .First();
+        }
+
+        private static string BuildStudentFullName(Student student)
+        {
+            return string.Join(" ", new[] { student.Surname, student.Name, student.Patronymic }
+                .Where(part => !string.IsNullOrWhiteSpace(part))
+                .Select(part => part!.Trim()));
         }
         #endregion
 

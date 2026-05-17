@@ -11,10 +11,21 @@ import type { OverallStructureStatisticDto } from '../../../types/structures';
 import AddBuildingModal from './components/AddBuildingModal';
 import BuildingDetailsModal from './components/BuildingDetailsModal';
 import EditBuildingModal from './components/EditBuildingModal';
+import styles from './BuildingsLayout.module.css';
 import structureStyles from '../Structure/Structure.module.css';
 import tabsStyles from '../../../components/Tabs/Tabs.module.css';
 
 const ACTIVE_BUILDING_STORAGE_KEY = 'active-building';
+
+type BuildingFormValidationResult = {
+    nameError: string | null;
+    addressError: string | null;
+    latitudeError: string | null;
+    longitudeError: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    hasError: boolean;
+};
 
 const BuildingsLayout: React.FC = () => {
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
@@ -68,6 +79,58 @@ const BuildingsLayout: React.FC = () => {
         return { value: parsed, hasValue: true, isValid: true };
     };
 
+    const validateBuildingForm = (nameValue: string, addressValue: string, latitudeValue: string, longitudeValue: string): BuildingFormValidationResult => {
+        const name = nameValue.trim();
+        const address = addressValue.trim();
+        const latitudeInput = parseCoordinateInput(latitudeValue);
+        const longitudeInput = parseCoordinateInput(longitudeValue);
+
+        const nameError = !name
+            ? 'Название обязательно'
+            : name.length > 100
+                ? 'Название не более 100 символов'
+                : null;
+
+        const addressError = !address
+            ? 'Адрес обязателен'
+            : address.length > 300
+                ? 'Адрес не более 300 символов'
+                : null;
+
+        const latitudeError = !latitudeInput.isValid
+            ? 'Некорректное значение'
+            : latitudeInput.hasValue && (latitudeInput.value! < -90 || latitudeInput.value! > 90)
+                ? 'Широта от -90 до 90'
+                : null;
+
+        const longitudeError = !longitudeInput.isValid
+            ? 'Некорректное значение'
+            : longitudeInput.hasValue && (longitudeInput.value! < -180 || longitudeInput.value! > 180)
+                ? 'Долгота от -180 до 180'
+                : null;
+
+        return {
+            nameError,
+            addressError,
+            latitudeError,
+            longitudeError,
+            latitude: latitudeInput.value,
+            longitude: longitudeInput.value,
+            hasError: Boolean(nameError || addressError || latitudeError || longitudeError),
+        };
+    };
+
+    const withErrorReset = (
+        setValue: React.Dispatch<React.SetStateAction<string>>,
+        error: string | null,
+        setError: React.Dispatch<React.SetStateAction<string | null>>,
+    ) => (value: string) => {
+        setValue(value);
+        if (error) {
+            setError(null);
+        }
+    };
+
     useEffect(() => {
         const loadBuildings = async () => {
             try {
@@ -110,7 +173,7 @@ const BuildingsLayout: React.FC = () => {
         const loadSummary = async () => {
             try {
                 setSummaryLoading(true);
-                const response = await apiClient.getOverallStructureStatistics();
+                const response = await apiClient.getStructuresStatistics();
                 setSummaryStats(response);
                 setSummaryError(null);
             } catch (err: any) {
@@ -191,9 +254,9 @@ const BuildingsLayout: React.FC = () => {
     };
 
     const searchBar = (
-        <div className={tabsStyles.tabsSurface} style={{ marginBottom: '2.75rem' }}>
+        <div className={`${tabsStyles.tabsSurface} ${styles.searchBarSurface}`}>
             <div className={structureStyles.searchSection}>
-                <div className={structureStyles.searchControls} style={{ gap: '1.75rem' }}>
+                <div className={`${structureStyles.searchControls} ${styles.searchControls}`}>
                     <div className={structureStyles.searchInputWrapper}>
                         <InputField
                             type="text"
@@ -207,7 +270,7 @@ const BuildingsLayout: React.FC = () => {
                             size="md"
                             variant="secondary"
                             onClick={() => setSearchTerm('')}
-                            style={{ width: '13.25rem' }}
+                            className={styles.resetButton}
                         >
                             Сбросить
                         </ActionButton>
@@ -324,51 +387,14 @@ const BuildingsLayout: React.FC = () => {
         event.preventDefault();
         const name = newBuildingName.trim();
         const address = newBuildingAddress.trim();
-        const latitudeInput = parseCoordinateInput(newBuildingLatitude);
-        const longitudeInput = parseCoordinateInput(newBuildingLongitude);
-        let hasError = false;
+        const validation = validateBuildingForm(newBuildingName, newBuildingAddress, newBuildingLatitude, newBuildingLongitude);
 
-        if (!name) {
-            setNameError('Название обязательно');
-            hasError = true;
-        } else if (name.length > 100) {
-            setNameError('Название не более 100 символов');
-            hasError = true;
-        } else {
-            setNameError(null);
-        }
+        setNameError(validation.nameError);
+        setAddressError(validation.addressError);
+        setNewLatitudeError(validation.latitudeError);
+        setNewLongitudeError(validation.longitudeError);
 
-        if (!address) {
-            setAddressError('Адрес обязателен');
-            hasError = true;
-        } else if (address.length > 300) {
-            setAddressError('Адрес не более 300 символов');
-            hasError = true;
-        } else {
-            setAddressError(null);
-        }
-
-        if (!latitudeInput.isValid) {
-            setNewLatitudeError('Некорректное значение');
-            hasError = true;
-        } else if (latitudeInput.hasValue && (latitudeInput.value! < -90 || latitudeInput.value! > 90)) {
-            setNewLatitudeError('Широта от -90 до 90');
-            hasError = true;
-        } else {
-            setNewLatitudeError(null);
-        }
-
-        if (!longitudeInput.isValid) {
-            setNewLongitudeError('Некорректное значение');
-            hasError = true;
-        } else if (longitudeInput.hasValue && (longitudeInput.value! < -180 || longitudeInput.value! > 180)) {
-            setNewLongitudeError('Долгота от -180 до 180');
-            hasError = true;
-        } else {
-            setNewLongitudeError(null);
-        }
-
-        if (hasError) {
+        if (validation.hasError) {
             return;
         }
 
@@ -378,8 +404,8 @@ const BuildingsLayout: React.FC = () => {
                 name,
                 address,
                 coordinates: {
-                    latitude: latitudeInput.value,
-                    longitude: longitudeInput.value,
+                    latitude: validation.latitude,
+                    longitude: validation.longitude,
                 },
             });
             setBuildings(prev => [created, ...prev]);
@@ -400,51 +426,14 @@ const BuildingsLayout: React.FC = () => {
 
         const name = editName.trim();
         const address = editAddress.trim();
-        const latitudeInput = parseCoordinateInput(editLatitude);
-        const longitudeInput = parseCoordinateInput(editLongitude);
-        let hasError = false;
+        const validation = validateBuildingForm(editName, editAddress, editLatitude, editLongitude);
 
-        if (!name) {
-            setEditNameError('Название обязательно');
-            hasError = true;
-        } else if (name.length > 100) {
-            setEditNameError('Название не более 100 символов');
-            hasError = true;
-        } else {
-            setEditNameError(null);
-        }
+        setEditNameError(validation.nameError);
+        setEditAddressError(validation.addressError);
+        setEditLatitudeError(validation.latitudeError);
+        setEditLongitudeError(validation.longitudeError);
 
-        if (!address) {
-            setEditAddressError('Адрес обязателен');
-            hasError = true;
-        } else if (address.length > 300) {
-            setEditAddressError('Адрес не более 300 символов');
-            hasError = true;
-        } else {
-            setEditAddressError(null);
-        }
-
-        if (!latitudeInput.isValid) {
-            setEditLatitudeError('Некорректное значение');
-            hasError = true;
-        } else if (latitudeInput.hasValue && (latitudeInput.value! < -90 || latitudeInput.value! > 90)) {
-            setEditLatitudeError('Широта от -90 до 90');
-            hasError = true;
-        } else {
-            setEditLatitudeError(null);
-        }
-
-        if (!longitudeInput.isValid) {
-            setEditLongitudeError('Некорректное значение');
-            hasError = true;
-        } else if (longitudeInput.hasValue && (longitudeInput.value! < -180 || longitudeInput.value! > 180)) {
-            setEditLongitudeError('Долгота от -180 до 180');
-            hasError = true;
-        } else {
-            setEditLongitudeError(null);
-        }
-
-        if (hasError) {
+        if (validation.hasError) {
             return;
         }
 
@@ -455,8 +444,8 @@ const BuildingsLayout: React.FC = () => {
                 name,
                 address,
                 coordinates: {
-                    latitude: latitudeInput.value,
-                    longitude: longitudeInput.value,
+                    latitude: validation.latitude,
+                    longitude: validation.longitude,
                 },
             });
             setBuildings(prev => prev.map(item => (item.id === updated.id ? updated : item)));
@@ -540,14 +529,16 @@ const BuildingsLayout: React.FC = () => {
                 <div className="alert alert-danger m-3">{summaryError}</div>
             )}
             {!summaryLoading && !summaryError && summaryStats && (
-                <StatisticsCard
-                    stats={[
-                        { value: summaryStats.totalBuildings, label: 'зданий' },
-                        { value: summaryStats.totalCapacity, label: 'мест' },
-                        { value: summaryStats.occupiedStudents, label: 'заселено' },
-                        { value: summaryStats.totalStudents, label: 'студентов' },
-                    ]}
-                />
+                <div className={styles.summarySection}>
+                    <StatisticsCard
+                        stats={[
+                            { value: summaryStats.totalBuildings, label: 'зданий' },
+                            { value: summaryStats.totalCapacity, label: 'мест' },
+                            { value: summaryStats.occupiedStudents, label: 'заселено' },
+                            { value: summaryStats.totalStudents, label: 'студентов' },
+                        ]}
+                    />
+                </div>
             )}
             {searchBar}
             {listContent}
@@ -567,10 +558,10 @@ const BuildingsLayout: React.FC = () => {
             />
             {isAdmin && (
                 <>
-                    <div className={tabsStyles.tabsSurface} style={{ padding: '1.5rem', marginTop: '2.75rem', borderRadius: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <div className={`${tabsStyles.tabsSurface} ${styles.addPanel}`}>
+                        <div className={styles.addPanelActions}>
                             <ActionButton size="md" variant="primary" onClick={handleOpenAddModal}>
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <div className={styles.addButtonInner}>
                                     <i className="bi bi-plus"></i>
                                     <span>Добавить</span>
                                 </div>
@@ -590,30 +581,10 @@ const BuildingsLayout: React.FC = () => {
                         latitudeError={newLatitudeError}
                         longitudeError={newLongitudeError}
                         isAdding={isAdding}
-                        onNameChange={(value) => {
-                            setNewBuildingName(value);
-                            if (nameError) {
-                                setNameError(null);
-                            }
-                        }}
-                        onAddressChange={(value) => {
-                            setNewBuildingAddress(value);
-                            if (addressError) {
-                                setAddressError(null);
-                            }
-                        }}
-                        onLatitudeChange={(value) => {
-                            setNewBuildingLatitude(value);
-                            if (newLatitudeError) {
-                                setNewLatitudeError(null);
-                            }
-                        }}
-                        onLongitudeChange={(value) => {
-                            setNewBuildingLongitude(value);
-                            if (newLongitudeError) {
-                                setNewLongitudeError(null);
-                            }
-                        }}
+                        onNameChange={withErrorReset(setNewBuildingName, nameError, setNameError)}
+                        onAddressChange={withErrorReset(setNewBuildingAddress, addressError, setAddressError)}
+                        onLatitudeChange={withErrorReset(setNewBuildingLatitude, newLatitudeError, setNewLatitudeError)}
+                        onLongitudeChange={withErrorReset(setNewBuildingLongitude, newLongitudeError, setNewLongitudeError)}
                     />
                 </>
             )}
@@ -630,30 +601,10 @@ const BuildingsLayout: React.FC = () => {
                 latitudeError={editLatitudeError}
                 longitudeError={editLongitudeError}
                 isUpdating={isUpdating}
-                onNameChange={(value) => {
-                    setEditName(value);
-                    if (editNameError) {
-                        setEditNameError(null);
-                    }
-                }}
-                onAddressChange={(value) => {
-                    setEditAddress(value);
-                    if (editAddressError) {
-                        setEditAddressError(null);
-                    }
-                }}
-                onLatitudeChange={(value) => {
-                    setEditLatitude(value);
-                    if (editLatitudeError) {
-                        setEditLatitudeError(null);
-                    }
-                }}
-                onLongitudeChange={(value) => {
-                    setEditLongitude(value);
-                    if (editLongitudeError) {
-                        setEditLongitudeError(null);
-                    }
-                }}
+                onNameChange={withErrorReset(setEditName, editNameError, setEditNameError)}
+                onAddressChange={withErrorReset(setEditAddress, editAddressError, setEditAddressError)}
+                onLatitudeChange={withErrorReset(setEditLatitude, editLatitudeError, setEditLatitudeError)}
+                onLongitudeChange={withErrorReset(setEditLongitude, editLongitudeError, setEditLongitudeError)}
             />
         </>
     );

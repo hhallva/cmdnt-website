@@ -14,7 +14,7 @@ export const getStatus = (currentCapacity: number, capacity: number): RoomStatus
 
 export const getInitials = (student: StudentsDto): string => {
     const initials = `${student.surname?.charAt(0) ?? ''}${student.name?.charAt(0) ?? ''}`;
-    return initials || '—';
+    return initials || 'нет';
 };
 
 export const formatShortName = (student: StudentsDto): string => {
@@ -65,11 +65,11 @@ export const getStudentGenderLabel = (gender: StudentsDto['gender']): string => 
 
 export const formatBirthday = (birthday?: string | null): string => {
     if (!birthday) {
-        return '—';
+        return 'нет';
     }
     const parsed = new Date(birthday);
     if (Number.isNaN(parsed.getTime())) {
-        return '—';
+        return 'нет';
     }
     return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parsed);
 };

@@ -4,7 +4,6 @@ using Core.Data;
 using Core.Models;
 using Core.DTOs.Notes;
 using Core.DTOs;
-using Swashbuckle.AspNetCore.Annotations;
 using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
@@ -21,32 +20,11 @@ namespace API.Controllers
         {
             var notes = await _context.Notes
                 .Include(n => n.User)
-                .ThenInclude(u => u.Role)
+                .ThenInclude(u => u!.Role)
                 .OrderByDescending(n => n.CreateDate)
                 .ToListAsync();
 
             return notes.Select(n => n.ToDto()).ToList();
-        }
-
-        [HttpGet("student/{studentId:int}")]
-        [SwaggerOperation(Summary = "Получение заметок студента", Description = "Возвращает отсортированный список заметок, связанных с конкретным студентом.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Заметки успешно получены.", Type = typeof(IEnumerable<NoteDto>))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<IEnumerable<NoteDto>>> GetNotesByStudentId(int studentId)
-        {
-            var studentExists = await _context.Students.AnyAsync(s => s.Id == studentId);
-
-            if (!studentExists)
-                return NotFound(new ApiErrorDto("Студент не найден", StatusCodes.Status404NotFound));
-
-            var notes = await _context.Notes
-                .Include(note => note.User)
-                .ThenInclude(user => user.Role)
-                .Where(note => note.StudentId == studentId)
-                .OrderByDescending(note => note.CreateDate)
-                .ToListAsync();
-
-            return notes.Select(note => note.ToDto()).ToList();
         }
 
         [HttpGet("{id}")]
@@ -54,7 +32,7 @@ namespace API.Controllers
         {
             var note = await _context.Notes
                 .Include(n => n.User)
-                .ThenInclude(u => u.Role)
+                .ThenInclude(u => u!.Role)
                 .FirstOrDefaultAsync(n => n.Id == id);
 
             if (note == null)

@@ -24,7 +24,7 @@
     border: none;
     margin: 0;
     padding: 1.25rem 0.75rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-12);
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;

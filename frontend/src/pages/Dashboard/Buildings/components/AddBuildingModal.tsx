@@ -2,6 +2,7 @@ import React from 'react';
 import CommonModal from '../../../../components/CommonModal/CommonModal';
 import InputField from '../../../../components/InputField/InputField';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
+import styles from '../BuildingsLayout.module.css';
 
 type AddBuildingModalProps = {
     isOpen: boolean;
@@ -47,7 +48,7 @@ const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
         minWidth={520}
     >
         <form onSubmit={onSubmit}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+            <div className={styles.modalForm}>
                 <InputField
                     label="Название"
                     type="text"
@@ -64,7 +65,7 @@ const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
                     error={addressError ?? undefined}
                     disabled={isAdding}
                 />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                <div className={styles.coordinateGrid}>
                     <InputField
                         label="Долгота"
                         type="text"
@@ -82,7 +83,7 @@ const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
                         disabled={isAdding}
                     />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <div className={styles.modalSubmitRow}>
                     <ActionButton size="md" variant="primary" type="submit" disabled={isAdding}>
                         {isAdding ? 'Добавляем…' : 'Добавить'}
                     </ActionButton>

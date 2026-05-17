@@ -1,6 +1,8 @@
 using Core.Data;
 using Core.DTOs;
-using Core.DTOs.ExpendableTypes;
+using Core.DTOs.Types;
+using Core.DTOs.ExpendableDistributions;
+using Core.DTOs.ExpendableEquipment;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +11,7 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace API.Controllers
 {
-    [SwaggerTag("Управление типами расходных материалов")]
+    [SwaggerTag("Управление расходными материалами и их распределением")]
     [Route("api/v1/[controller]")]
     [ApiController]
     [Authorize]
@@ -17,113 +19,192 @@ namespace API.Controllers
     {
         private readonly AppDbContext _context = context;
 
-        #region Типы
         [HttpGet]
         [SwaggerOperation(
-            Summary = "Получение списка всех типов",
-            Description = "Возвращает полный список типов расходных материалов.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Список типов успешно получен.", Type = typeof(IEnumerable<ExpendableTypeDto>))]
-        public async Task<ActionResult<IEnumerable<ExpendableTypeDto>>> GetAllExpendableTypes()
+            Summary = "Получение списка расходников",
+            Description = "Возвращает список расходных материалов с количеством, использованием и остатком на складе.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Список успешно получен.", Type = typeof(IEnumerable<ExpendableEquipmentDto>))]
+        public async Task<ActionResult<IEnumerable<ExpendableEquipmentDto>>> GetExpendableEquipment()
         {
-            var types = await _context.ExpendableTypes
+            var items = await _context.ExpendableTypes
                 .AsNoTracking()
+                .Select(type => new
+                {
+                    type.Id,
+                    type.Name,
+                    TotalCount = type.ExpendableEquipments.Sum(e => (int?)e.Count) ?? 0,
+                    UsedCount = type.ExpendableEquipments
+                        .SelectMany(e => e.ExpendableDistributions)
+                        .Sum(d => (int?)d.Count) ?? 0,
+                })
                 .ToListAsync();
 
-            return Ok(types.Select(type => type.ToDto()));
+            var result = items.Select(item => new ExpendableEquipmentDto
+            {
+                Type = new TypeDto
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                },
+                TotalCount = item.TotalCount,
+                UsedCount = item.UsedCount,
+                InStockCount = item.TotalCount - item.UsedCount,
+            });
+
+            return Ok(result);
         }
 
-        [HttpGet("{id}")]
+        [HttpPost("{id}")]
         [SwaggerOperation(
-            Summary = "Получение типа по ID",
-            Description = "Возвращает тип расходных материалов по его идентификатору.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Тип успешно найден.", Type = typeof(ExpendableTypeDto))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Тип не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<ExpendableTypeDto>> GetExpendableType(
-            [SwaggerParameter(Description = "Уникальный идентификатор типа", Required = true)] int id)
-        {
-            var type = await _context.ExpendableTypes
-                .AsNoTracking()
-                .FirstOrDefaultAsync(item => item.Id == id);
-
-            if (type == null)
-                return NotFound(new ApiErrorDto("Тип не найден", StatusCodes.Status404NotFound));
-
-            return Ok(type.ToDto());
-        }
-
-        [HttpPost]
-        [SwaggerOperation(
-            Summary = "Создание нового типа",
-            Description = "Добавляет новый тип расходных материалов.")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Тип успешно создан.", Type = typeof(ExpendableTypeDto))]
+            Summary = "Добавление расходников",
+            Description = "Увеличивает количество расходников выбранной категории по её идентификатору.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Количество успешно увеличено.", Type = typeof(ExpendableEquipmentDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<ExpendableTypeDto>> PostExpendableType(
-            [SwaggerRequestBody("Данные нового типа", Required = true)] PostExpendableTypeDto dto)
+        public async Task<ActionResult<ExpendableEquipmentDto>> AddExpendableEquipment(
+            int id,
+            [FromBody, SwaggerRequestBody("Данные для добавления (количество)", Required = true)] ExpendableEquipmentAdjustmentDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
 
-            var type = new ExpendableType
-            {
-                Name = dto.Name,
-            };
-
-            _context.ExpendableTypes.Add(type);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetExpendableType), new { id = type.Id }, type.ToDto());
-        }
-
-        [HttpPut("{id}")]
-        [SwaggerOperation(
-            Summary = "Обновление типа",
-            Description = "Обновляет данные типа расходных материалов.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Тип успешно обновлен.", Type = typeof(ExpendableTypeDto))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные запроса.", Type = typeof(ApiErrorDto))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Тип не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<ExpendableTypeDto>> PutExpendableType(
-            [SwaggerParameter("ID типа", Required = true)] int id,
-            [FromBody] ExpendableTypeDto updateDto)
-        {
             if (id <= 0)
-                return BadRequest(new ApiErrorDto("Некорректный идентификатор", StatusCodes.Status400BadRequest));
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор категории", StatusCodes.Status400BadRequest));
 
-            if (updateDto.Id != 0 && updateDto.Id != id)
-                return BadRequest(new ApiErrorDto("ID типа в теле запроса не совпадает с путевым параметром", StatusCodes.Status400BadRequest));
+            var typeExists = await _context.ExpendableTypes.AnyAsync(type => type.Id == id);
+            if (!typeExists)
+                return BadRequest(new ApiErrorDto("Категория не найдена", StatusCodes.Status400BadRequest));
 
-            var type = await _context.ExpendableTypes
-                .FirstOrDefaultAsync(item => item.Id == id);
+            var equipment = await _context.ExpendableEquipments
+                .FirstOrDefaultAsync(item => item.TypeId == id);
 
-            if (type == null)
-                return NotFound(new ApiErrorDto("Тип не найден", StatusCodes.Status404NotFound));
-
-            type.Name = updateDto.Name;
+            if (equipment == null)
+            {
+                equipment = new ExpendableEquipment
+                {
+                    TypeId = id,
+                    Count = dto.Count,
+                };
+                _context.ExpendableEquipments.Add(equipment);
+            }
+            else
+            {
+                equipment.Count += dto.Count;
+            }
 
             await _context.SaveChangesAsync();
 
-            return Ok(type.ToDto());
+            return Ok(await BuildSummaryAsync(id));
         }
 
         [HttpDelete("{id}")]
         [SwaggerOperation(
-            Summary = "Удаление типа",
-            Description = "Удаляет тип расходных материалов по его ID.")]
-        [SwaggerResponse(StatusCodes.Status204NoContent, "Тип успешно удален.")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Тип не найден.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> DeleteExpendableType(
-            [SwaggerParameter(Description = "Уникальный идентификатор типа", Required = true)] int id)
+            Summary = "Списание расходников",
+            Description = "Уменьшает количество расходников выбранной категории по её идентификатору.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Количество успешно уменьшено.", Type = typeof(ExpendableEquipmentDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации данных.", Type = typeof(ApiErrorDto))]
+        public async Task<ActionResult<ExpendableEquipmentDto>> SubtractExpendableEquipment(
+            int id,
+            [FromBody, SwaggerRequestBody("Данные для списания (количество)", Required = true)] ExpendableEquipmentAdjustmentDto dto)
         {
-            var type = await _context.ExpendableTypes
-                .FirstOrDefaultAsync(item => item.Id == id);
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
 
-            if (type == null)
-                return NotFound(new ApiErrorDto("Тип не найден", StatusCodes.Status404NotFound));
+            if (id <= 0)
+                return BadRequest(new ApiErrorDto("Некорректный идентификатор категории", StatusCodes.Status400BadRequest));
 
-            _context.ExpendableTypes.Remove(type);
+            var typeExists = await _context.ExpendableTypes.AnyAsync(type => type.Id == id);
+            if (!typeExists)
+                return BadRequest(new ApiErrorDto("Категория не найдена", StatusCodes.Status400BadRequest));
+
+            var equipmentList = await _context.ExpendableEquipments
+                .Where(item => item.TypeId == id)
+                .Select(item => new
+                {
+                    Entity = item,
+                    Used = item.ExpendableDistributions.Sum(dist => (int?)dist.Count) ?? 0,
+                })
+                .ToListAsync();
+
+            if (equipmentList.Count == 0)
+                return BadRequest(new ApiErrorDto("Расходники не найдены", StatusCodes.Status400BadRequest));
+
+            var availableTotal = equipmentList.Sum(item => item.Entity.Count - item.Used);
+            if (availableTotal < dto.Count)
+                return BadRequest(new ApiErrorDto("Недостаточно расходников на складе", StatusCodes.Status400BadRequest));
+
+            var remaining = dto.Count;
+            foreach (var item in equipmentList.OrderByDescending(item => item.Entity.Count - item.Used))
+            {
+                var available = item.Entity.Count - item.Used;
+                if (available <= 0)
+                {
+                    continue;
+                }
+
+                var take = Math.Min(available, remaining);
+                item.Entity.Count -= take;
+                remaining -= take;
+                if (remaining == 0)
+                {
+                    break;
+                }
+            }
+
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(await BuildSummaryAsync(id));
         }
-        #endregion
+
+        [HttpGet("distribution")]
+        [SwaggerOperation(
+            Summary = "Получение распределений расходников",
+            Description = "Возвращает список распределений по студентам и типам расходных материалов.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Список успешно получен.", Type = typeof(IEnumerable<ExpendableDistributionDto>))]
+        public async Task<ActionResult<IEnumerable<ExpendableDistributionDto>>> GetDistributions()
+        {
+            var distributions = await _context.ExpendableDistributions
+                .AsNoTracking()
+                .Include(item => item.Student)
+                .Include(item => item.Expendable)
+                .ThenInclude(item => item.Type)
+                .ToListAsync();
+
+            var grouped = distributions
+                .GroupBy(item => item.StudentId)
+                .Select(group => group.ToGroupedDto())
+                .OrderBy(item => item.Student.FullName)
+                .ToList();
+
+            return Ok(grouped);
+        }
+
+        private async Task<ExpendableEquipmentDto> BuildSummaryAsync(int typeId)
+        {
+            var item = await _context.ExpendableTypes
+                .AsNoTracking()
+                .Where(type => type.Id == typeId)
+                .Select(type => new
+                {
+                    type.Id,
+                    type.Name,
+                    TotalCount = type.ExpendableEquipments.Sum(e => (int?)e.Count) ?? 0,
+                    UsedCount = type.ExpendableEquipments
+                        .SelectMany(e => e.ExpendableDistributions)
+                        .Sum(d => (int?)d.Count) ?? 0,
+                })
+                .FirstAsync();
+
+            return new ExpendableEquipmentDto
+            {
+                Type = new TypeDto
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                },
+                TotalCount = item.TotalCount,
+                UsedCount = item.UsedCount,
+                InStockCount = item.TotalCount - item.UsedCount,
+            };
+        }
     }
 }

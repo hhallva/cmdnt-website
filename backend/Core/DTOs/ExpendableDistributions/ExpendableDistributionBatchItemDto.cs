@@ -1,16 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Core.DTOs.ExpendableDistribution
+namespace Core.DTOs.ExpendableDistributions
 {
-    public class ExpendableDistributionUpsertDto
+    public class ExpendableDistributionBatchItemDto
     {
         [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Некорректный идентификатор студента")]
-        public int StudentId { get; set; }
-
-        [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Некорректный идентификатор категории")]
-        public int TypeId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Количество должно быть больше 0")]

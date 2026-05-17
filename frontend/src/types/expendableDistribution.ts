@@ -1,14 +1,21 @@
-export interface ExpendableDistributionDto {
+export interface ExpendableDistributionStudentDto {
     id: number;
-    studentId: number;
-    studentFullName: string;
-    typeId: number;
-    typeName: string;
+    fullName: string;
+}
+
+export interface ExpendableDistributionTypeDto {
+    id: number;
+    name: string;
     count: number;
 }
 
-export interface ExpendableDistributionUpsertDto {
-    studentId: number;
-    typeId: number;
+export interface ExpendableDistributionDto {
+    id: number;
+    student: ExpendableDistributionStudentDto;
+    types: ExpendableDistributionTypeDto[];
+}
+
+export interface ExpendableDistributionBatchItemDto {
+    id: number;
     count: number;
 }

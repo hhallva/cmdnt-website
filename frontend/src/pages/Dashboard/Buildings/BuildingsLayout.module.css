@@ -1,0 +1,177 @@
+.searchBarSurface {
+    margin-bottom: 2.75rem;
+}
+
+.searchControls {
+    gap: 1.75rem;
+}
+
+.resetButton {
+    width: 13.25rem;
+}
+
+.addPanel {
+    padding: 1.5rem;
+    margin-top: 2.75rem;
+    border-radius: var(--radius-16);
+}
+
+.addPanelActions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.addButtonInner {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.modalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.coordinateGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.modalSubmitRow {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.modalDetailsGrid {
+    display: flex;
+    gap: 1.75rem;
+    flex-wrap: wrap;
+}
+
+.modalMetaList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(200px, 1fr));
+    column-gap: 1.75rem;
+    row-gap: 0.75rem;
+    width: 100%;
+}
+
+.modalMetaItem {
+    margin: 0;
+}
+
+.modalMetaAddress {
+    grid-column: 1 / -1;
+}
+
+.summarySection {
+    display: block;
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modalAdminActions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .summarySection {
+        display: none;
+    }
+
+    .searchBarSurface {
+        margin-bottom: 1.5rem;
+    }
+
+    .searchControls {
+        gap: 0.75rem;
+    }
+
+    .resetButton {
+        width: 100%;
+    }
+
+    .addPanel {
+        margin-top: 1.5rem;
+        padding: 1rem;
+    }
+
+    .addPanelActions {
+        justify-content: stretch;
+    }
+
+    .addPanelActions>* {
+        width: 100%;
+    }
+
+    .addButtonInner {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .coordinateGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .modalSubmitRow,
+    .modalActions {
+        justify-content: stretch;
+    }
+
+    .modalSubmitRow>*,
+    .modalActions>* {
+        width: 100%;
+    }
+
+    .modalActions {
+        flex-direction: column-reverse;
+    }
+
+    .modalDetailsGrid {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .modalMetaList {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .modalMetaAddress {
+        grid-column: auto;
+    }
+
+    .modalFooter {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .modalAdminActions {
+        width: 100%;
+        flex-direction: column-reverse;
+    }
+
+    .modalAdminActions>* {
+        width: 100%;
+    }
+
+    .modalFooter>*:last-child {
+        width: 100%;
+    }
+}

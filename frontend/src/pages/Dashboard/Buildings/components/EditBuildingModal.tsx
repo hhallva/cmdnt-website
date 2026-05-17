@@ -2,6 +2,7 @@ import React from 'react';
 import CommonModal from '../../../../components/CommonModal/CommonModal';
 import InputField from '../../../../components/InputField/InputField';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
+import styles from '../BuildingsLayout.module.css';
 
 type EditBuildingModalProps = {
     isOpen: boolean;
@@ -47,7 +48,7 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = ({
         minWidth={520}
     >
         <form onSubmit={onSubmit}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+            <div className={styles.modalForm}>
                 <InputField
                     label="Название"
                     type="text"
@@ -64,7 +65,7 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = ({
                     error={addressError ?? undefined}
                     disabled={isUpdating}
                 />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                <div className={styles.coordinateGrid}>
                     <InputField
                         label="Долгота"
                         type="text"
@@ -82,7 +83,7 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = ({
                         disabled={isUpdating}
                     />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <div className={styles.modalActions}>
                     <ActionButton size="md" variant="secondary" type="button" onClick={onClose} disabled={isUpdating}>
                         Отмена
                     </ActionButton>

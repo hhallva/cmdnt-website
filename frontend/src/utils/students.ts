@@ -93,11 +93,11 @@ export const formatDateForApi = (rawValue: string): string | null => {
 
 export const formatBirthday = (birthday?: string | null): string => {
     if (!birthday) {
-        return '—';
+        return 'нет';
     }
     const parsed = new Date(birthday);
     if (Number.isNaN(parsed.getTime())) {
-        return '—';
+        return 'нет';
     }
     return new Intl.DateTimeFormat('ru-RU', {
         day: '2-digit',

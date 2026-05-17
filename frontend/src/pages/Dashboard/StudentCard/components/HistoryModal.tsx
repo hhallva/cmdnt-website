@@ -20,11 +20,25 @@ type HistoryModalProps = {
 const getInitialsFromFullName = (fullName: string): string => {
     const parts = fullName.split(' ').filter(Boolean);
     if (parts.length === 0) {
-        return '—';
+        return 'нет';
     }
     const first = parts[0]?.charAt(0) ?? '';
     const second = parts[1]?.charAt(0) ?? '';
-    return `${first}${second}`.toUpperCase() || '—';
+    return `${first}${second}`.toUpperCase() || 'нет';
+};
+
+const formatShortFullName = (fullName: string): string => {
+    const parts = fullName.split(' ').map(part => part.trim()).filter(Boolean);
+    if (parts.length === 0) {
+        return 'нет';
+    }
+
+    const surname = parts[0];
+    const nameInitial = parts[1]?.charAt(0).toUpperCase() ?? '';
+    const patronymicInitial = parts[2]?.charAt(0).toUpperCase() ?? '';
+    const initials = `${nameInitial}${nameInitial ? '.' : ''}${patronymicInitial}${patronymicInitial ? '.' : ''}`;
+
+    return initials ? `${surname} ${initials}` : surname;
 };
 
 const getAcademicYearStart = (value: string): number => {
@@ -151,19 +165,20 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
                                                                         {getInitialsFromFullName(mate.fullName)}
                                                                     </div>
                                                                     <div className={styles.historyRoommateText}>
-                                                                        <div className={styles.historyRoommateName}>{mate.fullName}</div>
+                                                                        <div className={styles.historyRoommateName}>{formatShortFullName(mate.fullName)}</div>
                                                                         <div className={styles.historyRoommateMeta}>
-                                                                            {mate.groupName ?? '—'} · {mate.groupCourse ?? '—'} курс
+                                                                            {mate.groupName ?? 'нет'} · {mate.groupCourse ?? 'нет'} курс
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                                 <ActionButton
-                                                                    variant="secondary"
+                                                                    variant="transparent"
                                                                     size="md"
-                                                                    className={styles.studentCardButton}
+                                                                    className={`${styles.studentCardButton} ${styles.expandIconButton}`}
+                                                                    ariaLabel="Открыть карточку студента"
                                                                     onClick={() => onStudentClick(mate.id)}
                                                                 >
-                                                                    Карточка
+                                                                    <i className={`bi bi-arrows-angle-expand ${styles.expandIcon}`} aria-hidden="true"></i>
                                                                 </ActionButton>
                                                             </div>
                                                         ))}
