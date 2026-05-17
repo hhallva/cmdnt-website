@@ -9,33 +9,43 @@
     background: var(--color-accent-hover);
 }
 
-.filterBar {
+.searchPanelRow {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
     width: 100%;
-    margin-bottom: 0.5rem;
 }
 
-.filterField {
-    flex: 1 1 260px;
-}
-
-.filterActions {
+.searchLeft {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
-    flex: 0 0 auto;
+    gap: 1.75rem;
+    flex-wrap: wrap;
 }
 
-.filterResetButton {
-    min-height: 48px;
-    white-space: nowrap;
+.searchInputWrapper {
+    width: 280px;
+    min-width: 280px;
+    flex: 0 0 15rem;
 }
 
-.modilButton {
-    min-width: 160px;
-    font-size: 1rem;
+.searchButtons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.roleSelectWrapper {
+    min-width: 15rem;
+    flex: 0 0 15rem;
+}
+
+.resetButton {
+    width: 6.25rem;
+    min-width: 6.25rem;
 }
 
 .desktopTable {
@@ -110,6 +120,7 @@
 .formSection {
     padding: 1.5rem;
     background: var(--color-surface);
+    border-radius: var(--radius-12);
     margin-bottom: 1.5rem;
 }
 
@@ -155,12 +166,7 @@
     }
 
 
-    .modilButton {
-        min-height: 38px;
-        align-self: end;
-        height: fit-content;
-        justify-self: flex;
-        font-size: 1rem;
+    .resetButton {
         width: 100%;
     }
 
@@ -170,13 +176,16 @@
         width: 100%;
     }
 
-    .filterActions {
+    .searchLeft,
+    .searchButtons {
         width: 100%;
-        justify-content: flex-start;
     }
 
-    .filterResetButton {
+    .searchInputWrapper,
+    .roleSelectWrapper {
         width: 100%;
+        min-width: 100%;
+        flex-basis: 100%;
     }
 
     .desktopTable {

@@ -1,5 +1,6 @@
 import type { RoomDto } from '../../../types/rooms';
 import type { StudentsDto } from '../../../types/students';
+import { formatStudentName } from '../../../utils/students';
 import type { BlockWithRooms, RoomStatus, RoomWithOccupants } from './types';
 
 export const getStatus = (currentCapacity: number, capacity: number): RoomStatus => {
@@ -13,20 +14,15 @@ export const getStatus = (currentCapacity: number, capacity: number): RoomStatus
 };
 
 export const getInitials = (student: StudentsDto): string => {
-    const initials = `${student.surname?.charAt(0) ?? ''}${student.name?.charAt(0) ?? ''}`;
-    return initials || 'нет';
+    return formatStudentName(student, { format: 'initials', emptyValue: 'нет' });
 };
 
 export const formatShortName = (student: StudentsDto): string => {
-    const surname = student.surname?.trim() ?? '';
-    const nameInitial = student.name ? `${student.name.trim().charAt(0)}.` : '';
-    const patronymicInitial = student.patronymic ? `${student.patronymic.trim().charAt(0)}.` : '';
-    const initials = [nameInitial, patronymicInitial].filter(Boolean).join(' ');
-    return [surname, initials].filter(Boolean).join(' ').trim() || `Студент ${student.id}`;
+    return formatStudentName(student, { format: 'short', emptyValue: `Студент ${student.id}` });
 };
 
 export const formatFullName = (student: StudentsDto): string => {
-    return [student.surname, student.name, student.patronymic].filter(Boolean).join(' ').trim();
+    return formatStudentName(student);
 };
 
 export const getGenderLabel = (entity: Pick<BlockWithRooms, 'genderType' | 'currentCapacity' | 'rooms'>): string => {
@@ -98,32 +94,20 @@ export const hasGenderValue = (value: boolean | null | undefined): value is bool
 
 export const doesRoomMatchStudentGender = (
     room: RoomDto,
-    studentGender: StudentsDto['gender'] | null | undefined
+    _studentGender: StudentsDto['gender'] | null | undefined
 ): boolean => {
     if (room.currentCapacity >= room.capacity) {
         return false;
     }
 
-    if (!hasGenderValue(studentGender)) {
-        return room.currentCapacity === 0;
-    }
-
-    if (room.currentCapacity === 0) {
-        return true;
-    }
-
-    return hasGenderValue(room.genderType) && room.genderType === studentGender;
+    return true;
 };
 
 export const doesStudentMatchRoomGender = (
-    studentGender: StudentsDto['gender'] | null | undefined,
-    roomGender: RoomDto['genderType'] | null
+    _studentGender: StudentsDto['gender'] | null | undefined,
+    _roomGender: RoomDto['genderType'] | null
 ): boolean => {
-    if (!hasGenderValue(roomGender)) {
-        return true;
-    }
-
-    return hasGenderValue(studentGender) && studentGender === roomGender;
+    return true;
 };
 
 export const getBlockKey = (floorNumber: number, blockNumber: string): string => `${floorNumber}-${blockNumber}`;

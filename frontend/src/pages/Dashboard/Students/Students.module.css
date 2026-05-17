@@ -121,6 +121,20 @@
     padding: 1rem;
 }
 
+.tableHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.tableTotal {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
 .fioCell {
     display: inline-flex;
     align-items: center;

@@ -119,6 +119,13 @@ namespace API.Controllers
             if (type == null)
                 return NotFound(new ApiErrorDto("Тип не найден", StatusCodes.Status404NotFound));
 
+            var equipmentToDelete = await _context.StationaryEquipments
+                .Where(item => item.TypeId == id)
+                .ToListAsync();
+
+            if (equipmentToDelete.Count != 0)
+                _context.StationaryEquipments.RemoveRange(equipmentToDelete);
+
             _context.StationaryTypes.Remove(type);
             await _context.SaveChangesAsync();
 

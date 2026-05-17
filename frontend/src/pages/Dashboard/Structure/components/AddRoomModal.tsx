@@ -44,6 +44,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({
                     label="Номер этажа"
                     type="number"
                     min="1"
+                    max="10"
                     inputMode="numeric"
                     value={form.floorNumber}
                     onChange={(e) => onFieldChange('floorNumber', e.target.value)}

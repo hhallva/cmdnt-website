@@ -103,17 +103,74 @@ namespace API.Controllers
             Summary = "Получение списка оборудования",
             Description = "Возвращает список стационарного оборудования с типом, статусом и размещением.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Список оборудования успешно получен.", Type = typeof(IEnumerable<StationaryEquipmentDto>))]
-        public async Task<ActionResult<IEnumerable<StationaryEquipmentDto>>> GetStationaryEquipment()
+        public async Task<IActionResult> GetStationaryEquipment(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] bool all = false,
+            [FromQuery] string? search = null,
+            [FromQuery] int? buildingId = null,
+            [FromQuery] bool storageOnly = false,
+            [FromQuery] int? typeId = null,
+            [FromQuery] int? statusId = null)
         {
-            var equipment = await _context.StationaryEquipments
+            if (page <= 0)
+                return BadRequest(new ApiErrorDto("Номер страницы должен быть больше 0", StatusCodes.Status400BadRequest));
+
+            var normalizedPageSize = pageSize > 0 ? pageSize : 50;
+
+            var query = _context.StationaryEquipments
                 .AsNoTracking()
                 .Include(item => item.Type)
                 .Include(item => item.Status)
                 .Include(item => item.Room)
                 .ThenInclude(room => room!.Building)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchPattern = $"%{search.Trim()}%";
+                query = query.Where(item =>
+                    EF.Functions.Like(item.InventoryNumber, searchPattern)
+                    || EF.Functions.Like(item.Description ?? string.Empty, searchPattern)
+                    || EF.Functions.Like(item.Type.Name, searchPattern)
+                    || EF.Functions.Like(item.Status.Name, searchPattern)
+                    || (item.Room != null && EF.Functions.Like(item.Room.Building.Name, searchPattern)));
+            }
+
+            if (storageOnly)
+                query = query.Where(item => item.RoomId == null);
+            else if (buildingId.HasValue)
+                query = query.Where(item => item.Room != null && item.Room.BuildingId == buildingId.Value);
+
+            if (typeId.HasValue)
+                query = query.Where(item => item.TypeId == typeId.Value);
+
+            if (statusId.HasValue)
+                query = query.Where(item => item.StatusId == statusId.Value);
+
+            query = query
+                .OrderBy(item => item.InventoryNumber)
+                .ThenBy(item => item.Id);
+
+            if (all)
+            {
+                var equipment = await query.ToListAsync();
+                return Ok(equipment.Select(item => item.ToDto()));
+            }
+
+            var totalCount = await query.CountAsync();
+            var equipmentPage = await query
+                .Skip((page - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
                 .ToListAsync();
 
-            return Ok(equipment.Select(item => item.ToDto()));
+            return Ok(new PaginatedResponseDto<StationaryEquipmentDto>
+            {
+                Items = equipmentPage.Select(item => item.ToDto()).ToList(),
+                Page = page,
+                PageSize = normalizedPageSize,
+                TotalCount = totalCount,
+            });
         }
 
         [HttpGet("{id}")]

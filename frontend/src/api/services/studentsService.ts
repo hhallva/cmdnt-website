@@ -4,10 +4,60 @@ import type { ResettlementHistoryDto } from '../../types/resettlements';
 import type { NoteDto, CreateNoteDto } from '../../types/notes';
 import type { GroupDto } from '../../types/groups';
 import type { ExpendableDistributionBatchItemDto, ExpendableDistributionDto } from '../../types/expendableDistribution';
+import type { PaginatedResponse } from '../../types/pagination';
+
+type GetStudentsPageParams = {
+    page: number;
+    pageSize?: number;
+    search?: string;
+    buildingId?: number;
+    unassigned?: boolean;
+    groupId?: number;
+    course?: number;
+    gender?: boolean;
+};
+
+type GetAllStudentsParams = Omit<GetStudentsPageParams, 'page' | 'pageSize'>;
 
 export class StudentsService extends BaseApiService {
-    getAllStudents(): Promise<StudentsDto[]> {
-        return this.get<StudentsDto[]>('/api/v1/Students');
+    getAllStudents({ search, buildingId, unassigned, groupId, course, gender }: GetAllStudentsParams = {}): Promise<StudentsDto[]> {
+        const params = new URLSearchParams({
+            all: 'true',
+        });
+
+        if (search?.trim()) params.set('search', search.trim());
+        if (typeof buildingId === 'number') params.set('buildingId', buildingId.toString());
+        if (unassigned) params.set('unassigned', 'true');
+        if (typeof groupId === 'number') params.set('groupId', groupId.toString());
+        if (typeof course === 'number') params.set('course', course.toString());
+        if (typeof gender === 'boolean') params.set('gender', gender.toString());
+
+        return this.get<StudentsDto[]>(`/api/v1/Students?${params.toString()}`);
+    }
+
+    getStudentsPage({
+        page,
+        pageSize = 50,
+        search,
+        buildingId,
+        unassigned,
+        groupId,
+        course,
+        gender,
+    }: GetStudentsPageParams): Promise<PaginatedResponse<StudentsDto>> {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            pageSize: pageSize.toString(),
+        });
+
+        if (search?.trim()) params.set('search', search.trim());
+        if (typeof buildingId === 'number') params.set('buildingId', buildingId.toString());
+        if (unassigned) params.set('unassigned', 'true');
+        if (typeof groupId === 'number') params.set('groupId', groupId.toString());
+        if (typeof course === 'number') params.set('course', course.toString());
+        if (typeof gender === 'boolean') params.set('gender', gender.toString());
+
+        return this.get<PaginatedResponse<StudentsDto>>(`/api/v1/Students?${params.toString()}`);
     }
 
     getStudentById(id: number): Promise<StudentsDto> {

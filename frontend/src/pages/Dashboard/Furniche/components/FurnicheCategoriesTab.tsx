@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
 import CommonTable, { type ColumnDefinition, type RowActionConfig } from '../../../../components/CommonTable/CommonTable';
 import { apiClient } from '../../../../api/client';
+import { stationaryQueryKeys, useStationaryTypesQuery } from '../../../../hooks/useStationaryQuery';
 import type { StationaryTypeDto } from '../../../../types/stationaryTypes';
 import CategoryModal from '../../components/CategoryModal';
 import styles from '../Furniche.module.css';
@@ -21,10 +23,16 @@ type FurnicheCategoriesTabProps = {
     onExportReady?: (handler: (() => void) | null) => void;
 };
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTerm, onExportReady }) => {
-    const [types, setTypes] = useState<StationaryTypeDto[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newName, setNewName] = useState('');
     const [nameError, setNameError] = useState<string | null>(null);
@@ -38,23 +46,12 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
         key: 'name',
         direction: 'asc',
     });
+    const { data: types = [], isLoading: loading, error: queryError } = useStationaryTypesQuery();
+    const error = queryError ? getErrorMessage(queryError, 'Не удалось загрузить типы') : null;
 
-    const loadTypes = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await apiClient.getStationaryTypes();
-            setTypes(data);
-        } catch (err: any) {
-            setError(err?.message || 'Не удалось загрузить типы');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        void loadTypes();
-    }, [loadTypes]);
+    const refreshStationaryTypes = useCallback(async () => {
+        await queryClient.invalidateQueries({ queryKey: stationaryQueryKeys.all });
+    }, [queryClient]);
 
     const filteredTypes = useMemo(() => {
         const term = searchTerm.trim().toLowerCase();
@@ -141,7 +138,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
             await apiClient.createStationaryType({ name: trimmed });
             setIsAddModalOpen(false);
             setNewName('');
-            await loadTypes();
+            await refreshStationaryTypes();
         } catch (err: any) {
             setNameError(err?.message || 'Не удалось сохранить');
         } finally {
@@ -183,7 +180,7 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
             });
             setIsEditModalOpen(false);
             setEditTarget(null);
-            await loadTypes();
+            await refreshStationaryTypes();
         } catch (err: any) {
             setEditError(err?.message || 'Не удалось сохранить');
         } finally {
@@ -192,16 +189,16 @@ const FurnicheCategoriesTab: React.FC<FurnicheCategoriesTabProps> = ({ searchTer
     };
 
     const handleDeleteType = useCallback(async (type: StationaryTypeDto) => {
-        if (!window.confirm(`Удалить категорию "${type.name}"?`)) {
+        if (!window.confirm(`Удалить категорию "${type.name}"? Все объекты мебели этой категории будут удалены без возможности восстановления.`)) {
             return;
         }
         try {
             await apiClient.deleteStationaryType(type.id);
-            await loadTypes();
+            await refreshStationaryTypes();
         } catch (err: any) {
             alert(err?.message || 'Не удалось удалить');
         }
-    }, [loadTypes]);
+    }, [refreshStationaryTypes]);
 
     const rowAction = useMemo<RowActionConfig<StationaryTypeDto>>(() => ({
         icon: 'bi-three-dots-vertical',

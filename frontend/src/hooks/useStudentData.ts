@@ -1,21 +1,19 @@
 // src/hooks/useStudentData.ts
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
 import type { StudentsDto } from '../types/students';
-import { useAsyncResource } from './shared/useAsyncResource';
+
+const studentQueryKeys = {
+    detail: (studentId: number) => ['student', studentId] as const,
+};
 
 export const useStudentData = (studentId: number) => {
-    const [notFound, setNotFound] = useState(false);
     const isValidStudentId = Number.isFinite(studentId) && studentId > 0;
-    const initialData = useMemo(() => ({
-        student: null as StudentsDto | null,
-        notFound: false,
-    }), []);
-
-    const { data, loading, error, refetch } = useAsyncResource({
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: studentQueryKeys.detail(studentId),
         enabled: isValidStudentId,
-        initialData,
-        loader: async () => {
+        queryFn: async () => {
             try {
                 const [studentRes, contactsRes, extRes] = await Promise.all([
                     apiClient.getStudentById(studentId),
@@ -37,7 +35,7 @@ export const useStudentData = (studentId: number) => {
                 const status = (err as { status?: number })?.status;
                 if (status === 404) {
                     return {
-                        student: null,
+                        student: null as StudentsDto | null,
                         notFound: true,
                     };
                 }
@@ -45,20 +43,23 @@ export const useStudentData = (studentId: number) => {
                 throw err;
             }
         },
-        deps: [studentId],
     });
 
-    const finalError = isValidStudentId ? error : 'Некорректный ID студента';
+    const finalError = !isValidStudentId
+        ? 'Некорректный ID студента'
+        : error instanceof Error
+            ? error.message
+            : null;
 
-    useEffect(() => {
-        setNotFound(data.notFound);
-    }, [data.notFound]);
+    const refetchStudent = useCallback(() => {
+        void refetch();
+    }, [refetch]);
 
     return {
-        student: data.student,
-        loading: isValidStudentId ? loading : false,
+        student: data?.student ?? null,
+        loading: isValidStudentId ? isLoading : false,
         error: finalError,
-        notFound,
-        refetch,
+        notFound: data?.notFound ?? false,
+        refetch: refetchStudent,
     };
 };

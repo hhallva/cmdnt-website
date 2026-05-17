@@ -237,8 +237,15 @@ export const useSettlementForm = ({
         setSettlementAlert(null);
         setIsSettling(true);
         try {
+            const selectedRoom = roomsById.get(Number(settlementForm.roomId));
+            const willRoomBeFull = selectedRoom ? selectedRoom.currentCapacity + 1 >= selectedRoom.capacity : false;
+
             await apiClient.assignStudentToRoom(Number(settlementForm.studentId), Number(settlementForm.roomId));
-            setSettlementForm(settlementFormInitialState);
+            setSettlementForm(prev => ({
+                ...prev,
+                studentId: '',
+                roomId: willRoomBeFull ? '' : prev.roomId,
+            }));
             setSettlementErrors({});
             setSettlementAlert({ type: 'success', message: 'Студент успешно заселён' });
             await onSuccess();
@@ -248,7 +255,7 @@ export const useSettlementForm = ({
         } finally {
             setIsSettling(false);
         }
-    }, [settlementForm, onSuccess, refreshStatistics]);
+    }, [settlementForm, onSuccess, refreshStatistics, roomsById]);
 
     const prefillRoomSelection = useCallback((room: RoomWithOccupants) => {
         if (!canManageRooms) {

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getUserSession } from '../../../components/ProtectedRoute';
 import { apiClient } from '../../../api/client';
+import { useRolesQuery, useUserStatisticsQuery, useUsersQuery, usersQueryKeys } from '../../../hooks/useUsersQuery';
 
 import type { UserDto } from '../../../types/UserDto';
-import type { UserStatisticDto } from '../../../types/UserStatisticDto';
-import type { RoleDto } from '../../../types/RoleDto';
 import type { PostUserDto } from '../../../types/PostUserDto';
 
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
@@ -24,69 +24,57 @@ import styles from './User.module.css'
 const USERS_TAB_STORAGE_KEY = 'users-active-tab';
 const USERS_DEFAULT_TAB_ID = 'list';
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
+
 const UsersLayout: React.FC = () => {
     // #region Загрузка данных
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
     const userSession = getUserSession();
 
-    const [statistics, setStatistics] = useState<UserStatisticDto | null>(null);
-    const [users, setUsers] = useState<UserDto[]>([]);
-    const [roles, setRoles] = useState<RoleDto[]>([]);
+    const [usersPage, setUsersPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'fullName',
+        direction: 'asc',
+    });
     const navigate = useNavigate();
     const location = useLocation();
+    const queryClient = useQueryClient();
     const [activeTabId, setActiveTabId] = useState<string>(() => {
         if (typeof window === 'undefined') {
             return USERS_DEFAULT_TAB_ID;
         }
         return sessionStorage.getItem(USERS_TAB_STORAGE_KEY) || USERS_DEFAULT_TAB_ID;
     });
+    const usersFilters = useMemo(() => ({
+        search: searchTerm,
+    }), [searchTerm]);
+    const { data: statistics, isLoading: isStatisticsLoading, error: statisticsError } = useUserStatisticsQuery();
+    const { data: usersResponse, isLoading: isUsersLoading, error: usersError } = useUsersQuery(usersFilters, usersPage);
+    const { data: roles = [], isLoading: areRolesLoading, error: rolesError } = useRolesQuery();
+    const users = usersResponse?.items ?? [];
+    const usersTotalCount = usersResponse?.totalCount ?? 0;
+    const loading = isStatisticsLoading || isUsersLoading || areRolesLoading;
+    const error = statisticsError
+        ? getErrorMessage(statisticsError, 'Ошибка при загрузке статистики')
+        : usersError
+            ? getErrorMessage(usersError, 'Ошибка при загрузке пользователей')
+            : rolesError
+                ? getErrorMessage(rolesError, 'Ошибка при загрузке ролей')
+                : null;
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [statsResponse, usersResponse, rolesResponse] = await Promise.all([
-                    apiClient.getUserStatistics(),
-                    apiClient.getAllUsers(),
-                    apiClient.getAllRoles()
-                ]);
-
-                setStatistics(statsResponse);
-                setUsers(usersResponse);
-                setRoles(rolesResponse);
-                console.info("Получение статистики и пользователей");
-            } catch (err: any) {
-                console.error('Ошибка при загрузке данных:', err);
-
-                setError(err.message || 'Ошибка при загрузке данных');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [navigate]);
-
-    const fetchStatistics = async () => {
-        try {
-            const statsResponse = await apiClient.getUserStatistics();
-            setStatistics(statsResponse);
-        } catch (err: any) {
-            console.error('Ошибка при загрузке статистики:', err);
-            throw err;
-        }
-    };
-
-    const fetchUsers = async () => {
-        try {
-            const usersResponse = await apiClient.getAllUsers();
-            setUsers(usersResponse);
-        } catch (err: any) {
-            console.error('Ошибка при загрузке пользователей:', err);
-            throw err;
-        }
-    };
+    const refreshUsersData = useCallback(async () => {
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: usersQueryKeys.statistics() }),
+            queryClient.invalidateQueries({ queryKey: usersQueryKeys.roles() }),
+            queryClient.invalidateQueries({ queryKey: usersQueryKeys.lists() }),
+        ]);
+    }, [queryClient]);
     // #endregion
 
     useEffect(() => {
@@ -115,33 +103,22 @@ const UsersLayout: React.FC = () => {
     // #region Список пользователей 
 
     // #region Поиск и фильтрация
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedRoleId, setSelectedRoleId] = useState<number | 'all'>('all');
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
-        key: 'fullName',
-        direction: 'asc',
-    });
-
     const roleOptions = [
-        { value: 'all', label: 'Все роли' },
+        { value: 0, label: 'Выберите роль' },
         ...roles.map(role => ({
             value: role.id,
             label: role.name || `Роль ${role.id}`
-        }))
+        })),
     ];
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUsersPage(1);
         setSearchTerm(e.target.value);
     };
 
-    const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const value = e.target.value;
-        setSelectedRoleId(value === 'all' ? 'all' : Number(value));
-    };
-
     const handleResetFilters = () => {
+        setUsersPage(1);
         setSearchTerm('');
-        setSelectedRoleId('all');
         setSortConfig({ key: 'fullName', direction: 'asc' });
     };
 
@@ -157,15 +134,7 @@ const UsersLayout: React.FC = () => {
         });
     };
 
-    const filteredUsers = useMemo(() => users.filter(user => {
-        const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (user.surname?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (user.patronymic?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-
-        const matchesRole = selectedRoleId === 'all' || user.role?.id === selectedRoleId;
-
-        return matchesSearch && matchesRole;
-    }), [users, searchTerm, selectedRoleId]);
+    const filteredUsers = useMemo(() => users, [users]);
 
     // #endregion
 
@@ -184,20 +153,18 @@ const UsersLayout: React.FC = () => {
         }
     };
 
-    const handleCloseEditUserModal = () => {
+    const handleCloseEdit = () => {
         setShowEditUserModal(false);
         setUserForEdit(null);
     };
 
-    const handleSuccessEditUser = async () => {
+    const handleSuccessEdit = async () => {
         console.log('Пользователь успешно обновлён. Перезагружаем список пользователей...');
         try {
-            // --- Перезагружаем список пользователей ---
-            await fetchUsers(); // Предполагается, что fetchUsers - асинхронная функция из твоего useEffect
+            await refreshUsersData();
         } catch (err: any) {
             console.error('Ошибка при перезагрузке списка пользователей после редактирования:', err);
             alert(err.message || 'Ошибка при обновлении списка пользователей');
-            // Ошибка 401 будет перехвачена в apiClient
         }
     };
 
@@ -214,8 +181,7 @@ const UsersLayout: React.FC = () => {
             try {
                 await apiClient.deleteUser(user.id);
                 console.log('Пользователь успешно удалён с сервера:', user);
-                setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
-                await fetchStatistics();
+                await refreshUsersData();
             } catch (err: any) {
                 console.error('Ошибка при удалении пользователя:', err);
                 alert(err.message || 'Ошибка при удалении пользователя');
@@ -364,30 +330,25 @@ const UsersLayout: React.FC = () => {
     }, [activeMobileMenuUserId, activeMobileUser, closeMobileMenu]);
 
     const listTabHeader = (
-        <div className={styles.filterBar}>
-            <div className={styles.filterField}
-            >
-                <InputField
-                    type="text"
-                    placeholder="Поиск по ФИО..."
-                    value={searchTerm}
-                    onChange={handleSearchChange} />
-            </div>
-            <div className={styles.filterField}>
-                <SelectField
-                    value={selectedRoleId}
-                    onChange={handleRoleChange}
-                    options={roleOptions} />
-            </div>
-            <div className={styles.filterActions}>
-                <ActionButton
-                    size='md'
-                    variant='secondary'
-                    onClick={handleResetFilters}
-                    className={styles.modilButton}
-                >
-                    Сбросить
-                </ActionButton>
+        <div className={styles.searchPanelRow}>
+            <div className={styles.searchLeft}>
+                <div className={styles.searchInputWrapper}>
+                    <InputField
+                        type="text"
+                        placeholder="Поиск..."
+                        value={searchTerm}
+                        onChange={handleSearchChange} />
+                </div>
+                <div className={styles.searchButtons}>
+                    <ActionButton
+                        size='md'
+                        variant='secondary'
+                        onClick={handleResetFilters}
+                        className={styles.resetButton}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
             </div>
         </div>
     );
@@ -397,12 +358,14 @@ const UsersLayout: React.FC = () => {
             <div className={styles.desktopTable}>
                 <CommonTable
                     data={sortedUsers}
-                    totalCount={users.length}
+                    totalCount={usersTotalCount}
                     columns={columns}
                     rowAction={rowAction}
                     enableSorting={true}
                     onSortRequest={requestSort}
                     sortConfig={sortConfig}
+                    currentPage={usersPage}
+                    onPageChange={setUsersPage}
                     emptyMessage="Пользователи не найдены"
                 />
             </div>
@@ -538,7 +501,7 @@ const UsersLayout: React.FC = () => {
         return Object.keys(errors).length === 0;
     };
 
-    const handleAddUserSubmit = async (e: React.FormEvent) => {
+    const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateAddUserForm()) {
             return;
@@ -563,13 +526,10 @@ const UsersLayout: React.FC = () => {
             });
             setConfirmPassword('');
             setAddErrors({});
-            // Перезагружаем список пользователей и статистику
-            await fetchUsers();
-            await fetchStatistics();
+            await refreshUsersData();
         } catch (err: any) {
             console.error('Ошибка при добавлении пользователя:', err);
             alert(err.message || 'Ошибка при добавлении пользователя');
-            // Ошибка 401 будет перехвачена в apiClient
         } finally {
             setIsAdding(false);
         }
@@ -577,7 +537,7 @@ const UsersLayout: React.FC = () => {
 
     const addTabContent = (
         <div>
-            <form onSubmit={handleAddUserSubmit} >
+            <form onSubmit={handleAddSubmit} >
                 <div className={styles.formSection}>
                     <h4 className={styles.formSectionTitle}>Основное</h4>
                     <div className="row g-3">
@@ -700,7 +660,7 @@ const UsersLayout: React.FC = () => {
     if (!statistics) return <div className="alert alert-info m-3" role="alert">Статистика не найдена.</div>;
 
     const userStats = [
-        { value: statistics.totalUsers, label: 'пользователей' },
+        { value: statistics.totalUsers, label: 'пользователи' },
         { value: statistics.adminCount, label: 'администраторы' },
         { value: statistics.commandantCount, label: 'коменданты' },
         { value: statistics.educatorCount, label: 'воспитатели' },
@@ -749,8 +709,8 @@ const UsersLayout: React.FC = () => {
                 <EditUserModal
                     user={userForEdit}
                     roles={roles}
-                    onClose={handleCloseEditUserModal}
-                    onSuccess={handleSuccessEditUser}
+                    onClose={handleCloseEdit}
+                    onSuccess={handleSuccessEdit}
                     onError={(msg) => {
                         alert(msg);
                     }}

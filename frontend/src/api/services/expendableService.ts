@@ -2,6 +2,16 @@ import { BaseApiService } from '../core/baseApiService';
 import type { ExpendableTypeDto, PostExpendableTypeDto } from '../../types/expendableTypes';
 import type { ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto } from '../../types/expendableEquipment';
 import type { ExpendableDistributionDto } from '../../types/expendableDistribution';
+import type { PaginatedResponse } from '../../types/pagination';
+
+type GetExpendableDistributionsPageParams = {
+    page: number;
+    pageSize?: number;
+    search?: string;
+    studentIds?: number[];
+};
+
+type GetAllExpendableDistributionsParams = Omit<GetExpendableDistributionsPageParams, 'page' | 'pageSize'>;
 
 export class ExpendableService extends BaseApiService {
     getExpendableEquipment(): Promise<ExpendableEquipmentDto[]> {
@@ -16,8 +26,32 @@ export class ExpendableService extends BaseApiService {
         return this.delete<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/api/v1/Expendable/${id}`, payload);
     }
 
-    getExpendableDistributions(): Promise<ExpendableDistributionDto[]> {
-        return this.get<ExpendableDistributionDto[]>('/api/v1/Expendable/distribution');
+    getExpendableDistributions({ search, studentIds }: GetAllExpendableDistributionsParams = {}): Promise<ExpendableDistributionDto[]> {
+        const params = new URLSearchParams({
+            all: 'true',
+        });
+
+        if (search?.trim()) params.set('search', search.trim());
+        if (studentIds?.length) params.set('studentIds', studentIds.join(','));
+
+        return this.get<ExpendableDistributionDto[]>(`/api/v1/Expendable/distribution?${params.toString()}`);
+    }
+
+    getExpendableDistributionsPage({
+        page,
+        pageSize = 50,
+        search,
+        studentIds,
+    }: GetExpendableDistributionsPageParams): Promise<PaginatedResponse<ExpendableDistributionDto>> {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            pageSize: pageSize.toString(),
+        });
+
+        if (search?.trim()) params.set('search', search.trim());
+        if (studentIds?.length) params.set('studentIds', studentIds.join(','));
+
+        return this.get<PaginatedResponse<ExpendableDistributionDto>>(`/api/v1/Expendable/distribution?${params.toString()}`);
     }
 
     getExpendableTypes(): Promise<ExpendableTypeDto[]> {

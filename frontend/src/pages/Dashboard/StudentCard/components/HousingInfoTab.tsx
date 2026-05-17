@@ -4,7 +4,7 @@ import type { StudentsDto } from '../../../../types/students';
 import type { RoomDto } from '../../../../types/rooms';
 import styles from '../StudentCard.module.css';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
-import { getStudentImageSrc } from '../../../../utils/students';
+import { formatStudentName, getStudentImageSrc } from '../../../../utils/students';
 import HistoryModal from './HistoryModal';
 import { apiClient } from '../../../../api/client';
 import type { ResettlementHistoryDto } from '../../../../types/resettlements';
@@ -23,23 +23,9 @@ const getRoomStatus = (current: number, capacity: number): RoomStatus => {
 };
 
 const getGenderLabel = (gender: RoomDto['genderType']) => {
-    if (gender === null) return 'Не задан';
+    if (gender === null) return 'Смешанный';
     return gender ? 'Мужская' : 'Женская';
 };
-
-const getInitials = (student: StudentsDto): string => {
-    const initials = `${student.surname?.charAt(0) ?? ''}${student.name?.charAt(0) ?? ''}`;
-    return initials || 'нет';
-};
-
-const formatShortName = (student: StudentsDto): string => {
-    const surname = student.surname?.trim() ?? '';
-    const nameInitial = student.name ? `${student.name.trim().charAt(0)}.` : '';
-    const patronymicInitial = student.patronymic ? `${student.patronymic.trim().charAt(0)}.` : '';
-    const initials = [nameInitial, patronymicInitial].filter(Boolean).join(' ');
-    return [surname, initials].filter(Boolean).join(' ').trim() || `Студент ${student.id}`;
-};
-
 
 interface HousingInfoTabProps {
     room: RoomDto | null;
@@ -214,11 +200,13 @@ const HousingInfoTab: React.FC<HousingInfoTabProps> = ({ room, neighbours, stude
                                         {occupantImageSrc ? (
                                             <img src={occupantImageSrc} alt={occupant.surname || 'Фотография студента'} />
                                         ) : (
-                                            getInitials(occupant)
+                                            formatStudentName(occupant, { format: 'initials', emptyValue: 'нет' })
                                         )}
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                        <div className={styles.housingOccupantFIO}>{formatShortName(occupant)}</div>
+                                        <div className={styles.housingOccupantFIO}>
+                                            {formatStudentName(occupant, { format: 'short', emptyValue: `Студент ${occupant.id}` })}
+                                        </div>
                                         <div className={styles.housingOccupantMeta}>
                                             {occupant.group?.name ?? 'нет'} · {occupant.group?.course ?? 'нет'} курс
                                         </div>

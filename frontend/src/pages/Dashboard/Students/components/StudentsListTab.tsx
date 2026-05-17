@@ -8,18 +8,25 @@ import CommonTable from '../../../../components/CommonTable/CommonTable';
 import InputField from '../../../../components/InputField/InputField';
 import SelectField from '../../../../components/SelectField/SelectField';
 import ActionButton from '../../../../components/ActionButton/ActionButton';
+import { apiClient } from '../../../../api/client';
 import {
     formatBirthday,
     formatBirthdayForExport,
     formatGenderShort,
+    formatStudentName,
     getGenderLabel,
     getStudentImageSrc,
 } from '../../../../utils/students';
 
 import styles from '../Students.module.css';
 
+const PAGE_SIZE = 50;
+
 interface StudentsListTabProps {
     students: StudentsDto[];
+    totalCount: number;
+    currentPage: number;
+    onPageChange: (page: number) => void;
     groups: GroupDto[];
     buildings: BuildingDto[];
     selectedBuildingId: number | 'unassigned' | null;
@@ -202,6 +209,9 @@ export const StudentsListFilters: React.FC<StudentsListFiltersProps> = ({
 
 const StudentsListTab: React.FC<StudentsListTabProps> = ({
     students,
+    totalCount,
+    currentPage,
+    onPageChange,
     buildings,
     selectedBuildingId,
     searchTerm,
@@ -239,87 +249,72 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         const capacity = student.roomCapacity ?? 'нет';
         return `${student.blockNumber} (${capacity})`;
     };
+    const sortStudents = useCallback((items: StudentsDto[]) => {
+        const result = [...items];
 
-    const getInitials = (student: StudentsDto) => {
-        const surnameInitial = student.surname?.trim().charAt(0) ?? '';
-        const nameInitial = student.name?.trim().charAt(0) ?? '';
-        return `${surnameInitial}${nameInitial}`.toUpperCase();
-    };
-
-    const processedStudents = useMemo(() => {
-        let result = [...students];
-
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase().trim();
-            result = result.filter(student =>
-                `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.toLowerCase().includes(term) ||
-                (student.blockNumber && student.blockNumber.toLowerCase().includes(term))
-            );
+        if (!sortConfig) {
+            return result;
         }
 
-        if (selectedBuildingId === 'unassigned') {
-            result = result.filter(student => !student.buildingId && !student.roomId);
-        } else if (selectedBuildingId) {
-            result = result.filter(student => student.buildingId === selectedBuildingId);
-        }
+        const { key, direction } = sortConfig;
+        const dirMultiplier = direction === 'asc' ? 1 : -1;
 
-        if (selectedGroupId !== 'all') {
-            result = result.filter(student => student.group?.id === selectedGroupId);
-        }
-        if (selectedCourse !== 'all') {
-            result = result.filter(student => student.group?.course === selectedCourse);
-        }
-        if (selectedGender !== 'all') {
-            const genderBool = selectedGender === 'male';
-            result = result.filter(student => student.gender === genderBool);
-        }
+        result.sort((a, b) => {
+            let aValue;
+            let bValue;
 
-        if (sortConfig) {
-            const { key, direction } = sortConfig;
-            const dirMultiplier = direction === 'asc' ? 1 : -1;
-            result.sort((a, b) => {
-                let aValue;
-                let bValue;
+            switch (key) {
+                case 'fullName':
+                    aValue = formatStudentName(a).toLowerCase();
+                    bValue = formatStudentName(b).toLowerCase();
+                    break;
+                case 'group.course':
+                    aValue = a.group?.course ?? 0;
+                    bValue = b.group?.course ?? 0;
+                    break;
+                case 'gender':
+                    aValue = a.gender ? 1 : 0;
+                    bValue = b.gender ? 1 : 0;
+                    break;
+                case 'building':
+                    aValue = getStudentBuildingName(a).toLowerCase();
+                    bValue = getStudentBuildingName(b).toLowerCase();
+                    break;
+                case 'birthday':
+                    aValue = new Date(a.birthday).getTime();
+                    bValue = new Date(b.birthday).getTime();
+                    break;
+                case 'residence':
+                    aValue = formatResidenceInfo(a).toLowerCase();
+                    bValue = formatResidenceInfo(b).toLowerCase();
+                    break;
+                default:
+                    return 0;
+            }
 
-                switch (key) {
-                    case 'fullName':
-                        aValue = `${a.surname || ''} ${a.name || ''} ${a.patronymic || ''}`.trim().toLowerCase();
-                        bValue = `${b.surname || ''} ${b.name || ''} ${b.patronymic || ''}`.trim().toLowerCase();
-                        break;
-                    case 'group.course':
-                        aValue = a.group?.course ?? 0;
-                        bValue = b.group?.course ?? 0;
-                        break;
-                    case 'gender':
-                        aValue = a.gender ? 1 : 0;
-                        bValue = b.gender ? 1 : 0;
-                        break;
-                    case 'building':
-                        aValue = getStudentBuildingName(a).toLowerCase();
-                        bValue = getStudentBuildingName(b).toLowerCase();
-                        break;
-                    case 'birthday':
-                        aValue = new Date(a.birthday).getTime();
-                        bValue = new Date(b.birthday).getTime();
-                        break;
-                    case 'residence':
-                        aValue = formatResidenceInfo(a).toLowerCase();
-                        bValue = formatResidenceInfo(b).toLowerCase();
-                        break;
-                    default:
-                        return 0;
-                }
-
-                if (aValue < bValue) return -1 * dirMultiplier;
-                if (aValue > bValue) return 1 * dirMultiplier;
-                return 0;
-            });
-        }
+            if (aValue < bValue) return -1 * dirMultiplier;
+            if (aValue > bValue) return 1 * dirMultiplier;
+            return 0;
+        });
 
         return result;
-    }, [students, searchTerm, selectedBuildingId, selectedGroupId, selectedCourse, selectedGender, sortConfig]);
+    }, [sortConfig, buildingNameMap]);
 
-    const handleExportToExcel = useCallback(() => {
+    const processedStudents = useMemo(() => {
+        return sortStudents(students);
+    }, [sortStudents, students]);
+
+    const handleExportToExcel = useCallback(async () => {
+        const allStudents = await apiClient.getAllStudents({
+            search: searchTerm,
+            buildingId: typeof selectedBuildingId === 'number' ? selectedBuildingId : undefined,
+            unassigned: selectedBuildingId === 'unassigned',
+            groupId: selectedGroupId === 'all' ? undefined : selectedGroupId,
+            course: selectedCourse === 'all' ? undefined : selectedCourse,
+            gender: selectedGender === 'all' ? undefined : selectedGender === 'male',
+        });
+        const exportStudents = sortStudents(allStudents);
+
         const headerRow = [
             'ФИО',
             'Группа',
@@ -330,8 +325,8 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
             'Дата рождения',
             'Блок',
         ];
-        const bodyRows = processedStudents.map(student => ([
-            `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim(),
+        const bodyRows = exportStudents.map(student => ([
+            formatStudentName(student),
             student.group?.name ?? '',
             student.group?.course ?? '',
             formatGenderShort(student.gender),
@@ -345,10 +340,12 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Студенты');
         XLSX.writeFile(workbook, `Список_студентов_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    }, [processedStudents]);
+    }, [searchTerm, selectedBuildingId, selectedCourse, selectedGender, selectedGroupId, sortStudents]);
 
     useEffect(() => {
-        onExportReady?.(() => handleExportToExcel);
+        onExportReady?.(() => () => {
+            void handleExportToExcel();
+        });
         return () => {
             onExportReady?.(null);
         };
@@ -372,7 +369,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
             title: 'ФИО',
             sortable: true,
             render: (student: StudentsDto) => {
-                const fullName = `${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'нет';
+                const fullName = formatStudentName(student, { emptyValue: 'нет' });
                 const imageSrc = getStudentImageSrc(student.image);
                 return (
                     <div className={styles.fioCell}>
@@ -380,7 +377,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
                             {imageSrc ? (
                                 <img src={imageSrc} alt={student.surname || 'Фото студента'} />
                             ) : (
-                                <span>{getInitials(student) || 'нет'}</span>
+                                <span>{formatStudentName(student, { format: 'initials', emptyValue: 'нет' })}</span>
                             )}
                         </div>
                         <span className={styles.fioText}>{fullName}</span>
@@ -436,18 +433,27 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
         onClick: (student: StudentsDto) => onStudentClick(student.id),
     };
 
+    const rangeStart = totalCount > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
+    const rangeEnd = totalCount > 0 ? rangeStart + processedStudents.length - 1 : 0;
+
     return (
         <div>
+            <div className={styles.tableHeaderRow}>
+                <span className={styles.tableTotal}>{`Всего: с ${rangeStart} по ${rangeEnd} из ${totalCount}`}</span>
+            </div>
             <div className={styles.desktopTable}>
                 <CommonTable
                     data={processedStudents}
-                    totalCount={students.length}
+                    totalCount={totalCount}
                     columns={columns}
                     rowAction={rowAction}
                     onRowClick={(student) => onStudentClick(student.id)}
                     enableSorting={true}
                     onSortRequest={requestSort}
                     sortConfig={sortConfig}
+                    currentPage={currentPage}
+                    onPageChange={onPageChange}
+                    showPaginationSummary={false}
                     emptyMessage="Студенты не найдены"
                 />
             </div>
@@ -462,7 +468,7 @@ const StudentsListTab: React.FC<StudentsListTabProps> = ({
                             onClick={() => onStudentClick(student.id)}
                         >
                             <p className={styles.mobileCardTitle}>
-                                {`${student.surname || ''} ${student.name || ''} ${student.patronymic || ''}`.trim() || 'Нет'}
+                                {formatStudentName(student, { emptyValue: 'Нет' })}
                             </p>
                             <div className={styles.mobileCardDivider}></div>
                             <div className={styles.mobileCardRow}>

@@ -1,11 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../../api/client';
+import {
+    buildingsQueryKeys,
+    useBuildingsQuery,
+    useBuildingSummaryQuery,
+    useOverallStructureStatisticsQuery,
+} from '../../../hooks/useBuildingsQuery';
 import InputField from '../../../components/InputField/InputField';
 import ActionButton from '../../../components/ActionButton/ActionButton';
 import StatisticsCard from '../../../components/StatisticsCard/StatisticsCard';
-import type { BuildingDto, BuildingSummaryDto } from '../../../types/buildings';
-import type { OverallStructureStatisticDto } from '../../../types/structures';
+import type { BuildingDto } from '../../../types/buildings';
 
 
 import AddBuildingModal from './components/AddBuildingModal';
@@ -16,6 +22,14 @@ import structureStyles from '../Structure/Structure.module.css';
 import tabsStyles from '../../../components/Tabs/Tabs.module.css';
 
 const ACTIVE_BUILDING_STORAGE_KEY = 'active-building';
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+};
 
 type BuildingFormValidationResult = {
     nameError: string | null;
@@ -33,12 +47,7 @@ const BuildingsLayout: React.FC = () => {
     const roleName = userSession?.role?.name?.toLowerCase() ?? '';
     const isAdmin = roleName.includes('администратор');
     const navigate = useNavigate();
-    const [buildings, setBuildings] = useState<BuildingDto[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [summaryStats, setSummaryStats] = useState<OverallStructureStatisticDto | null>(null);
-    const [summaryLoading, setSummaryLoading] = useState(true);
-    const [summaryError, setSummaryError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newBuildingName, setNewBuildingName] = useState('');
@@ -52,9 +61,6 @@ const BuildingsLayout: React.FC = () => {
     const [isAdding, setIsAdding] = useState(false);
     const [isBuildingModalOpen, setIsBuildingModalOpen] = useState(false);
     const [selectedBuilding, setSelectedBuilding] = useState<BuildingDto | null>(null);
-    const [buildingSummary, setBuildingSummary] = useState<BuildingSummaryDto | null>(null);
-    const [buildingSummaryLoading, setBuildingSummaryLoading] = useState(false);
-    const [buildingSummaryError, setBuildingSummaryError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editName, setEditName] = useState('');
     const [editAddress, setEditAddress] = useState('');
@@ -66,6 +72,18 @@ const BuildingsLayout: React.FC = () => {
     const [editLongitudeError, setEditLongitudeError] = useState<string | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const { data: buildings = [], isLoading: loading, error: buildingsError } = useBuildingsQuery();
+    const { data: summaryStats, isLoading: summaryLoading, error: summaryError } = useOverallStructureStatisticsQuery();
+    const {
+        data: buildingSummary,
+        isLoading: buildingSummaryLoading,
+        error: buildingSummaryError,
+    } = useBuildingSummaryQuery(selectedBuilding?.id, isBuildingModalOpen);
+    const error = buildingsError ? getErrorMessage(buildingsError, 'Не удалось загрузить здания') : null;
+    const summaryErrorMessage = summaryError ? getErrorMessage(summaryError, 'Не удалось загрузить статистику') : null;
+    const buildingSummaryErrorMessage = buildingSummaryError
+        ? getErrorMessage(buildingSummaryError, 'Не удалось загрузить данные здания')
+        : null;
 
     const parseCoordinateInput = (value: string) => {
         const trimmed = value.trim();
@@ -132,24 +150,6 @@ const BuildingsLayout: React.FC = () => {
     };
 
     useEffect(() => {
-        const loadBuildings = async () => {
-            try {
-                setLoading(true);
-                const response = await apiClient.getAllBuildings();
-                setBuildings(response);
-                setError(null);
-            } catch (err: any) {
-                console.error('Ошибка при загрузке зданий:', err);
-                setError(err?.message || 'Не удалось загрузить здания');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadBuildings();
-    }, []);
-
-    useEffect(() => {
         if (typeof window === 'undefined') {
             return;
         }
@@ -168,24 +168,6 @@ const BuildingsLayout: React.FC = () => {
             // Ignore invalid session storage.
         }
     }, [navigate]);
-
-    useEffect(() => {
-        const loadSummary = async () => {
-            try {
-                setSummaryLoading(true);
-                const response = await apiClient.getStructuresStatistics();
-                setSummaryStats(response);
-                setSummaryError(null);
-            } catch (err: any) {
-                console.error('Ошибка при загрузке общей статистики:', err);
-                setSummaryError(err?.message || 'Не удалось загрузить статистику');
-            } finally {
-                setSummaryLoading(false);
-            }
-        };
-
-        loadSummary();
-    }, []);
 
     const filteredBuildings = useMemo(() => {
         const normalized = searchTerm.trim().toLowerCase();
@@ -227,48 +209,31 @@ const BuildingsLayout: React.FC = () => {
         });
     }, [navigate]);
 
-    const handleOpenBuildingModal = useCallback(async (building: BuildingDto) => {
+    const handleOpenBuildingModal = useCallback((building: BuildingDto) => {
         setSelectedBuilding(building);
         setIsBuildingModalOpen(true);
-        setBuildingSummary(null);
-        setBuildingSummaryError(null);
-
-        try {
-            setBuildingSummaryLoading(true);
-            const summary = await apiClient.getBuildingSummary(building.id);
-            setBuildingSummary(summary);
-        } catch (err: any) {
-            console.error('Ошибка при загрузке сводки здания:', err);
-            setBuildingSummaryError(err?.message || 'Не удалось загрузить данные здания');
-        } finally {
-            setBuildingSummaryLoading(false);
-        }
     }, []);
 
     const handleCloseBuildingModal = () => {
         setIsBuildingModalOpen(false);
         setSelectedBuilding(null);
-        setBuildingSummary(null);
-        setBuildingSummaryError(null);
-        setBuildingSummaryLoading(false);
     };
 
     const searchBar = (
         <div className={`${tabsStyles.tabsSurface} ${styles.searchBarSurface}`}>
-            <div className={structureStyles.searchSection}>
-                <div className={`${structureStyles.searchControls} ${styles.searchControls}`}>
-                    <div className={structureStyles.searchInputWrapper}>
+            <div className={styles.searchPanelRow}>
+                <div className={styles.searchLeft}>
+                    <div className={styles.searchInputWrapper}>
                         <InputField
                             type="text"
-                            placeholder="Поиск по названию или адресу..."
+                            placeholder="Поиск..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                            onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
-                    <div className={structureStyles.searchButtons}>
+                    <div className={styles.searchButtons}>
                         <ActionButton
-                            size="md"
-                            variant="secondary"
+                            size='md'
+                            variant='secondary'
                             onClick={() => setSearchTerm('')}
                             className={styles.resetButton}
                         >
@@ -400,7 +365,7 @@ const BuildingsLayout: React.FC = () => {
 
         setIsAdding(true);
         try {
-            const created = await apiClient.createBuilding({
+            await apiClient.createBuilding({
                 name,
                 address,
                 coordinates: {
@@ -408,7 +373,10 @@ const BuildingsLayout: React.FC = () => {
                     longitude: validation.longitude,
                 },
             });
-            setBuildings(prev => [created, ...prev]);
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.lists() }),
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.statistics() }),
+            ]);
             handleCloseAddModal();
         } catch (err: any) {
             console.error('Ошибка при добавлении здания:', err);
@@ -448,8 +416,13 @@ const BuildingsLayout: React.FC = () => {
                     longitude: validation.longitude,
                 },
             });
-            setBuildings(prev => prev.map(item => (item.id === updated.id ? updated : item)));
             setSelectedBuilding(updated);
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.lists() }),
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.statistics() }),
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.summary(updated.id) }),
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.detail(updated.id) }),
+            ]);
             if (typeof window !== 'undefined') {
                 const stored = sessionStorage.getItem(ACTIVE_BUILDING_STORAGE_KEY);
                 if (stored) {
@@ -488,7 +461,10 @@ const BuildingsLayout: React.FC = () => {
         setIsDeleting(true);
         try {
             await apiClient.deleteBuilding(selectedBuilding.id);
-            setBuildings(prev => prev.filter(item => item.id !== selectedBuilding.id));
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.lists() }),
+                queryClient.invalidateQueries({ queryKey: buildingsQueryKeys.statistics() }),
+            ]);
             if (typeof window !== 'undefined') {
                 const stored = sessionStorage.getItem(ACTIVE_BUILDING_STORAGE_KEY);
                 if (stored) {
@@ -526,7 +502,7 @@ const BuildingsLayout: React.FC = () => {
     return (
         <>
             {!summaryLoading && summaryError && (
-                <div className="alert alert-danger m-3">{summaryError}</div>
+                <div className="alert alert-danger m-3">{summaryErrorMessage}</div>
             )}
             {!summaryLoading && !summaryError && summaryStats && (
                 <div className={styles.summarySection}>
@@ -547,9 +523,9 @@ const BuildingsLayout: React.FC = () => {
                 isOpen={isBuildingModalOpen}
                 onClose={handleCloseBuildingModal}
                 selectedBuilding={selectedBuilding}
-                buildingSummary={buildingSummary}
+                buildingSummary={buildingSummary ?? null}
                 buildingSummaryLoading={buildingSummaryLoading}
-                buildingSummaryError={buildingSummaryError}
+                buildingSummaryError={buildingSummaryErrorMessage}
                 isAdmin={isAdmin}
                 isDeleting={isDeleting}
                 onDelete={handleDeleteBuilding}

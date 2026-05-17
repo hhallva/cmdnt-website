@@ -43,6 +43,10 @@ interface CommonTableProps<T> {
     rowAction?: RowActionConfig<T>;
     onRowClick?: (item: T) => void;
     rowActionOpenOnRowClick?: boolean;
+    pageSize?: number;
+    currentPage?: number;
+    onPageChange?: (page: number) => void;
+    showPaginationSummary?: boolean;
 }
 
 const CommonTable = <T extends Record<string, any>>({
@@ -51,12 +55,17 @@ const CommonTable = <T extends Record<string, any>>({
     columns,
     emptyMessage = 'Данные не найдены',
     className = '',
+    totalCount,
     enableSorting = false,
     onSortRequest,
     sortConfig,
     rowAction,
     onRowClick,
     rowActionOpenOnRowClick = false,
+    pageSize = 50,
+    currentPage,
+    onPageChange,
+    showPaginationSummary = true,
 }: CommonTableProps<T>) => {
     // Универсальный резолвер значения по ключу или dot-path (group.name)
     const getValueByPath = (obj: T, path: string | keyof T) =>
@@ -90,16 +99,46 @@ const CommonTable = <T extends Record<string, any>>({
     // Обрабатываем отображение всплывающего меню действий
     const triggerButtonRef = useRef<HTMLElement | null>(null);
     const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
+    const [internalPage, setInternalPage] = useState(1);
     const closeRowActionMenu = useCallback(() => {
         setActiveRowIndex(null);
         triggerButtonRef.current = null;
     }, []);
 
+    const isServerPaginated = typeof currentPage === 'number' && typeof onPageChange === 'function';
+    const totalItems = isServerPaginated ? (totalCount ?? data.length) : data.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const resolvedPage = isServerPaginated ? Math.min(Math.max(currentPage ?? 1, 1), totalPages) : Math.min(internalPage, totalPages);
+
+    const paginatedData = useMemo(() => {
+        if (isServerPaginated) {
+            return data;
+        }
+
+        const startIndex = (resolvedPage - 1) * pageSize;
+        return data.slice(startIndex, startIndex + pageSize);
+    }, [data, isServerPaginated, pageSize, resolvedPage]);
+
     useEffect(() => {
-        if (activeRowIndex !== null && activeRowIndex >= data.length) {
+        if (isServerPaginated) {
+            return;
+        }
+
+        const nextPage = Math.min(Math.max(internalPage, 1), totalPages);
+        if (nextPage !== internalPage) {
+            setInternalPage(nextPage);
+        }
+    }, [internalPage, isServerPaginated, totalPages]);
+
+    useEffect(() => {
+        closeRowActionMenu();
+    }, [closeRowActionMenu, resolvedPage]);
+
+    useEffect(() => {
+        if (activeRowIndex !== null && activeRowIndex >= paginatedData.length) {
             closeRowActionMenu();
         }
-    }, [activeRowIndex, closeRowActionMenu, data.length]);
+    }, [activeRowIndex, closeRowActionMenu, paginatedData.length]);
 
     const hasRowAction = Boolean(rowAction);
     const getVisibleMenuActions = (item: T) =>
@@ -146,7 +185,70 @@ const CommonTable = <T extends Record<string, any>>({
         setActiveRowIndex(rowIndex);
     };
 
-    const activeRowItem = activeRowIndex !== null ? data[activeRowIndex] : null;
+    const handlePageChange = useCallback((page: number) => {
+        const nextPage = Math.min(Math.max(page, 1), totalPages);
+        if (nextPage === resolvedPage) {
+            return;
+        }
+
+        if (isServerPaginated) {
+            onPageChange?.(nextPage);
+            return;
+        }
+
+        setInternalPage(nextPage);
+    }, [isServerPaginated, onPageChange, resolvedPage, totalPages]);
+
+    const paginationItems = useMemo(() => {
+        if (totalPages <= 1) {
+            return [] as Array<number | string>;
+        }
+
+        const visiblePages = new Set<number>();
+        visiblePages.add(1);
+
+        if (totalPages <= 7) {
+            for (let page = 2; page <= totalPages; page += 1) {
+                visiblePages.add(page);
+            }
+        } else if (resolvedPage <= 4) {
+            [2, 3, 4, 5, totalPages].forEach(page => visiblePages.add(page));
+        } else if (resolvedPage >= totalPages - 3) {
+            [1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages].forEach(page => {
+                if (page >= 1) {
+                    visiblePages.add(page);
+                }
+            });
+        } else {
+            [1, resolvedPage - 1, resolvedPage, resolvedPage + 1, totalPages].forEach(page => visiblePages.add(page));
+        }
+
+        const sortedPages = Array.from(visiblePages).sort((left, right) => left - right);
+        const items: Array<number | string> = [];
+
+        sortedPages.forEach((page, index) => {
+            const previousPage = sortedPages[index - 1];
+            if (previousPage && page - previousPage > 1) {
+                items.push(`ellipsis-${previousPage}-${page}`);
+            }
+            items.push(page);
+        });
+
+        return items;
+    }, [resolvedPage, totalPages]);
+
+    const paginationSummary = useMemo(() => {
+        if (totalPages <= 1 || totalItems === 0) {
+            return null;
+        }
+
+        const startItem = (resolvedPage - 1) * pageSize + 1;
+        const endItem = startItem + paginatedData.length - 1;
+
+        return `Всего: с ${startItem} по ${endItem} из ${totalItems}`;
+    }, [paginatedData.length, pageSize, resolvedPage, totalItems, totalPages]);
+
+    const activeRowItem = activeRowIndex !== null ? paginatedData[activeRowIndex] : null;
     const activeMenuItems = useMemo<ActionMenuItem[]>(() => {
         if (!activeRowItem) {
             return [];
@@ -182,8 +284,8 @@ const CommonTable = <T extends Record<string, any>>({
                     </thead>
                     <tbody>
                         {/*Данные таблицы*/}
-                        {data.length ? (
-                            data.map((item, rowIndex) => (
+                        {paginatedData.length ? (
+                            paginatedData.map((item, rowIndex) => (
                                 <tr
                                     key={rowIndex}
                                     className={(onRowClick || rowActionOpenOnRowClick) ? styles.clickableRow : undefined}
@@ -193,7 +295,7 @@ const CommonTable = <T extends Record<string, any>>({
                                         }
                                     }}
                                 >
-                                    <td className={styles.indexColumn}>{rowIndex + 1}</td>
+                                    <td className={styles.indexColumn}>{(resolvedPage - 1) * pageSize + rowIndex + 1}</td>
                                     {columns.map((column, colIndex) => (
                                         <td key={colIndex} className={column.className}>
                                             {column.render ? column.render(item) : getValueByPath(item, column.key) ?? 'Нет'}
@@ -222,6 +324,46 @@ const CommonTable = <T extends Record<string, any>>({
                     </tbody>
                 </table>
             </div>
+            {totalPages > 1 && (
+                <div className={styles.paginationSection}>
+                    {showPaginationSummary && paginationSummary && (
+                        <div className={styles.paginationSummary}>{paginationSummary}</div>
+                    )}
+                    <div className={styles.pagination}>
+                        <button
+                            type="button"
+                            className={styles.paginationButton}
+                            onClick={() => handlePageChange(resolvedPage - 1)}
+                            disabled={resolvedPage === 1}
+                            aria-label="Перейти на предыдущую страницу"
+                        >
+                            <i className="bi bi-chevron-left"></i>
+                        </button>
+                        {paginationItems.map(item => typeof item === 'number' ? (
+                            <button
+                                key={item}
+                                type="button"
+                                className={`${styles.paginationButton} ${styles.paginationPage} ${resolvedPage === item ? styles.paginationButtonActive : ''}`}
+                                onClick={() => handlePageChange(item)}
+                                aria-current={resolvedPage === item ? 'page' : undefined}
+                            >
+                                {item}
+                            </button>
+                        ) : (
+                            <span key={item} className={styles.paginationEllipsis}>...</span>
+                        ))}
+                        <button
+                            type="button"
+                            className={styles.paginationButton}
+                            onClick={() => handlePageChange(resolvedPage + 1)}
+                            disabled={resolvedPage === totalPages}
+                            aria-label="Перейти на следующую страницу"
+                        >
+                            <i className="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            )}
             <ActionMenu
                 isOpen={Boolean(activeRowItem && activeMenuItems.length > 0)}
                 anchorRef={triggerButtonRef}

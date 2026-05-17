@@ -1,19 +1,19 @@
 // src/hooks/useRoomData.ts
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
 import type { StudentsDto } from '../types/students';
-import type { RoomDto } from '../types/rooms';
-import { useAsyncResource } from './shared/useAsyncResource';
+
+const roomQueryKeys = {
+    detail: (roomId: number | null) => ['room', roomId] as const,
+};
 
 export const useRoomData = (roomId: number | null, enabled: boolean) => {
-    const initialData: { room: RoomDto | null; neighbours: StudentsDto[] } = {
-        room: null,
-        neighbours: [],
-    };
-
-    const { data, loading, error, refetch } = useAsyncResource({
-        enabled: enabled && roomId !== null,
-        initialData,
-        loader: async () => {
+    const isEnabled = enabled && roomId !== null;
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: roomQueryKeys.detail(roomId),
+        enabled: isEnabled,
+        queryFn: async () => {
             const [room, neighbours] = await Promise.all([
                 apiClient.getRoomById(roomId as number),
                 apiClient.getStudentsByRoomId(roomId as number),
@@ -21,14 +21,17 @@ export const useRoomData = (roomId: number | null, enabled: boolean) => {
 
             return { room, neighbours };
         },
-        deps: [roomId, enabled],
     });
 
+    const refetchRoomData = useCallback(() => {
+        void refetch();
+    }, [refetch]);
+
     return {
-        room: data.room,
-        neighbours: data.neighbours,
-        loading,
-        error,
-        refetch,
+        room: data?.room ?? null,
+        neighbours: data?.neighbours ?? ([] as StudentsDto[]),
+        loading: isLoading,
+        error: error instanceof Error ? error.message : null,
+        refetch: refetchRoomData,
     };
 };

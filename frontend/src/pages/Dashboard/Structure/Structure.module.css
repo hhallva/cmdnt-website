@@ -319,16 +319,6 @@
     opacity: 1;
 }
 
-
-.tablePlain {
-    padding: 0;
-    box-shadow: none;
-}
-
-.tablePlain table {
-    background: var(--color-transparent);
-}
-
 .tableActionCell {
     text-align: right;
 }
@@ -338,7 +328,7 @@
 }
 
 .tableNumericCell {
-    width: 80px;
+width: 80px;
     text-align: center;
 }
 
@@ -397,7 +387,7 @@
 .addRoomActions {
     display: flex;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     gap: 0.75rem;
 }

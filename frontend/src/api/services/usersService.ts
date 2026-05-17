@@ -4,6 +4,14 @@ import type { UserStatisticDto } from '../../types/UserStatisticDto';
 import type { UpdateUserDto } from '../../types/UpdateUserDto';
 import type { PostUserDto } from '../../types/PostUserDto';
 import type { BuildingDto } from '../../types/buildings';
+import type { PaginatedResponse } from '../../types/pagination';
+
+type GetUsersPageParams = {
+    page: number;
+    pageSize?: number;
+    search?: string;
+    roleId?: number;
+};
 
 export class UsersService extends BaseApiService {
     getUserStatistics(): Promise<UserStatisticDto> {
@@ -11,7 +19,19 @@ export class UsersService extends BaseApiService {
     }
 
     getAllUsers(): Promise<UserDto[]> {
-        return this.get<UserDto[]>('/api/v1/Users');
+        return this.get<UserDto[]>('/api/v1/Users?all=true');
+    }
+
+    getUsersPage({ page, pageSize = 50, search, roleId }: GetUsersPageParams): Promise<PaginatedResponse<UserDto>> {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            pageSize: pageSize.toString(),
+        });
+
+        if (search?.trim()) params.set('search', search.trim());
+        if (typeof roleId === 'number') params.set('roleId', roleId.toString());
+
+        return this.get<PaginatedResponse<UserDto>>(`/api/v1/Users?${params.toString()}`);
     }
 
     getUserById(id: number): Promise<UserDto> {

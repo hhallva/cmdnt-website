@@ -24,15 +24,84 @@ namespace API.Controllers
         [HttpGet]
         [SwaggerOperation(Summary = "Получение списка всех студентов", Description = "Возвращает полный список студентов, включая данные об их учебной группе и закреплённых комнатах.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Список студентов успешно получен.", Type = typeof(IEnumerable<StudentDto>))]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudents()
+        public async Task<IActionResult> GetAllStudents(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] bool all = false,
+            [FromQuery] string? search = null,
+            [FromQuery] int? buildingId = null,
+            [FromQuery] bool unassigned = false,
+            [FromQuery] int? groupId = null,
+            [FromQuery] int? course = null,
+            [FromQuery] bool? gender = null)
         {
-            var students = await _context.Students
+            if (page <= 0)
+                return BadRequest(new ApiErrorDto("Номер страницы должен быть больше 0", StatusCodes.Status400BadRequest));
+
+            var normalizedPageSize = pageSize > 0 ? pageSize : 50;
+
+            var query = _context.Students
+                .AsNoTracking()
                 .Include(s => s.Resettlements)
                     .ThenInclude(r => r.Room)
                 .Include(s => s.Group)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchPattern = $"%{search.Trim()}%";
+                query = query.Where(s =>
+                    EF.Functions.Like(s.Surname, searchPattern)
+                    || EF.Functions.Like(s.Name, searchPattern)
+                    || (s.Patronymic != null && EF.Functions.Like(s.Patronymic, searchPattern)));
+            }
+
+            if (unassigned)
+            {
+                query = query.Where(s => !s.Resettlements.Any(r => r.CheckInDate.HasValue && !r.CheckOutDate.HasValue));
+            }
+            else if (buildingId.HasValue)
+            {
+                query = query.Where(s => s.Resettlements.Any(r =>
+                    r.CheckInDate.HasValue
+                    && !r.CheckOutDate.HasValue
+                    && r.Room.BuildingId == buildingId.Value));
+            }
+
+            if (groupId.HasValue)
+                query = query.Where(s => s.GroupId == groupId.Value);
+
+            if (course.HasValue)
+                query = query.Where(s => s.Group.Course == course.Value);
+
+            if (gender.HasValue)
+                query = query.Where(s => s.Gender == gender.Value);
+
+            query = query
+                .OrderBy(s => s.Surname)
+                .ThenBy(s => s.Name)
+                .ThenBy(s => s.Patronymic)
+                .ThenBy(s => s.Id);
+
+            if (all)
+            {
+                var students = await query.ToListAsync();
+                return Ok(students.Select(s => s.ToDto()));
+            }
+
+            var totalCount = await query.CountAsync();
+            var studentsPage = await query
+                .Skip((page - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
                 .ToListAsync();
 
-            return Ok(students.Select(s => s.ToDto()));
+            return Ok(new PaginatedResponseDto<StudentDto>
+            {
+                Items = studentsPage.Select(s => s.ToDto()).ToList(),
+                Page = page,
+                PageSize = normalizedPageSize,
+                TotalCount = totalCount,
+            });
         }
 
         [HttpGet("{id}")]
@@ -309,7 +378,7 @@ namespace API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [SwaggerOperation(Summary = "Удаление данных студента", Description = "Удаляет студента из системы. При этом удаляются все связанные контакты и его заселение.")]
+        [SwaggerOperation(Summary = "Удаление данных студента", Description = "Удаляет студента из системы. При этом удаляются все связанные контакты, заметки, выдачи расходников и его заселение.")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Студент успешно удалён.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Студент не найден.", Type = typeof(ApiErrorDto))]
         public async Task<IActionResult> DeleteStudent(
@@ -317,6 +386,8 @@ namespace API.Controllers
         {
             var student = await _context.Students
                 .Include(s => s.Contacts)
+                .Include(s => s.Notes)
+                .Include(s => s.ExpendableDistributions)
                 .Include(s => s.Resettlements)
                     .ThenInclude(r => r.Room)
                 .FirstOrDefaultAsync(u => u.Id == id);
@@ -326,6 +397,15 @@ namespace API.Controllers
 
             if (student.Contacts.Count != 0)
                 _context.Contacts.RemoveRange(student.Contacts);
+
+            if (student.Notes.Count != 0)
+                _context.Notes.RemoveRange(student.Notes);
+
+            if (student.ExpendableDistributions.Count != 0)
+                _context.ExpendableDistributions.RemoveRange(student.ExpendableDistributions);
+
+            if (student.Resettlements.Count != 0)
+                _context.Resettlements.RemoveRange(student.Resettlements);
 
             _context.Students.Remove(student);
             await _context.SaveChangesAsync();
@@ -417,10 +497,6 @@ namespace API.Controllers
 
             if (activeRoomResettlements.Count >= room.Capacity)
                 return BadRequest(new ApiErrorDto("Комната переполнена", StatusCodes.Status400BadRequest));
-
-            var hasGenderConflict = activeRoomResettlements.Any(r => r.Student.Gender != student.Gender);
-            if (hasGenderConflict)
-                return BadRequest(new ApiErrorDto("Студент не может быть заселен в комнату с жильцами другого пола", StatusCodes.Status400BadRequest));
 
             var resettlement = new Resettlement
             {

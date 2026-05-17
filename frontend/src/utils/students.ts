@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import type { StudentsDto } from '../types/students';
 
 export const PHONE_REGEX = /^\+7\d{10}$/;
 
@@ -35,6 +36,51 @@ export interface SplitFullNameResult {
     name: string;
     patronymic: string;
 }
+
+export type StudentNameFormat = 'full' | 'short' | 'initials';
+
+export interface FormatStudentNameOptions {
+    format?: StudentNameFormat;
+    emptyValue?: string;
+}
+
+const normalizeNamePart = (value?: string | null): string => value?.trim() ?? '';
+
+export const formatStudentName = (
+    student: Pick<StudentsDto, 'id' | 'surname' | 'name' | 'patronymic'>,
+    options: FormatStudentNameOptions = {}
+): string => {
+    const { format = 'full', emptyValue = '' } = options;
+    const surname = normalizeNamePart(student.surname);
+    const name = normalizeNamePart(student.name);
+    const patronymic = normalizeNamePart(student.patronymic);
+
+    let formatted = '';
+
+    switch (format) {
+        case 'short': {
+            const initials = [name, patronymic]
+                .filter(Boolean)
+                .map(part => `${part.charAt(0).toUpperCase()}.`)
+                .join(' ');
+            formatted = [surname, initials].filter(Boolean).join(' ').trim();
+            break;
+        }
+        case 'initials': {
+            formatted = [surname, name]
+                .filter(Boolean)
+                .map(part => part.charAt(0).toUpperCase())
+                .join('');
+            break;
+        }
+        case 'full':
+        default:
+            formatted = [surname, name, patronymic].filter(Boolean).join(' ').trim();
+            break;
+    }
+
+    return formatted || emptyValue;
+};
 
 export const splitFullName = (fullName: string): SplitFullNameResult => {
     const parts = fullName.trim().split(/\s+/).filter(Boolean);
