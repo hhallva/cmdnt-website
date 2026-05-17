@@ -53,6 +53,28 @@ const getAcademicYearStart = (value: string): number => {
 
 const formatAcademicYear = (startYear: number): string => `${startYear} – ${startYear + 1}`;
 
+const getCalendarYear = (value: string): number => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return new Date().getFullYear();
+    }
+
+    return date.getFullYear();
+};
+
+const getHistoryGroupRange = (item: ResettlementHistoryDto): { startYear: number; endYear: number; label: string } => {
+    const startYear = getAcademicYearStart(item.checkInDate);
+    const endYear = Math.max(startYear + 1, getCalendarYear(item.checkOutDate));
+
+    return {
+        startYear,
+        endYear,
+        label: endYear === startYear + 1
+            ? formatAcademicYear(startYear)
+            : `${startYear} – ${endYear}`,
+    };
+};
+
 const HistoryModal: React.FC<HistoryModalProps> = ({
     isOpen,
     onClose,
@@ -68,21 +90,35 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
     const currentAcademicYearStart = getAcademicYearStart(new Date().toISOString());
 
     const groupedItems = useMemo(() => {
-        const groups = new Map<number, ResettlementHistoryDto[]>();
+        const groups = new Map<string, {
+            startYear: number;
+            endYear: number;
+            label: string;
+            items: ResettlementHistoryDto[];
+        }>();
+
         items.forEach((item) => {
-            const startYear = getAcademicYearStart(item.checkInDate);
-            const group = groups.get(startYear) ?? [];
-            group.push(item);
-            groups.set(startYear, group);
+            const { startYear, endYear, label } = getHistoryGroupRange(item);
+            const groupKey = `${startYear}-${endYear}`;
+            const group = groups.get(groupKey) ?? {
+                startYear,
+                endYear,
+                label,
+                items: [],
+            };
+
+            group.items.push(item);
+            groups.set(groupKey, group);
         });
 
-        return Array.from(groups.entries())
-            .sort((a, b) => b[0] - a[0])
-            .map(([startYear, groupItems]) => ({
-                startYear,
-                label: formatAcademicYear(startYear),
-                items: groupItems,
-            }));
+        return Array.from(groups.values())
+            .sort((a, b) => {
+                if (b.endYear !== a.endYear) {
+                    return b.endYear - a.endYear;
+                }
+
+                return b.startYear - a.startYear;
+            });
     }, [items]);
 
     return (
@@ -115,9 +151,9 @@ const HistoryModal: React.FC<HistoryModalProps> = ({
                 <div className={styles.historyFolders}>
                     {groupedItems.map((group) => (
                         <details
-                            key={group.startYear}
+                            key={`${group.startYear}-${group.endYear}`}
                             className={styles.historyFolder}
-                            open={group.startYear === currentAcademicYearStart}
+                            open={group.startYear <= currentAcademicYearStart && currentAcademicYearStart <= group.endYear}
                         >
                             <summary className={styles.historyFolderSummary}>
                                 <i className={`bi bi-chevron-down ${styles.historyFolderIcon}`} aria-hidden="true" />

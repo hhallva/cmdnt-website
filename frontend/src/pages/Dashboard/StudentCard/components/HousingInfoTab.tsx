@@ -23,7 +23,7 @@ const getRoomStatus = (current: number, capacity: number): RoomStatus => {
 };
 
 const getGenderLabel = (gender: RoomDto['genderType']) => {
-    if (gender === null) return 'Не задан';
+    if (gender === null) return 'Смешанный';
     return gender ? 'Мужская' : 'Женская';
 };
 
