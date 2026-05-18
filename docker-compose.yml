@@ -18,6 +18,8 @@ services:
       - db_data:/var/lib/mysql
 
   api:
+    env_file:
+    - ../cmdnt-website/.env
     build:
       context: .
       dockerfile: backend/API/Dockerfile
