@@ -1,2 +1,8 @@
 .env
 /КП/Ресурсы
+
+certs/*.crt
+certs/*.key
+
+.env.local
+.env

@@ -1,4 +1,26 @@
 services:
+  caddy:
+      image: caddy:2
+      environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      container_name: caddy
+      restart: unless-stopped
+      ports:
+        - "80:80"
+        - "443:443"
+        - "443:443/udp"  # Для HTTP/3
+      volumes:
+        - ./Caddyfile:/etc/caddy/Caddyfile:ro
+        - caddy_data:/data
+        - caddy_config:/config
+      depends_on:
+        - api
+        - frontend
+      networks:
+        - app-network
+      extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   db:
     image: mysql:8.0
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -13,13 +35,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - app-network
 
   api:
     env_file:
-    - ../cmdnt-website/.env
+      - ../cmdnt-website/.env
     build:
       context: .
       dockerfile: backend/API/Dockerfile
@@ -33,8 +56,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "5000:8080"
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -43,10 +66,9 @@ services:
       args:
         VITE_API_URL: ${FRONTEND_API_URL}
     depends_on:
-      api:
-        condition: service_started
-    ports:
-      - "5173:80"
+      - api
+    networks:
+      - app-network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -62,7 +84,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - app-network
 
 volumes:
+  caddy_data:
+  caddy_config:
   db_data:
     name: ${DB_VOLUME_NAME}
+
+networks:
+  app-network:
+    driver: bridge

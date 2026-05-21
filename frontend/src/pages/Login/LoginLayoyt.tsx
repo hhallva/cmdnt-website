@@ -62,11 +62,6 @@ const LoginPage: React.FC = () => {
 
     return (
         <div className={styles.loginPage}>
-            {/* Декорации */}
-            <div className={styles.decoration}></div>
-            <div className={styles.decoration}></div>
-            <div className={styles.decoration}></div>
-
             <div className={styles.container}>
                 <div className={styles.content}>
                     <div className={styles.logo}>
