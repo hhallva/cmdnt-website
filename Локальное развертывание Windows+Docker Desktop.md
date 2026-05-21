@@ -95,16 +95,24 @@ docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt > .\cer
 ### 2. Установка сертификата в систему
 
 Необходимо отрыть сертификат через проводник и нажать "Установить сертификат..."
-![[Pasted image 20260521193648.png]]
+
+<img width="618" height="609" alt="image" src="https://github.com/user-attachments/assets/2fb6e507-b764-4123-af34-c00e80fe0da3" />
+
 
 После выбрать "Локальный компьютер" и нажать "Далее"
-![[Pasted image 20260521193708.png]]
+
+<img width="534" height="522" alt="image" src="https://github.com/user-attachments/assets/99a7f0f2-6922-4bae-bea7-891ab039aeb0" />
+
 
 Выбираем "Поместить все сертификаты в следующее хранилище", после при помощи "Обзор" выбрать "Доверенные корневые центры сертификации и нажать "Далее"
-![[Pasted image 20260521193730.png]]
+
+<img width="535" height="517" alt="image" src="https://github.com/user-attachments/assets/224f5edd-8e46-4c8f-8dd9-df432f49d7fc" />
+
 
 Нажимаем "Готово"
-![[Pasted image 20260521194107.png]]
+
+<img width="526" height="515" alt="image" src="https://github.com/user-attachments/assets/3b234fe2-da9e-4352-8ff9-e8897cd57f9d" />
+
 
 ### 3. Перезапуск браузера полностью
 
