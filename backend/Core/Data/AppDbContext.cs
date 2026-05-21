@@ -39,7 +39,7 @@ namespace Core.Data
         {
             modelBuilder.Entity<Building>(entity =>
             {
-                entity.ToTable("Building");
+                entity.ToTable("building");
 
                 entity.Property(e => e.Address).HasMaxLength(300);
                 entity.Property(e => e.Latitude).HasColumnType("decimal(9, 6)");
@@ -49,7 +49,7 @@ namespace Core.Data
 
             modelBuilder.Entity<Contact>(entity =>
             {
-                entity.ToTable("Contact");
+                entity.ToTable("contact");
 
                 entity.Property(e => e.Comment).HasMaxLength(300);
                 entity.Property(e => e.Phone)
@@ -64,14 +64,14 @@ namespace Core.Data
 
             modelBuilder.Entity<Group>(entity =>
             {
-                entity.ToTable("Group");
+                entity.ToTable("group");
 
                 entity.Property(e => e.Name).HasMaxLength(20);
             });
 
             modelBuilder.Entity<Note>(entity =>
             {
-                entity.ToTable("Note");
+                entity.ToTable("note");
 
                 entity.Property(e => e.Text).HasMaxLength(500);
 
@@ -88,7 +88,7 @@ namespace Core.Data
 
             modelBuilder.Entity<Resettlement>(entity =>
             {
-                entity.ToTable("Resettlement");
+                entity.ToTable("resettlement");
 
                 entity.HasOne(d => d.Room).WithMany(p => p.Resettlements)
                     .HasForeignKey(d => d.RoomId)
@@ -101,7 +101,7 @@ namespace Core.Data
 
             modelBuilder.Entity<Role>(entity =>
             {
-                entity.ToTable("Role");
+                entity.ToTable("role");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(13)
@@ -110,7 +110,7 @@ namespace Core.Data
 
             modelBuilder.Entity<Room>(entity =>
             {
-                entity.ToTable("Room");
+                entity.ToTable("room");
 
                 entity.HasOne(d => d.Building).WithMany(p => p.Rooms)
                     .HasForeignKey(d => d.BuildingId)
@@ -119,7 +119,7 @@ namespace Core.Data
 
             modelBuilder.Entity<Student>(entity =>
             {
-                entity.ToTable("Student");
+                entity.ToTable("student");
 
                 entity.Property(e => e.Image).IsUnicode(false);
                 entity.Property(e => e.Name).HasMaxLength(100);
@@ -138,7 +138,7 @@ namespace Core.Data
 
             modelBuilder.Entity<User>(entity =>
             {
-                entity.ToTable("User");
+                entity.ToTable("user");
 
                 entity.Property(e => e.HashPassword)
                     .HasMaxLength(255)
@@ -156,7 +156,7 @@ namespace Core.Data
 
             modelBuilder.Entity<ExpendableDistribution>(entity =>
             {
-                entity.ToTable("ExpendableDistribution");
+                entity.ToTable("expendable_distribution");
 
                 entity.HasOne(d => d.Expendable).WithMany(p => p.ExpendableDistributions)
                     .HasForeignKey(d => d.ExpendableId)
@@ -171,7 +171,7 @@ namespace Core.Data
 
             modelBuilder.Entity<ExpendableEquipment>(entity =>
             {
-                entity.ToTable("ExpendableEquipment");
+                entity.ToTable("expendable_equipment");
 
                 entity.HasOne(d => d.Type).WithMany(p => p.ExpendableEquipments)
                     .HasForeignKey(d => d.TypeId)
@@ -181,14 +181,14 @@ namespace Core.Data
 
             modelBuilder.Entity<ExpendableType>(entity =>
             {
-                entity.ToTable("ExpendableType");
+                entity.ToTable("expendable_type");
 
                 entity.Property(e => e.Name).HasMaxLength(100);
             });
 
             modelBuilder.Entity<StationaryEquipment>(entity =>
             {
-                entity.ToTable("StationaryEquipment");
+                entity.ToTable("stationary_equipment");
 
                 entity.Property(e => e.Description).HasMaxLength(300);
                 entity.Property(e => e.InventoryNumber).HasMaxLength(6);
@@ -212,71 +212,17 @@ namespace Core.Data
             {
                 entity.HasKey(e => e.Id).HasName("PK_Type");
 
-                entity.ToTable("StationaryType");
+                entity.ToTable("stationary_type");
 
                 entity.Property(e => e.Name).HasMaxLength(100);
             });
 
             modelBuilder.Entity<Status>(entity =>
             {
-                entity.ToTable("Status");
+                entity.ToTable("status");
 
                 entity.Property(e => e.Name).HasMaxLength(9);
             });
-
-            modelBuilder.Entity<Group>().HasData(
-                 new Group { Id = 1, Name = "ИСПВ-21", Course = 4 },
-                 new Group { Id = 2, Name = "ИСПВ-22", Course = 4 },
-                 new Group { Id = 3, Name = "ИСПВ-32", Course = 3 },
-                 new Group { Id = 4, Name = "ИСПВ-42", Course = 2 },
-                 new Group { Id = 5, Name = "ИСПВ-52", Course = 1 },
-                 new Group { Id = 6, Name = "ИСПП-21", Course = 4 },
-                 new Group { Id = 7, Name = "ИСПП-31", Course = 3 },
-                 new Group { Id = 8, Name = "ИСПП-34", Course = 3 },
-                 new Group { Id = 9, Name = "ИСПП-35", Course = 3 },
-                 new Group { Id = 10, Name = "ИСПП-41", Course = 2 },
-                 new Group { Id = 11, Name = "ИСПП-43", Course = 2 },
-                 new Group { Id = 12, Name = "ИСПП-45", Course = 2 },
-                 new Group { Id = 13, Name = "ИСПП-51", Course = 1 },
-                 new Group { Id = 14, Name = "ИСПП-55", Course = 1 },
-                 new Group { Id = 15, Name = "ИСС-11", Course = 5 },
-                 new Group { Id = 16, Name = "ИСС-12", Course = 5 },
-                 new Group { Id = 17, Name = "ИСС-21", Course = 4 },
-                 new Group { Id = 18, Name = "ИСС-22", Course = 4 },
-                 new Group { Id = 19, Name = "ИСС-25", Course = 4 },
-                 new Group { Id = 20, Name = "ИСС-31", Course = 3 },
-                 new Group { Id = 21, Name = "ИСС-32", Course = 3 },
-                 new Group { Id = 22, Name = "ИСС-35", Course = 3 },
-                 new Group { Id = 23, Name = "ИСС-41", Course = 2 },
-                 new Group { Id = 24, Name = "ИСС-45", Course = 2 },
-                 new Group { Id = 25, Name = "ИСС-51", Course = 1 },
-                 new Group { Id = 26, Name = "ИСС-52", Course = 1 },
-                 new Group { Id = 27, Name = "КСК-21", Course = 4 },
-                 new Group { Id = 28, Name = "КСК-22", Course = 4 },
-                 new Group { Id = 29, Name = "КСК-31", Course = 3 },
-                 new Group { Id = 30, Name = "КСК-41", Course = 2 },
-                 new Group { Id = 31, Name = "КСК-51", Course = 1 },
-                 new Group { Id = 32, Name = "ОИБ-21", Course = 4 },
-                 new Group { Id = 33, Name = "ОИБ-31", Course = 3 },
-                 new Group { Id = 34, Name = "ОИБ-35", Course = 3 },
-                 new Group { Id = 35, Name = "ОИБ-41", Course = 2 },
-                 new Group { Id = 36, Name = "ОИБ-51", Course = 1 },
-                 new Group { Id = 37, Name = "П-41", Course = 2 },
-                 new Group { Id = 38, Name = "Р-21", Course = 4 },
-                 new Group { Id = 39, Name = "РМТ-31", Course = 3 },
-                 new Group { Id = 40, Name = "РМТ-35", Course = 3 },
-                 new Group { Id = 41, Name = "РМТ-41", Course = 2 },
-                 new Group { Id = 42, Name = "РМТ-45", Course = 2 },
-                 new Group { Id = 43, Name = "РМТ-51", Course = 1 },
-                 new Group { Id = 44, Name = "РМТ-52", Course = 1 },
-                 new Group { Id = 45, Name = "ССА-21", Course = 4 },
-                 new Group { Id = 46, Name = "ССА-22", Course = 4 },
-                 new Group { Id = 47, Name = "ССА-31", Course = 3 },
-                 new Group { Id = 48, Name = "ССА-35", Course = 3 },
-                 new Group { Id = 49, Name = "ССА-41", Course = 2 },
-                 new Group { Id = 50, Name = "ССА-51", Course = 1 },
-                 new Group { Id = 51, Name = "ССА-55", Course = 1 }
-             );
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, Name = "Администратор" },

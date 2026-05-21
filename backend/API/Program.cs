@@ -18,7 +18,7 @@ var dbHost = builder.Configuration["DB_HOST"]
     ?? throw new InvalidOperationException("DB_HOST не установлен в .env");
 var dbPort = builder.Configuration["DB_PORT"]
     ?? throw new InvalidOperationException("DB_PORT не установлен в .env");
-var dbName = builder.Configuration["DB_NAME"]   
+var dbName = builder.Configuration["DB_NAME"]
     ?? throw new InvalidOperationException("DB_NAME не установлен в .env");
 var dbUser = builder.Configuration["DB_USER"]
     ?? throw new InvalidOperationException("DB_USER не установлен в .env");
@@ -30,7 +30,7 @@ var corsOrigins = builder.Configuration["CORS_ORIGINS"]
     ?? throw new InvalidOperationException("CORS_ORIGINS не установлен в .env");
 
 var connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};User={dbUser};Password={dbPassword};";
-    
+
 builder.Services.AddResponseCompression();
 builder.Services.AddScoped<TokenService, TokenService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -112,6 +112,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.UseExceptionHandler(errorApp =>
 {

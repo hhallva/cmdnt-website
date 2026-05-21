@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260503192124_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260521082852_ChangeTableName")]
+    partial class ChangeTableName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,7 +46,7 @@ namespace Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Building", (string)null);
+                    b.ToTable("building", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Contact", b =>
@@ -73,7 +73,7 @@ namespace Core.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("Contact", (string)null);
+                    b.ToTable("contact", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.ExpendableDistribution", b =>
@@ -97,7 +97,7 @@ namespace Core.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("ExpendableDistribution", (string)null);
+                    b.ToTable("expendable_distribution", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.ExpendableEquipment", b =>
@@ -116,7 +116,7 @@ namespace Core.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("ExpendableEquipment", (string)null);
+                    b.ToTable("expendable_equipment", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.ExpendableType", b =>
@@ -132,7 +132,7 @@ namespace Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExpendableType", (string)null);
+                    b.ToTable("expendable_type", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Group", b =>
@@ -151,315 +151,7 @@ namespace Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Group", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Course = 4,
-                            Name = "ИСПВ-21"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Course = 4,
-                            Name = "ИСПВ-22"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Course = 3,
-                            Name = "ИСПВ-32"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Course = 2,
-                            Name = "ИСПВ-42"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Course = 1,
-                            Name = "ИСПВ-52"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Course = 4,
-                            Name = "ИСПП-21"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Course = 3,
-                            Name = "ИСПП-31"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Course = 3,
-                            Name = "ИСПП-34"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Course = 3,
-                            Name = "ИСПП-35"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Course = 2,
-                            Name = "ИСПП-41"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Course = 2,
-                            Name = "ИСПП-43"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Course = 2,
-                            Name = "ИСПП-45"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            Course = 1,
-                            Name = "ИСПП-51"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            Course = 1,
-                            Name = "ИСПП-55"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            Course = 5,
-                            Name = "ИСС-11"
-                        },
-                        new
-                        {
-                            Id = 16,
-                            Course = 5,
-                            Name = "ИСС-12"
-                        },
-                        new
-                        {
-                            Id = 17,
-                            Course = 4,
-                            Name = "ИСС-21"
-                        },
-                        new
-                        {
-                            Id = 18,
-                            Course = 4,
-                            Name = "ИСС-22"
-                        },
-                        new
-                        {
-                            Id = 19,
-                            Course = 4,
-                            Name = "ИСС-25"
-                        },
-                        new
-                        {
-                            Id = 20,
-                            Course = 3,
-                            Name = "ИСС-31"
-                        },
-                        new
-                        {
-                            Id = 21,
-                            Course = 3,
-                            Name = "ИСС-32"
-                        },
-                        new
-                        {
-                            Id = 22,
-                            Course = 3,
-                            Name = "ИСС-35"
-                        },
-                        new
-                        {
-                            Id = 23,
-                            Course = 2,
-                            Name = "ИСС-41"
-                        },
-                        new
-                        {
-                            Id = 24,
-                            Course = 2,
-                            Name = "ИСС-45"
-                        },
-                        new
-                        {
-                            Id = 25,
-                            Course = 1,
-                            Name = "ИСС-51"
-                        },
-                        new
-                        {
-                            Id = 26,
-                            Course = 1,
-                            Name = "ИСС-52"
-                        },
-                        new
-                        {
-                            Id = 27,
-                            Course = 4,
-                            Name = "КСК-21"
-                        },
-                        new
-                        {
-                            Id = 28,
-                            Course = 4,
-                            Name = "КСК-22"
-                        },
-                        new
-                        {
-                            Id = 29,
-                            Course = 3,
-                            Name = "КСК-31"
-                        },
-                        new
-                        {
-                            Id = 30,
-                            Course = 2,
-                            Name = "КСК-41"
-                        },
-                        new
-                        {
-                            Id = 31,
-                            Course = 1,
-                            Name = "КСК-51"
-                        },
-                        new
-                        {
-                            Id = 32,
-                            Course = 4,
-                            Name = "ОИБ-21"
-                        },
-                        new
-                        {
-                            Id = 33,
-                            Course = 3,
-                            Name = "ОИБ-31"
-                        },
-                        new
-                        {
-                            Id = 34,
-                            Course = 3,
-                            Name = "ОИБ-35"
-                        },
-                        new
-                        {
-                            Id = 35,
-                            Course = 2,
-                            Name = "ОИБ-41"
-                        },
-                        new
-                        {
-                            Id = 36,
-                            Course = 1,
-                            Name = "ОИБ-51"
-                        },
-                        new
-                        {
-                            Id = 37,
-                            Course = 2,
-                            Name = "П-41"
-                        },
-                        new
-                        {
-                            Id = 38,
-                            Course = 4,
-                            Name = "Р-21"
-                        },
-                        new
-                        {
-                            Id = 39,
-                            Course = 3,
-                            Name = "РМТ-31"
-                        },
-                        new
-                        {
-                            Id = 40,
-                            Course = 3,
-                            Name = "РМТ-35"
-                        },
-                        new
-                        {
-                            Id = 41,
-                            Course = 2,
-                            Name = "РМТ-41"
-                        },
-                        new
-                        {
-                            Id = 42,
-                            Course = 2,
-                            Name = "РМТ-45"
-                        },
-                        new
-                        {
-                            Id = 43,
-                            Course = 1,
-                            Name = "РМТ-51"
-                        },
-                        new
-                        {
-                            Id = 44,
-                            Course = 1,
-                            Name = "РМТ-52"
-                        },
-                        new
-                        {
-                            Id = 45,
-                            Course = 4,
-                            Name = "ССА-21"
-                        },
-                        new
-                        {
-                            Id = 46,
-                            Course = 4,
-                            Name = "ССА-22"
-                        },
-                        new
-                        {
-                            Id = 47,
-                            Course = 3,
-                            Name = "ССА-31"
-                        },
-                        new
-                        {
-                            Id = 48,
-                            Course = 3,
-                            Name = "ССА-35"
-                        },
-                        new
-                        {
-                            Id = 49,
-                            Course = 2,
-                            Name = "ССА-41"
-                        },
-                        new
-                        {
-                            Id = 50,
-                            Course = 1,
-                            Name = "ССА-51"
-                        },
-                        new
-                        {
-                            Id = 51,
-                            Course = 1,
-                            Name = "ССА-55"
-                        });
+                    b.ToTable("group", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Note", b =>
@@ -488,7 +180,7 @@ namespace Core.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Note", (string)null);
+                    b.ToTable("note", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Resettlement", b =>
@@ -515,7 +207,7 @@ namespace Core.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("Resettlement", (string)null);
+                    b.ToTable("resettlement", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Role", b =>
@@ -533,7 +225,7 @@ namespace Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Role", (string)null);
+                    b.ToTable("role", (string)null);
 
                     b.HasData(
                         new
@@ -575,7 +267,7 @@ namespace Core.Migrations
 
                     b.HasIndex("BuildingId");
 
-                    b.ToTable("Room", (string)null);
+                    b.ToTable("room", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.StationaryEquipment", b =>
@@ -590,8 +282,8 @@ namespace Core.Migrations
 
                     b.Property<string>("InventoryNumber")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(6)
+                        .HasColumnType("varchar(6)");
 
                     b.Property<int?>("RoomId")
                         .HasColumnType("int");
@@ -610,7 +302,7 @@ namespace Core.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("StationaryEquipment", (string)null);
+                    b.ToTable("stationary_equipment", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.StationaryType", b =>
@@ -627,7 +319,7 @@ namespace Core.Migrations
                     b.HasKey("Id")
                         .HasName("PK_Type");
 
-                    b.ToTable("StationaryType", (string)null);
+                    b.ToTable("stationary_type", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Status", b =>
@@ -643,7 +335,7 @@ namespace Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Status", (string)null);
+                    b.ToTable("status", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Student", b =>
@@ -698,7 +390,7 @@ namespace Core.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("Student", (string)null);
+                    b.ToTable("student", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.User", b =>
@@ -739,7 +431,7 @@ namespace Core.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("User", (string)null);
+                    b.ToTable("user", (string)null);
                 });
 
             modelBuilder.Entity("Core.Models.Contact", b =>

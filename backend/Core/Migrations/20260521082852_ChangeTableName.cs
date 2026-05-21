@@ -9,7 +9,7 @@ using MySql.EntityFrameworkCore.Metadata;
 namespace Core.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class ChangeTableName : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,7 @@ namespace Core.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Building",
+                name: "building",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -30,12 +30,12 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Building", x => x.Id);
+                    table.PrimaryKey("PK_building", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ExpendableType",
+                name: "expendable_type",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -44,12 +44,12 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExpendableType", x => x.Id);
+                    table.PrimaryKey("PK_expendable_type", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Group",
+                name: "group",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -59,12 +59,12 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Group", x => x.Id);
+                    table.PrimaryKey("PK_group", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Role",
+                name: "role",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -73,12 +73,12 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Role", x => x.Id);
+                    table.PrimaryKey("PK_role", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "StationaryType",
+                name: "stationary_type",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -92,7 +92,7 @@ namespace Core.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Status",
+                name: "status",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -101,12 +101,12 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Status", x => x.Id);
+                    table.PrimaryKey("PK_status", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Room",
+                name: "room",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -118,18 +118,18 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Room", x => x.Id);
+                    table.PrimaryKey("PK_room", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Room_Building",
                         column: x => x.BuildingId,
-                        principalTable: "Building",
+                        principalTable: "building",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ExpendableEquipment",
+                name: "expendable_equipment",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -139,17 +139,17 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExpendableEquipment", x => x.Id);
+                    table.PrimaryKey("PK_expendable_equipment", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ExpendableEquipment_ExpendableType",
                         column: x => x.TypeId,
-                        principalTable: "ExpendableType",
+                        principalTable: "expendable_type",
                         principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Student",
+                name: "student",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -168,17 +168,17 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Student", x => x.Id);
+                    table.PrimaryKey("PK_student", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Student_Group",
                         column: x => x.GroupId,
-                        principalTable: "Group",
+                        principalTable: "group",
                         principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "User",
+                name: "user",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -192,22 +192,22 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_User", x => x.Id);
+                    table.PrimaryKey("PK_user", x => x.Id);
                     table.ForeignKey(
                         name: "FK_User_Role",
                         column: x => x.RoleId,
-                        principalTable: "Role",
+                        principalTable: "role",
                         principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "StationaryEquipment",
+                name: "stationary_equipment",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    InventoryNumber = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false),
+                    InventoryNumber = table.Column<string>(type: "varchar(6)", maxLength: 6, nullable: false),
                     TypeId = table.Column<int>(type: "int", nullable: false),
                     StatusId = table.Column<int>(type: "int", nullable: false),
                     RoomId = table.Column<int>(type: "int", nullable: true),
@@ -215,27 +215,27 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StationaryEquipment", x => x.Id);
+                    table.PrimaryKey("PK_stationary_equipment", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Equipment_Room",
                         column: x => x.RoomId,
-                        principalTable: "Room",
+                        principalTable: "room",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Equipment_Status",
                         column: x => x.StatusId,
-                        principalTable: "Status",
+                        principalTable: "status",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Equipment_Type",
                         column: x => x.TypeId,
-                        principalTable: "StationaryType",
+                        principalTable: "stationary_type",
                         principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Contact",
+                name: "contact",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -246,17 +246,17 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Contact", x => x.Id);
+                    table.PrimaryKey("PK_contact", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Contact_Student",
                         column: x => x.StudentId,
-                        principalTable: "Student",
+                        principalTable: "student",
                         principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ExpendableDistribution",
+                name: "expendable_distribution",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -267,22 +267,22 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExpendableDistribution", x => x.Id);
+                    table.PrimaryKey("PK_expendable_distribution", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ExpendableDistribution_ExpendableEquipment",
                         column: x => x.ExpendableId,
-                        principalTable: "ExpendableEquipment",
+                        principalTable: "expendable_equipment",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ExpendableDistribution_Student",
                         column: x => x.StudentId,
-                        principalTable: "Student",
+                        principalTable: "student",
                         principalColumn: "Id");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Resettlement",
+                name: "resettlement",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -294,24 +294,24 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Resettlement", x => x.Id);
+                    table.PrimaryKey("PK_resettlement", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Resettlement_Room",
                         column: x => x.RoomId,
-                        principalTable: "Room",
+                        principalTable: "room",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Resettlement_Student",
                         column: x => x.StudentId,
-                        principalTable: "Student",
+                        principalTable: "student",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Note",
+                name: "note",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -323,81 +323,23 @@ namespace Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Note", x => x.Id);
+                    table.PrimaryKey("PK_note", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Note_Student",
                         column: x => x.StudentId,
-                        principalTable: "Student",
+                        principalTable: "student",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Note_User",
                         column: x => x.UserId,
-                        principalTable: "User",
+                        principalTable: "user",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.InsertData(
-                table: "Group",
-                columns: new[] { "Id", "Course", "Name" },
-                values: new object[,]
-                {
-                    { 1, 4, "ИСПВ-21" },
-                    { 2, 4, "ИСПВ-22" },
-                    { 3, 3, "ИСПВ-32" },
-                    { 4, 2, "ИСПВ-42" },
-                    { 5, 1, "ИСПВ-52" },
-                    { 6, 4, "ИСПП-21" },
-                    { 7, 3, "ИСПП-31" },
-                    { 8, 3, "ИСПП-34" },
-                    { 9, 3, "ИСПП-35" },
-                    { 10, 2, "ИСПП-41" },
-                    { 11, 2, "ИСПП-43" },
-                    { 12, 2, "ИСПП-45" },
-                    { 13, 1, "ИСПП-51" },
-                    { 14, 1, "ИСПП-55" },
-                    { 15, 5, "ИСС-11" },
-                    { 16, 5, "ИСС-12" },
-                    { 17, 4, "ИСС-21" },
-                    { 18, 4, "ИСС-22" },
-                    { 19, 4, "ИСС-25" },
-                    { 20, 3, "ИСС-31" },
-                    { 21, 3, "ИСС-32" },
-                    { 22, 3, "ИСС-35" },
-                    { 23, 2, "ИСС-41" },
-                    { 24, 2, "ИСС-45" },
-                    { 25, 1, "ИСС-51" },
-                    { 26, 1, "ИСС-52" },
-                    { 27, 4, "КСК-21" },
-                    { 28, 4, "КСК-22" },
-                    { 29, 3, "КСК-31" },
-                    { 30, 2, "КСК-41" },
-                    { 31, 1, "КСК-51" },
-                    { 32, 4, "ОИБ-21" },
-                    { 33, 3, "ОИБ-31" },
-                    { 34, 3, "ОИБ-35" },
-                    { 35, 2, "ОИБ-41" },
-                    { 36, 1, "ОИБ-51" },
-                    { 37, 2, "П-41" },
-                    { 38, 4, "Р-21" },
-                    { 39, 3, "РМТ-31" },
-                    { 40, 3, "РМТ-35" },
-                    { 41, 2, "РМТ-41" },
-                    { 42, 2, "РМТ-45" },
-                    { 43, 1, "РМТ-51" },
-                    { 44, 1, "РМТ-52" },
-                    { 45, 4, "ССА-21" },
-                    { 46, 4, "ССА-22" },
-                    { 47, 3, "ССА-31" },
-                    { 48, 3, "ССА-35" },
-                    { 49, 2, "ССА-41" },
-                    { 50, 1, "ССА-51" },
-                    { 51, 1, "ССА-55" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Role",
+                table: "role",
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
                 {
@@ -407,73 +349,73 @@ namespace Core.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Contact_StudentId",
-                table: "Contact",
+                name: "IX_contact_StudentId",
+                table: "contact",
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExpendableDistribution_ExpendableId",
-                table: "ExpendableDistribution",
+                name: "IX_expendable_distribution_ExpendableId",
+                table: "expendable_distribution",
                 column: "ExpendableId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExpendableDistribution_StudentId",
-                table: "ExpendableDistribution",
+                name: "IX_expendable_distribution_StudentId",
+                table: "expendable_distribution",
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExpendableEquipment_TypeId",
-                table: "ExpendableEquipment",
+                name: "IX_expendable_equipment_TypeId",
+                table: "expendable_equipment",
                 column: "TypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Note_StudentId",
-                table: "Note",
+                name: "IX_note_StudentId",
+                table: "note",
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Note_UserId",
-                table: "Note",
+                name: "IX_note_UserId",
+                table: "note",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Resettlement_RoomId",
-                table: "Resettlement",
+                name: "IX_resettlement_RoomId",
+                table: "resettlement",
                 column: "RoomId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Resettlement_StudentId",
-                table: "Resettlement",
+                name: "IX_resettlement_StudentId",
+                table: "resettlement",
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Room_BuildingId",
-                table: "Room",
+                name: "IX_room_BuildingId",
+                table: "room",
                 column: "BuildingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StationaryEquipment_RoomId",
-                table: "StationaryEquipment",
+                name: "IX_stationary_equipment_RoomId",
+                table: "stationary_equipment",
                 column: "RoomId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StationaryEquipment_StatusId",
-                table: "StationaryEquipment",
+                name: "IX_stationary_equipment_StatusId",
+                table: "stationary_equipment",
                 column: "StatusId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StationaryEquipment_TypeId",
-                table: "StationaryEquipment",
+                name: "IX_stationary_equipment_TypeId",
+                table: "stationary_equipment",
                 column: "TypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Student_GroupId",
-                table: "Student",
+                name: "IX_student_GroupId",
+                table: "student",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_User_RoleId",
-                table: "User",
+                name: "IX_user_RoleId",
+                table: "user",
                 column: "RoleId");
         }
 
@@ -481,49 +423,49 @@ namespace Core.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Contact");
+                name: "contact");
 
             migrationBuilder.DropTable(
-                name: "ExpendableDistribution");
+                name: "expendable_distribution");
 
             migrationBuilder.DropTable(
-                name: "Note");
+                name: "note");
 
             migrationBuilder.DropTable(
-                name: "Resettlement");
+                name: "resettlement");
 
             migrationBuilder.DropTable(
-                name: "StationaryEquipment");
+                name: "stationary_equipment");
 
             migrationBuilder.DropTable(
-                name: "ExpendableEquipment");
+                name: "expendable_equipment");
 
             migrationBuilder.DropTable(
-                name: "User");
+                name: "user");
 
             migrationBuilder.DropTable(
-                name: "Student");
+                name: "student");
 
             migrationBuilder.DropTable(
-                name: "Room");
+                name: "room");
 
             migrationBuilder.DropTable(
-                name: "Status");
+                name: "status");
 
             migrationBuilder.DropTable(
-                name: "StationaryType");
+                name: "stationary_type");
 
             migrationBuilder.DropTable(
-                name: "ExpendableType");
+                name: "expendable_type");
 
             migrationBuilder.DropTable(
-                name: "Role");
+                name: "role");
 
             migrationBuilder.DropTable(
-                name: "Group");
+                name: "group");
 
             migrationBuilder.DropTable(
-                name: "Building");
+                name: "building");
         }
     }
 }
