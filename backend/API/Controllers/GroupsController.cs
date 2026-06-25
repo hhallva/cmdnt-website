@@ -37,13 +37,10 @@ namespace API.Controllers
         }
 
         [HttpGet("{id}")]
-        [SwaggerOperation(
-            Summary = "Получение группы по ID",
-            Description = "Возвращает данные учебной группы по её уникальному идентификатору.")]
+        [SwaggerOperation(Summary = "Получение группы по ID", Description = "Возвращает данные учебной группы по её уникальному идентификатору.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Группа успешно найдена.", Type = typeof(GroupDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Группа с указанным ID не найдена.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<GroupDto>> GetGroup(
-            [SwaggerParameter(Description = "Уникальный идентификатор группы", Required = true)] int id)
+        public async Task<ActionResult<GroupDto>> GetGroup([SwaggerParameter(Description = "Уникальный идентификатор группы", Required = true)] int id)
         {
             var group = await _context.Groups.FindAsync(id);
 
@@ -61,13 +58,10 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        [SwaggerOperation(
-            Summary = "Создание новой группы обучения",
-            Description = "Регистрирует новую учебную группу с указанием названия и курса.")]
+        [SwaggerOperation(Summary = "Создание новой группы обучения", Description = "Регистрирует новую учебную группу с указанием названия и курса.")]
         [SwaggerResponse(StatusCodes.Status201Created, "Группа успешно создана.", Type = typeof(GroupDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Ошибка валидации или группа с таким названием уже существует.", Type = typeof(ApiErrorDto))]
-        public async Task<ActionResult<GroupDto>> PostGroup(
-            [SwaggerRequestBody("Данные новой группы", Required = true)] PostGroupDto dto)
+        public async Task<ActionResult<GroupDto>> PostGroup([SwaggerRequestBody("Данные новой группы", Required = true)] PostGroupDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
@@ -95,15 +89,44 @@ namespace API.Controllers
             return CreatedAtAction(nameof(GetGroup), new { id = group.Id }, groupDto);
         }
 
+        [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Обновление данных группы", Description = "Полное обновление данных группы по его ID.")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Данные группы успешно обновлены.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Некорректные данные в запросе.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Группа не найдена.", Type = typeof(ApiErrorDto))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Конфликт параллельного редактирования.", Type = typeof(ApiErrorDto))]
+        public async Task<IActionResult> PutGroup(
+            [SwaggerParameter(Description = "Уникальный идентификатор группы", Required = true)] int id,
+            [SwaggerRequestBody("Данные для обновления группы", Required = true)] PostGroupDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ApiErrorDto("Неправильно передан объект", StatusCodes.Status400BadRequest));
+
+            var group = await _context.Groups.FindAsync(id);
+
+            if (group == null)
+                return NotFound(new ApiErrorDto("Группа не найдена", StatusCodes.Status404NotFound));
+
+            group.Name = dto.Name;
+            group.Course = dto.Course;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return StatusCode(StatusCodes.Status409Conflict, new ApiErrorDto("Конфликт параллельного редактирования", StatusCodes.Status409Conflict));
+            }
+
+            return NoContent();
+        }
 
         [HttpDelete("{id}")]
-        [SwaggerOperation(
-            Summary = "Удаление группы обучения",
-            Description = "Удаляет учебную группу по её ID. Удаление невозможно, если в группе есть хотя бы один студент.")]
+        [SwaggerOperation(Summary = "Удаление группы обучения", Description = "Удаляет учебную группу по её ID. Удаление невозможно, если в группе есть хотя бы один студент.")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Группа успешно удалена.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Группа не найдена или содержит студентов.", Type = typeof(ApiErrorDto))]
-        public async Task<IActionResult> DeleteGroup(
-            [SwaggerParameter(Description = "Уникальный идентификатор группы", Required = true)] int id)
+        public async Task<IActionResult> DeleteGroup([SwaggerParameter(Description = "Уникальный идентификатор группы", Required = true)] int id)
         {
             var group = await _context.Groups
                  .Include(g => g.Students)
