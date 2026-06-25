@@ -4,7 +4,7 @@ import type { GroupDto, PostGroupDto, UpdateGroupDto } from '../../types/groups'
 export class GroupsService extends BaseApiService {
 
     getAllGroups(): Promise<GroupDto[]> {
-        return this.get<GroupDto[]>(`/v1/Groups}`);
+        return this.get<GroupDto[]>(`/v1/Groups`);
     }
 
     getGroupById(id: number): Promise<GroupDto> {

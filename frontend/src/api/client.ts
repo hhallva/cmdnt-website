@@ -6,6 +6,7 @@ import { BuildingsService } from './services/buildingsService';
 import { RoomsService } from './services/roomsService';
 import { StationaryService } from './services/stationaryService';
 import { ExpendableService } from './services/expendableService';
+import { GroupsService } from './services/groupsService';
 
 type AnyService = object;
 
@@ -31,6 +32,7 @@ const buildingsService = new BuildingsService(httpClient);
 const roomsService = new RoomsService(httpClient);
 const stationaryService = new StationaryService(httpClient);
 const expendableService = new ExpendableService(httpClient);
+const groupService = new GroupsService(httpClient);
 
 export type ApiClient = Pick<HttpClient, 'requestWithAuth'>
     & AuthService
@@ -39,7 +41,8 @@ export type ApiClient = Pick<HttpClient, 'requestWithAuth'>
     & BuildingsService
     & RoomsService
     & StationaryService
-    & ExpendableService;
+    & ExpendableService
+    & GroupsService;
 
 export const apiClient = {
     requestWithAuth: httpClient.requestWithAuth.bind(httpClient),
@@ -50,4 +53,5 @@ export const apiClient = {
     ...bindServiceMethods(roomsService),
     ...bindServiceMethods(stationaryService),
     ...bindServiceMethods(expendableService),
+    ...bindServiceMethods(groupService),
 } as ApiClient;

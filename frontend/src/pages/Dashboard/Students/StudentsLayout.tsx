@@ -17,6 +17,9 @@ import {
     type StudentsFilters,
 } from '../../../hooks/useStudentsQuery';
 import styles from './Students.module.css';
+import GroupsTab from './components/GroupsTab';
+import InputField from '../../../components/InputField/InputField';
+import ActionButton from '../../../components/ActionButton/ActionButton';
 
 const STUDENTS_TAB_STORAGE_KEY = 'students-active-tab';
 const STUDENTS_DEFAULT_TAB_ID = 'list';
@@ -40,6 +43,9 @@ const StudentsLayout: React.FC = () => {
     const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'all'>('all');
     const [exportHandler, setExportHandler] = useState<(() => void) | null>(null);
 
+    const [groupSearchTerm, setGroupSearchTerm] = useState('');
+
+
     const navigate = useNavigate();
     const location = useLocation();
     const queryClient = useQueryClient();
@@ -47,6 +53,7 @@ const StudentsLayout: React.FC = () => {
     const userSessionStr = typeof window !== 'undefined' ? sessionStorage.getItem('userSession') : null;
     const userSession: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
     const isEducator = userSession?.role?.name?.toLowerCase()?.includes('воспитатель') ?? false;
+    const isAdmin = userSession?.role?.name?.toLowerCase()?.includes('администратор') ?? false;
 
     const [activeTabId, setActiveTabId] = useState<string>(() => {
         if (typeof window === 'undefined') {
@@ -83,6 +90,12 @@ const StudentsLayout: React.FC = () => {
         setStudentsPage(1);
         setter(nextValue);
     }, []);
+
+
+    const handleGroupReset = useCallback(() => {
+        setGroupSearchTerm('');
+    }, []);
+
 
     const handleSearchTermChange = useCallback((value: string) => {
         updateStudentsPage(value, setSearchTerm);
@@ -139,6 +152,32 @@ const StudentsLayout: React.FC = () => {
     };
 
     const canUseImportTab = !isEducator && !isMobileViewport;
+
+    const groupsSearchBar = (
+        <div className={styles.searchPanelRow}>
+            <div className={styles.searchLeft}>
+                <div className={styles.searchInputWrapper}>
+                    <InputField
+                        label=""
+                        type="text"
+                        placeholder="Поиск..."
+                        value={groupSearchTerm}
+                        onChange={(event) => setGroupSearchTerm(event.target.value)}
+                    />
+                </div>
+                <div className={styles.searchButtons}>
+                    <ActionButton
+                        variant="secondary"
+                        size="md"
+                        onClick={handleGroupReset}
+                        className={styles.resetButton}
+                    >
+                        Сбросить
+                    </ActionButton>
+                </div>
+            </div>
+        </div>
+    );
 
     const tabs = useMemo(() => {
         const items: Array<{ id: string; title: string; headerContent: React.ReactNode | null, content: React.ReactNode }> = [
@@ -215,12 +254,25 @@ const StudentsLayout: React.FC = () => {
             });
         }
 
+        if (isAdmin) {
+            items.push({
+                id: 'groups',
+                title: 'Группы',
+                headerContent: groupsSearchBar,
+                content: (
+                    <GroupsTab searchTerm={groupSearchTerm} />
+                ),
+            });
+        }
+
+
         return items;
     }, [
         students,
         studentsTotalCount,
         studentsPage,
         groups,
+        groupSearchTerm,
         buildings,
         selectedBuildingId,
         searchTerm,
