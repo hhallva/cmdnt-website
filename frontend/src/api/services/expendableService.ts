@@ -15,15 +15,15 @@ type GetAllExpendableDistributionsParams = Omit<GetExpendableDistributionsPagePa
 
 export class ExpendableService extends BaseApiService {
     getExpendableEquipment(): Promise<ExpendableEquipmentDto[]> {
-        return this.get<ExpendableEquipmentDto[]>('/api/v1/Expendable');
+        return this.get<ExpendableEquipmentDto[]>('/v1/Expendable');
     }
 
     addExpendableEquipment(id: number, payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
-        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/api/v1/Expendable/${id}`, payload);
+        return this.post<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/v1/Expendable/${id}`, payload);
     }
 
     subtractExpendableEquipment(id: number, payload: ExpendableEquipmentAdjustmentDto): Promise<ExpendableEquipmentDto> {
-        return this.delete<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/api/v1/Expendable/${id}`, payload);
+        return this.delete<ExpendableEquipmentDto, ExpendableEquipmentAdjustmentDto>(`/v1/Expendable/${id}`, payload);
     }
 
     getExpendableDistributions({ search, studentIds }: GetAllExpendableDistributionsParams = {}): Promise<ExpendableDistributionDto[]> {
@@ -34,7 +34,7 @@ export class ExpendableService extends BaseApiService {
         if (search?.trim()) params.set('search', search.trim());
         if (studentIds?.length) params.set('studentIds', studentIds.join(','));
 
-        return this.get<ExpendableDistributionDto[]>(`/api/v1/Expendable/distribution?${params.toString()}`);
+        return this.get<ExpendableDistributionDto[]>(`/v1/Expendable/distribution?${params.toString()}`);
     }
 
     getExpendableDistributionsPage({
@@ -51,26 +51,26 @@ export class ExpendableService extends BaseApiService {
         if (search?.trim()) params.set('search', search.trim());
         if (studentIds?.length) params.set('studentIds', studentIds.join(','));
 
-        return this.get<PaginatedResponse<ExpendableDistributionDto>>(`/api/v1/Expendable/distribution?${params.toString()}`);
+        return this.get<PaginatedResponse<ExpendableDistributionDto>>(`/v1/Expendable/distribution?${params.toString()}`);
     }
 
     getExpendableTypes(): Promise<ExpendableTypeDto[]> {
-        return this.get<ExpendableTypeDto[]>('/api/v1/Expendable');
+        return this.get<ExpendableTypeDto[]>('/v1/Expendable');
     }
 
     getExpendableTypeById(id: number): Promise<ExpendableTypeDto> {
-        return this.get<ExpendableTypeDto>(`/api/v1/Expendable/${id}`);
+        return this.get<ExpendableTypeDto>(`/v1/Expendable/${id}`);
     }
 
     createExpendableType(payload: PostExpendableTypeDto): Promise<ExpendableTypeDto> {
-        return this.post<ExpendableTypeDto, PostExpendableTypeDto>('/api/v1/Expendable', payload);
+        return this.post<ExpendableTypeDto, PostExpendableTypeDto>('/v1/Expendable', payload);
     }
 
     updateExpendableType(id: number, payload: ExpendableTypeDto): Promise<ExpendableTypeDto> {
-        return this.put<ExpendableTypeDto, ExpendableTypeDto>(`/api/v1/Expendable/${id}`, payload);
+        return this.put<ExpendableTypeDto, ExpendableTypeDto>(`/v1/Expendable/${id}`, payload);
     }
 
     deleteExpendableType(id: number): Promise<void> {
-        return this.delete(`/api/v1/Expendable/${id}`);
+        return this.delete(`/v1/Expendable/${id}`);
     }
 }

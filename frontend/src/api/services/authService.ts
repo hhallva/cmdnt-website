@@ -9,13 +9,13 @@ export class AuthService extends BaseApiService {
     }
 
     singIn(credentials: LoginDto): Promise<LoginResponseDto> {
-        return this.http.request<LoginResponseDto>('/api/v1/SingIn', {
+        return this.http.request<LoginResponseDto>('/v1/SingIn', {
             method: 'POST',
             body: JSON.stringify(credentials),
         });
     }
 
     getAllRoles(): Promise<RoleDto[]> {
-        return this.get<RoleDto[]>('/api/v1/Roles');
+        return this.get<RoleDto[]>('/v1/Roles');
     }
 }

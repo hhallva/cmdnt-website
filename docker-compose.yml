@@ -47,9 +47,16 @@ services:
       context: .
       dockerfile: backend/API/Dockerfile
     environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ConnectionStrings__DefaultConnection: Server=db;Port=3306;Database=${DB_NAME};User=${DB_USER};Password=${DB_PASSWORD}
       JWT__Key: ${JWT_KEY:-super-secret-key}
+      ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin}
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-admin}
       ASPNETCORE_URLS: http://+:8080
       APPLY_MIGRATIONS_ON_STARTUP: "true"
       CORS_ORIGINS: ${CORS_ORIGINS}
@@ -64,7 +71,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        VITE_API_URL: ${FRONTEND_API_URL}
+        VITE_API_URL: ${VITE_API_URL}
     depends_on:
       - api
     networks:

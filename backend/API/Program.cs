@@ -8,6 +8,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using DotNetEnv;
+using Core.Models;
+using Microsoft.AspNetCore.Identity;
+using System.Runtime.CompilerServices;
+using NuGet.Protocol;
 
 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
     Env.TraversePath().Load();
@@ -94,6 +98,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -117,6 +124,10 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    await SeedAdminUserAsync(scope.ServiceProvider, configuration);
+    await SeedExpendableTypesAsync(scope.ServiceProvider);
 }
 
 app.UseExceptionHandler(errorApp =>
@@ -140,3 +151,97 @@ app.UseExceptionHandler(errorApp =>
 });
 
 app.Run();
+
+
+static async Task SeedAdminUserAsync(IServiceProvider serviceProvider, IConfiguration configuration)
+{
+    using var scope = serviceProvider.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+
+    // Читаем настройки из переменных окружения
+    var login = configuration["ADMIN_SEED_EMAIL"] ?? "admin";
+    var adminPassword = configuration["ADMIN_SEED_PASSWORD"] ?? "admin";
+
+    var adminRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Администратор");
+    var cmdntRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Комендант");
+    var vospitRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Воспитатель");
+
+    if (adminRole == null)
+    {
+        adminRole = new Role { Name = "Администратор" };
+        dbContext.Roles.Add(adminRole);
+        await dbContext.SaveChangesAsync();
+    }
+
+    if (cmdntRole == null)
+    {
+        cmdntRole = new Role { Name = "Комендант" };
+        dbContext.Roles.Add(cmdntRole);
+        await dbContext.SaveChangesAsync();
+    }
+
+    if (vospitRole == null)
+    {
+        vospitRole = new Role { Name = "Воспитатель" };
+        dbContext.Roles.Add(vospitRole);
+        await dbContext.SaveChangesAsync();
+    }
+
+    Role role = await dbContext.Roles.FirstAsync(r => r.Name == "Администратор");
+
+    // Проверяем, существует ли пользователь с таким email
+    var existingAdmin = await dbContext.Users
+        .Include(u => u.Role)
+        .FirstOrDefaultAsync(u => u.Login == login);
+
+    if (existingAdmin != null)
+    {
+        if (existingAdmin.Role.Name != "Администратор")
+        {
+            existingAdmin.Role = role;
+            await dbContext.SaveChangesAsync();
+        }
+        return;
+    }
+
+    // Создаём нового пользователя
+    var adminUser = new User
+    {
+        Login = login,
+        HashPassword = passwordHasher.HashPassword(adminPassword),
+        Role = role,
+        Name = "Админ",
+        Surname = "Админов",
+        Patronymic = "Админович",
+    };
+
+    dbContext.Users.Add(adminUser);
+    await dbContext.SaveChangesAsync();
+}
+
+static async Task SeedExpendableTypesAsync(IServiceProvider serviceProvider)
+{
+    using var scope = serviceProvider.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Список уникальных названий постельного белья
+    var expendableTypeNames = new[]
+    {
+        "Матрас",
+        "Простынь",
+        "Одеяло",
+        "Пододеяльник",
+        "Подушка",
+        "Наволочка"
+    };
+
+    foreach (var name in expendableTypeNames)
+    {
+        var exists = await dbContext.ExpendableTypes.AnyAsync(e => e.Name == name);
+        if (!exists)
+            dbContext.ExpendableTypes.Add(new ExpendableType { Name = name });
+    }
+
+    await dbContext.SaveChangesAsync();
+}

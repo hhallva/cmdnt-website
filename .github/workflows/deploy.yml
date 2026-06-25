@@ -41,7 +41,6 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             ASPNETCORE_ENVIRONMENT=${{ secrets.ASPNETCORE_ENVIRONMENT }}
             JWT_KEY=${{ secrets.JWT_KEY }}
-            FRONTEND_API_URL=${{ secrets.FRONTEND_API_URL }}
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             DB_VOLUME_NAME=${{ secrets.DB_VOLUME_NAME }}
             EOF

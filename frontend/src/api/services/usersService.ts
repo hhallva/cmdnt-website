@@ -15,11 +15,11 @@ type GetUsersPageParams = {
 
 export class UsersService extends BaseApiService {
     getUserStatistics(): Promise<UserStatisticDto> {
-        return this.get<UserStatisticDto>('/api/v1/Users/statistic');
+        return this.get<UserStatisticDto>('/v1/Users/statistic');
     }
 
     getAllUsers(): Promise<UserDto[]> {
-        return this.get<UserDto[]>('/api/v1/Users?all=true');
+        return this.get<UserDto[]>('/v1/Users?all=true');
     }
 
     getUsersPage({ page, pageSize = 50, search, roleId }: GetUsersPageParams): Promise<PaginatedResponse<UserDto>> {
@@ -31,32 +31,32 @@ export class UsersService extends BaseApiService {
         if (search?.trim()) params.set('search', search.trim());
         if (typeof roleId === 'number') params.set('roleId', roleId.toString());
 
-        return this.get<PaginatedResponse<UserDto>>(`/api/v1/Users?${params.toString()}`);
+        return this.get<PaginatedResponse<UserDto>>(`/v1/Users?${params.toString()}`);
     }
 
     getUserById(id: number): Promise<UserDto> {
-        return this.get<UserDto>(`/api/v1/Users/${id}`);
+        return this.get<UserDto>(`/v1/Users/${id}`);
     }
 
     deleteUser(id: number): Promise<void> {
-        return this.delete(`/api/v1/Users/${id}`);
+        return this.delete(`/v1/Users/${id}`);
     }
 
     changeUserPassword(id: number, newPassword: string): Promise<void> {
-        return this.patch<void, { password: string }>(`/api/v1/Users/${id}`, {
+        return this.patch<void, { password: string }>(`/v1/Users/${id}`, {
             password: newPassword,
         });
     }
 
     updateUser(id: number, userData: UpdateUserDto): Promise<UserDto> {
-        return this.put<UserDto, UpdateUserDto>(`/api/v1/Users/${id}`, userData);
+        return this.put<UserDto, UpdateUserDto>(`/v1/Users/${id}`, userData);
     }
 
     createUser(userData: PostUserDto): Promise<UserDto> {
-        return this.post<UserDto, PostUserDto>('/api/v1/Users', userData);
+        return this.post<UserDto, PostUserDto>('/v1/Users', userData);
     }
 
     getUserBuildings(userId: number): Promise<BuildingDto[]> {
-        return this.get<BuildingDto[]>(`/api/v1/Users/${userId}/buildings`);
+        return this.get<BuildingDto[]>(`/v1/Users/${userId}/buildings`);
     }
 }
